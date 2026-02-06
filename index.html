@@ -59,5 +59,38 @@
             </svg>
         </div>
     </section>
+
+    <!-- Live Air Quality Map Section -->
+    <section id="air-quality-map" class="map-section">
+        <div class="map-container">
+            <div class="map-header">
+                <h3 class="map-title">Live Air Quality Map</h3>
+                <p class="map-subtitle">Real-time monitoring across Kathmandu Valley.</p>
+            </div>
+            <div id="map" class="leaflet-map"></div>
+            <div class="map-legend">
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #00e400;"></span>
+                    <span class="legend-text">Good (0-50)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #ffff00;"></span>
+                    <span class="legend-text">Moderate (51-100)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #ff7e00;"></span>
+                    <span class="legend-text">Unhealthy (101-150)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #ff0000;"></span>
+                    <span class="legend-text">Very Unhealthy (151-200)</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color" style="background-color: #8f3f97;"></span>
+                    <span class="legend-text">Hazardous (201+)</span>
+                </div>
+            </div>
+        </div>
+    </section>
 </body>
 </html>
