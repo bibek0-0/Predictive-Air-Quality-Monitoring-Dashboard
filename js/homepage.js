@@ -203,6 +203,7 @@ function initAirQualityMap() {
     }).addTo(mapInstance);
 
     // Load initial data (try API first, fallback to static data)
+    loadAirQualityData();
 }
 
 /**
@@ -240,7 +241,7 @@ async function loadAirQualityData() {
             data.forEach(station => {
                 station.fetchedAt = fetchedAt;
             });
-            // updateMapMarkers(data); 
+            updateMapMarkers(data); 
             // hideLoadingState(); 
             // showLastUpdateTime(); 
         } else {
@@ -300,4 +301,140 @@ function stopRealTimeUpdates() {
         clearInterval(updateIntervalId);
         updateIntervalId = null;
     }
+}
+
+/**
+ * Update map markers with new data
+ */
+function updateMapMarkers(data) {
+    if (!mapInstance) return;
+    
+    // Clear existing markers and intervals
+    mapMarkers.forEach(marker => {
+        if (marker._timestampInterval) {
+            clearInterval(marker._timestampInterval);
+        }
+        mapInstance.removeLayer(marker);
+    });
+    mapMarkers = [];
+    
+    // Filter out stations with invalid coordinates, but keep those with AQI = 0
+    const validData = data.filter(location => 
+        location && 
+        location.lat && 
+        location.lng && 
+        !isNaN(location.lat) && 
+        !isNaN(location.lng) &&
+        location.lat !== 0 && 
+        location.lng !== 0
+    );
+    
+    console.log(`Displaying ${validData.length} stations on map`);
+    
+    // Add new markers
+    validData.forEach(location => {
+        // Use gray color for stations with no AQI data
+        const aqiColor = location.aqi > 0 ? getAQIColor(location.aqi) : '#9ca3af';
+        const textColor = getTextColor(aqiColor);
+
+        // Create custom icon
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `<div style="
+                width: 24px;
+                height: 24px;
+                background-color: ${aqiColor};
+                border: 3px solid white;
+                border-radius: 50%;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            "></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        // Create marker
+        const marker = L.marker([location.lat, location.lng], {
+            icon: customIcon
+        }).addTo(mapInstance);
+
+        // Function to create popup content with current timestamps
+        const createPopupContent = (loc) => {
+            const aqiDisplay = loc.aqi > 0 ? `AQI ${loc.aqi}` : 'AQI N/A';
+            const apiTime = loc.timestamp ? formatTimestamp(loc.timestamp) : 'Unknown';
+            const fetchedTime = loc.fetchedAt ? formatTimestamp(loc.fetchedAt) : 'Just now';
+            
+            return `
+            <div class="aqi-popup" style="color: ${textColor};">
+                    <span class="aqi-emoji">${loc.emoji}</span>
+                    <span class="aqi-value">${aqiDisplay}</span>
+                    <div class="aqi-category">${loc.category}</div>
+                    <div class="aqi-message">${loc.message}</div>
+                    <div class="aqi-timestamp" style="font-size: 0.7rem; margin-top: 0.5rem; opacity: 0.9; line-height: 1.4;">
+                        ${loc.timestamp ? `<div>Data from API: ${apiTime}</div>` : ''}
+                        <div>Fetched: ${fetchedTime}</div>
+                    </div>
+            </div>
+        `;
+        };
+        
+        const popupContent = createPopupContent(location);
+
+        // Add popup (will be shown on hover)
+        marker.bindPopup(popupContent, {
+            className: 'aqi-popup-wrapper',
+            maxWidth: 140,
+            minWidth: 120,
+            autoPan: true,
+            autoPanPadding: [50, 50],
+            closeOnClick: false,
+            autoClose: false,
+            closeButton: false
+        });
+
+        // Store location data in marker for dynamic timestamp updates
+        marker._locationData = location;
+
+        // Style the popup based on AQI color when it opens
+        marker.on('popupopen', function() {
+            const popup = marker.getPopup();
+            const popupElement = popup.getElement();
+            if (popupElement && marker._locationData) {
+                // Update popup content with fresh timestamps (calculated in real-time)
+                const updatedContent = createPopupContent(marker._locationData);
+                popup.setContent(updatedContent);
+                
+                const contentWrapper = popupElement.querySelector('.leaflet-popup-content-wrapper');
+                if (contentWrapper) {
+                    contentWrapper.style.backgroundColor = aqiColor;
+                    contentWrapper.style.border = 'none';
+                    contentWrapper.style.boxShadow = `0 8px 32px ${aqiColor}40`;
+                }
+                const tip = popupElement.querySelector('.leaflet-popup-tip');
+                if (tip) {
+                    tip.style.backgroundColor = aqiColor;
+                }
+            }
+        });
+        
+        // Update popup timestamps every 30 seconds if popup is open
+        marker._timestampInterval = setInterval(() => {
+            if (marker.isPopupOpen() && marker._locationData) {
+                const popup = marker.getPopup();
+                const updatedContent = createPopupContent(marker._locationData);
+                popup.setContent(updatedContent);
+            }
+        }, 30000);
+
+        // Show popup on hover (mouseover)
+        marker.on('mouseover', function() {
+            marker.openPopup();
+        });
+
+        // Hide popup when hover out (mouseout)
+        marker.on('mouseout', function() {
+            marker.closePopup();
+        });
+        
+        mapMarkers.push(marker);
+    });
 }
