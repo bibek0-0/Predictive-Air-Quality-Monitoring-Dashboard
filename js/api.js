@@ -222,3 +222,80 @@ function transformWAQIData(waqiData) {
     };
 }
 
+/**
+ * Transform array of WAQI station data to application format
+ * Handles multiple coordinate format variations and filters invalid stations
+ */
+function transformWAQIStations(stations) {
+    if (!Array.isArray(stations)) return [];
+
+    return stations
+        .filter(station => station)  // Remove null/undefined entries
+        .map(station => {
+            // handle string values like "-", "N/A", or empty strings
+            let aqi = 0;
+            if (station.aqi !== undefined && station.aqi !== null) {
+                if (station.aqi === "-" || station.aqi === "" || station.aqi === "N/A") {
+                    aqi = 0;  // No data available
+                } else {
+                    aqi = parseInt(station.aqi) || 0;
+                }
+            }
+
+            // Extract coordinates
+            let lat = 0;
+            let lng = 0;
+
+            // Format 1: Direct lat/lon properties 
+            if (station.lat !== undefined && (station.lon !== undefined || station.lng !== undefined)) {
+                lat = parseFloat(station.lat);
+                lng = parseFloat(station.lon || station.lng);
+            }
+            // Format 2: Geo array [lng, lat] GeoJSON format (longitude first)
+            else if (Array.isArray(station.geo) && station.geo.length >= 2) {
+                lng = parseFloat(station.geo[0]);
+                lat = parseFloat(station.geo[1]);
+            }
+            // Format 3: UID format "geo:lat;lng" 
+            else if (station.uid && typeof station.uid === 'string' && station.uid.startsWith('geo:')) {
+                const geoMatch = station.uid.match(/geo:([\d.]+);([\d.]+)/);
+                if (geoMatch) {
+                    lat = parseFloat(geoMatch[1]);
+                    lng = parseFloat(geoMatch[2]);
+                }
+            }
+            // Format 4: Nested station.geo array [lng, lat]
+            else if (station.station?.geo && Array.isArray(station.station.geo)) {
+                lng = parseFloat(station.station.geo[0]);
+                lat = parseFloat(station.station.geo[1]);
+            }
+
+            const stationName = station.station?.name || station.name || 'Air Quality Station';
+
+            // Filter out stations with invalid coordinates
+            if (!lat || !lng || lat === 0 || lng === 0 || isNaN(lat) || isNaN(lng)) {
+                return null;
+            }
+
+            // Extract PM2.5 and PM10 from station data
+            const pm25 = station.iaqi?.pm25?.v || station.station?.iaqi?.pm25?.v || 0;
+            const pm10 = station.iaqi?.pm10?.v || station.station?.iaqi?.pm10?.v || 0;
+
+            return {
+                name: stationName,
+                nepali: '',
+                lat: lat,
+                lng: lng,
+                aqi: aqi,
+                category: aqi > 0 ? getAQICategory(aqi) : 'No Data',
+                emoji: aqi > 0 ? getAQIEmoji(aqi) : '📊',
+                message: aqi > 0 ? getHealthMessage(aqi) : 'No recent data available for this station.',
+                timestamp: station.time?.iso || station.time?.s || station.station?.time || new Date().toISOString(),
+                pm25: pm25,
+                pm10: pm10,
+                rawData: station  // Store raw data for detailed view
+            };
+        })
+        .filter(station => station !== null);  // Remove any null entries
+}
+
