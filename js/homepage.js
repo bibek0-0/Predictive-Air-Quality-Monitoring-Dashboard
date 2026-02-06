@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initAirQualityMap();
     
     // Start real-time data updates 
-    // startRealTimeUpdates();
+    startRealTimeUpdates();
 
     // for scroll animations
     const mapSection = document.getElementById('air-quality-map');
