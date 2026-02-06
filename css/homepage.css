@@ -146,3 +146,232 @@
     justify-content: center;
     flex-wrap: wrap;
 }
+
+.btn {
+    padding: 1rem 2.5rem;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    display: inline-block;
+    min-width: 160px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.5px;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+}
+
+.btn:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.5);
+    position: relative;
+    z-index: 1;
+}
+
+.btn-primary:hover {
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(96, 165, 250, 0.7);
+    background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+}
+
+.btn-primary:active {
+    transform: translateY(-2px) scale(1.02);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(10px);
+    position: relative;
+    z-index: 1;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 12px 32px rgba(255, 255, 255, 0.2);
+}
+
+.btn-secondary:active {
+    transform: translateY(-2px) scale(1.02);
+}
+
+[data-theme="dark"] .btn-primary {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+[data-theme="dark"] .btn-primary:hover {
+    background-color: #e2e8f0;
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.scroll-indicator.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.scroll-indicator svg {
+    animation: bounceDown 2s ease-in-out infinite;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes bounceDown {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(8px);
+    }
+}
+
+.scroll-indicator:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+.scroll-indicator:hover svg {
+    filter: drop-shadow(0 4px 8px rgba(96, 165, 250, 0.5));
+}
+
+.scroll-text {
+    font-family: 'Poppins', sans-serif;
+}
+
+[data-theme="dark"] .scroll-indicator {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar {
+        height: 56px;
+    }
+
+    .nav-container {
+        padding: 0.5rem 1rem;
+    }
+
+    .nav-right-section {
+        gap: 0.75rem;
+    }
+
+    .nav-links {
+        gap: 0.25rem;
+    }
+
+    .nav-link {
+        padding: 0.5rem 0.875rem;
+        font-size: 0.9375rem;
+    }
+
+    .logo-text {
+        font-size: 1.2rem;
+        letter-spacing: 0.3px;
+    }
+
+    .logo-icon {
+        width: 40px;
+        height: 40px;
+        padding: 3px;
+    }
+
+    .logo-image {
+        height: 40px;
+        max-width: 150px;
+    }
+
+    .hero-content {
+        padding: 1.5rem;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .btn {
+        width: 100%;
+        max-width: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar {
+        height: 52px;
+    }
+
+    .nav-links {
+        gap: 0.125rem;
+    }
+
+    .nav-link {
+        padding: 0.375rem 0.625rem;
+        font-size: 0.875rem;
+    }
+
+    .logo-text {
+        font-size: 1.1rem;
+        letter-spacing: 0.2px;
+    }
+    
+    .logo-icon {
+        width: 36px;
+        height: 36px;
+        padding: 2px;
+    }
+
+    .logo-image {
+        height: 36px;
+        max-width: 120px;
+    }
+
+    .hero {
+        min-height: 500px;
+    }
+}
