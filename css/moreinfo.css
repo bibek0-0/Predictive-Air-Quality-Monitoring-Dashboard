@@ -750,6 +750,87 @@
     background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
 }
 
+/* Responsive Design for More Info Page */
+@media (max-width: 768px) {
+    .help-info-section {
+        padding: 5rem 1.5rem 2rem;
+    }
+
+    .help-info-header {
+        margin-bottom: 2rem;
+    }
+
+    .help-info-icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 1rem;
+    }
+
+    .help-info-title {
+        font-size: 1.75rem;
+    }
+
+    .help-info-subtitle {
+        font-size: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+    }
+
+    .about-aqi-section,
+    .why-matters-section,
+    .faq-section {
+        padding: 3rem 1.5rem;
+    }
+
+    .get-in-touch-section {
+        padding: 3rem 1.5rem;
+    }
+
+    .aqi-table-wrapper {
+        padding: 1rem;
+    }
+
+    .aqi-table {
+        font-size: 0.875rem;
+    }
+
+    .aqi-table th,
+    .aqi-table td {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .aqi-content-wrapper {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .aqi-info-cards,
+    .matters-cards {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .contact-info {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .contact-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .contact-details {
+        text-align: center;
+    }
+}
+
 /* Why Air Quality Matters Section */
 .why-matters-section {
     padding: 3rem 2rem;
