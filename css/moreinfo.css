@@ -197,3 +197,144 @@
     stroke: rgba(255, 255, 255, 0.08);
     stroke-width: 1;
 }
+
+.needle-group {
+    transform-origin: 200px 200px;
+    animation: needleMove 8s linear infinite;
+    animation-fill-mode: both;
+}
+
+.gauge-needle {
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 4px rgba(0, 0, 0, 0.4));
+    transition: filter 0.3s ease;
+}
+
+@keyframes needleMove {
+    /* Green (Good) 0-50 AQI: -90° to -60° */
+    0% {
+        transform: rotate(-90deg);
+    }
+    1%, 12% {
+        transform: rotate(-90deg);
+    }
+    12.5%, 13% {
+        transform: rotate(-75deg);
+    }
+    13.5%, 24% {
+        transform: rotate(-60deg);
+    }
+    
+    /* Yellow (Moderate) 50-100 AQI: -60° to -30° */
+    24.5%, 25% {
+        transform: rotate(-45deg);
+    }
+    25.5%, 36% {
+        transform: rotate(-30deg);
+    }
+    
+    /* Orange (Unhealthy for Sensitive) 100-150 AQI: -30° to 0° */
+    36.5%, 37% {
+        transform: rotate(-15deg);
+    }
+    37.5%, 48% {
+        transform: rotate(0deg);
+    }
+    
+    /* Red (Unhealthy) 150-200 AQI: 0° to 30° */
+    48.5%, 49% {
+        transform: rotate(15deg);
+    }
+    49.5%, 60% {
+        transform: rotate(30deg);
+    }
+    
+    /* Purple (Very Unhealthy)  200-300 AQI: 30° to 60° */
+    60.5%, 61% {
+        transform: rotate(45deg);
+    }
+    61.5%, 72% {
+        transform: rotate(60deg);
+    }
+    
+    /* Dark Red (Hazardous) 300-500 AQI: 60° to 90° */
+    72.5%, 73% {
+        transform: rotate(75deg);
+    }
+    73.5%, 84% {
+        transform: rotate(90deg);
+    }
+    
+    /* Instant return to start no delay */
+    84.5%, 100% {
+        transform: rotate(-90deg);
+    }
+}
+
+.gauge-number {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    font-size: 13px;
+    font-weight: 800;
+    fill: #0f172a;
+    text-anchor: middle;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.9));
+    letter-spacing: 0.5px;
+    text-rendering: optimizeLegibility;
+}
+
+.gauge-number-center {
+    font-size: 15px;
+    font-weight: 900;
+}
+
+[data-theme="dark"] .gauge-number {
+    fill: #f8fafc;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.gauge-label-text {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    font-size: 10.5px;
+    font-weight: 800;
+    fill: #0f172a;
+    text-anchor: middle;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.95));
+    letter-spacing: 0.3px;
+    text-rendering: optimizeLegibility;
+}
+
+.gauge-label-small {
+    font-size: 9.5px;
+    fill: #0f172a;
+    font-weight: 800;
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.95));
+}
+
+.gauge-label-tiny {
+    font-size: 8px;
+    letter-spacing: 0.2px;
+    fill: #0f172a;
+    font-weight: 800;
+    filter: drop-shadow(0 2px 4px rgba(255, 255, 255, 0.95));
+}
+
+[data-theme="dark"] .gauge-label-text,
+[data-theme="dark"] .gauge-label-small,
+[data-theme="dark"] .gauge-label-tiny {
+    fill: #f8fafc;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+}
+
+.gauge-title {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    fill: #ffffff;
+    text-anchor: middle;
+    pointer-events: none;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+    text-rendering: optimizeLegibility;
+}
