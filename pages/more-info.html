@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Information - AirKTM</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/moreinfo.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo-section">
+                <img src="../assets/Untitled design.png" alt="AirKTM Logo" class="logo-image">
+            </a>
+            <div class="nav-right-section">
+                <nav class="nav-links">
+                    <a href="../index.html" class="nav-link">Home</a>
+                    <a href="realtime.html" class="nav-link">Realtime</a>
+                    <a href="#" class="nav-link">Forecast</a>
+                    <a href="alerts.html" class="nav-link">Alerts</a>
+                    <a href="more-info.html" class="nav-link active">More Info</a>
+                </nav>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                    <path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- PHCC Popup Modal -->
+    <div class="phcc-popup-overlay" id="phccPopup">
+        <div class="phcc-popup-container">
+            <button class="phcc-popup-close" id="phccPopupClose" aria-label="Close popup">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <div class="phcc-popup-close-hint" id="phccCloseHint">Click here to close</div>
+            <div class="phcc-popup-content">
+                <img src="../assets/PHCC_Understanding-Air-Quality_Rectangle-Social-Graphic_ENG.png" alt="Understanding Air Quality" class="phcc-popup-image">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
