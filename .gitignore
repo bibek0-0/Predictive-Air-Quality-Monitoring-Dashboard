@@ -1,0 +1,11 @@
+# Operating System Files
+Thumbs.db
+
+# Editor Files
+.vscode/
+
+# Dependencies
+node_modules/
+
+# Environment Variables
+.env
