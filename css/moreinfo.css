@@ -74,7 +74,7 @@
     margin: 0;
 }
 
-/* Section Header (reusable) */
+/* Section Header */
 .section-header {
     text-align: center;
     margin-bottom: 3rem;
@@ -103,7 +103,7 @@
     color: var(--text-secondary);
 }
 
-/* AQI Table (keeping for reference, can be removed later) */
+/* AQI Table */
 .aqi-table-wrapper {
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     border-radius: 12px;
@@ -178,7 +178,7 @@
     z-index: -1;
 }
 
-/* Column-specific alignment - All headers and cells centered */
+/* Column-specific alignment All headers and cells centered */
 .aqi-table th:nth-child(1),
 .aqi-table th:nth-child(2),
 .aqi-table th:nth-child(3),
