@@ -124,3 +124,45 @@ async function fetchWAQIByCoordinates(lat, lng) {
     }
 }
 
+/**
+ * Fetch multiple air quality stations within a bounding box
+ * Uses WAQI map/bounds endpoint to get all stations in a geographic area
+ */
+async function fetchWAQIStationsByBounds(lat1, lng1, lat2, lng2) {
+    try {
+        const token = API_CONFIG.waqi.token;
+        // WAQI bounds format
+        const url = `${API_CONFIG.waqi.baseURL}/map/bounds/?latlng=${lat1},${lng1},${lat2},${lng2}&token=${token}`;
+        const response = await fetch(url, { method: 'GET', mode: 'cors' });
+
+        if (!response.ok) {
+            throw new Error(`WAQI API error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status === 'error') {
+            throw new Error(`WAQI API error: ${result.data || 'Unknown error'}`);
+        }
+
+        // "nope" status means no stations in this area 
+        if (result.status === 'nope') {
+            return [];
+        }
+
+        if (result.status !== 'ok' || !result.data) {
+            throw new Error(`Invalid response from WAQI API. Status: ${result.status}`);
+        }
+
+        // Ensure data is an array 
+        if (!Array.isArray(result.data)) {
+            return [];
+        }
+
+        return result.data;
+    } catch (error) {
+        console.error(`Error fetching WAQI stations by bounds:`, error);
+        throw error;
+    }
+}
+
