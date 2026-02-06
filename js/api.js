@@ -53,3 +53,38 @@ function getHealthMessage(aqi) {
     return 'Everyone may experience serious health effects.';
 }
 
+/**
+ * Fetch air quality data from WAQI API for a specific city
+ */
+async function fetchWAQICityFeed(city = 'kathmandu') {
+    try {
+        const token = API_CONFIG.waqi.token;
+        const url = `${API_CONFIG.waqi.baseURL}/feed/${city}/?token=${token}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`WAQI API error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        // Handle different API response statuses
+        if (result.status === 'error') {
+            throw new Error(`WAQI API error: ${result.data || 'Unknown error'}`);
+        }
+
+        if (result.status === 'nope') {
+            throw new Error('No data available for this city');
+        }
+
+        if (result.status !== 'ok' || !result.data) {
+            throw new Error(`Invalid response from WAQI API. Status: ${result.status}`);
+        }
+
+        return result.data;
+    } catch (error) {
+        console.error(`Error fetching WAQI city feed for ${city}:`, error);
+        throw error;
+    }
+}
+
