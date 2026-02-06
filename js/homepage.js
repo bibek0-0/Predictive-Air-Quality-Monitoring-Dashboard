@@ -204,3 +204,100 @@ function initAirQualityMap() {
 
     // Load initial data (try API first, fallback to static data)
 }
+
+/**
+ * Load air quality data from API or use fallback
+ */
+async function loadAirQualityData() {
+    if (isLoading) return;
+    
+    isLoading = true;
+    // showLoadingState(); 
+    
+    try {
+        let data = [];
+        
+        if (typeof API_CONFIG !== 'undefined' && API_CONFIG.waqi && API_CONFIG.waqi.enabled) {
+            const waqiData = await fetchWAQINepalData();
+            if (waqiData && waqiData.length > 0) {
+                data = waqiData;
+                console.log(`✓ WAQI API: ${data.length} stations found across Nepal`);
+            } else {
+                throw new Error('No data received from WAQI API');
+            }
+        } else {
+            throw new Error('WAQI API is not enabled');
+        }
+        
+        if (data.length === 0) {
+            throw new Error('No data received from API');
+        }
+        
+        console.log(`✓ Total stations: ${data.length}`);
+        
+        if (data && data.length > 0) {
+            const fetchedAt = new Date().toISOString();
+            data.forEach(station => {
+                station.fetchedAt = fetchedAt;
+            });
+            // updateMapMarkers(data); 
+            // hideLoadingState(); 
+            // showLastUpdateTime(); 
+        } else {
+            throw new Error('No data received from API');
+        }
+    } catch (error) {
+        console.error('Error loading air quality data:', error);
+        // hideLoadingState(); 
+        // showErrorState(`Unable to load air quality data: ${error.message}`);
+    } finally {
+        isLoading = false;
+    }
+}
+
+/**
+ * Format timestamp for display 
+ */
+function formatTimestamp(timestamp) {
+    if (!timestamp) return '';
+    try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffHours < 24) return `${diffHours} hr ago`;
+        return date.toLocaleString();
+    } catch (e) {
+        return new Date(timestamp).toLocaleTimeString();
+    }
+}
+
+/**
+ * Start real-time data updates
+ */
+function startRealTimeUpdates() {
+    // Clear any existing interval
+    if (updateIntervalId) {
+        clearInterval(updateIntervalId);
+    }
+    
+    const interval = (typeof API_CONFIG !== 'undefined' && API_CONFIG.updateInterval) ? API_CONFIG.updateInterval : 60000;
+    
+    updateIntervalId = setInterval(() => {
+        loadAirQualityData();
+    }, interval);
+}
+
+/**
+ * Stop real-time updates
+ */
+function stopRealTimeUpdates() {
+    if (updateIntervalId) {
+        clearInterval(updateIntervalId);
+        updateIntervalId = null;
+    }
+}
