@@ -636,6 +636,120 @@
     font-weight: 500;
 }
 
+/* FAQ Section */
+.faq-section {
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+[data-theme="dark"] .faq-section {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.faq-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.faq-item {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(37, 99, 235, 0.1);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+}
+
+[data-theme="dark"] .faq-item {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.faq-item:hover {
+    box-shadow: 
+        0 4px 16px rgba(37, 99, 235, 0.15),
+        0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
+.faq-item.active {
+    box-shadow: 
+        0 4px 16px rgba(37, 99, 235, 0.2),
+        0 0 0 2px rgba(37, 99, 235, 0.3);
+}
+
+.faq-question {
+    width: 100%;
+    padding: 1.5rem;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-size: 1.0625rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    transition: color 0.3s ease;
+    font-family: 'Inter', 'Poppins', sans-serif;
+}
+
+.faq-question:hover {
+    color: #2563eb;
+}
+
+.faq-icon {
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+.faq-item.active .faq-icon {
+    transform: rotate(180deg);
+    color: #2563eb;
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+    padding: 0 1.5rem;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 500px;
+    padding: 0 1.5rem 1.5rem;
+}
+
+.faq-answer p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.9375rem;
+}
+
+/* Dark Mode Adjustments for More Info Page */
+[data-theme="dark"] .aqi-table-wrapper,
+[data-theme="dark"] .aqi-info-card,
+[data-theme="dark"] .matter-card,
+[data-theme="dark"] .faq-item {
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="dark"] .aqi-table th {
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.2) 0%, rgba(124, 58, 237, 0.2) 100%);
+}
+
 /* Why Air Quality Matters Section */
 .why-matters-section {
     padding: 3rem 2rem;
