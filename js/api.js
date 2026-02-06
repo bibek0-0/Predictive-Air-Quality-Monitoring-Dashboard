@@ -166,3 +166,59 @@ async function fetchWAQIStationsByBounds(lat1, lng1, lat2, lng2) {
     }
 }
 
+/**
+ * Transform single WAQI data object to application format
+ * Handles coordinate format variations (WAQI can return [lat,lng] or [lng,lat])
+ */
+function transformWAQIData(waqiData) {
+    if (!waqiData) return null;
+
+    const aqi = parseInt(waqiData.aqi || 0);
+    const geo = waqiData.city?.geo || [];
+    let lat, lng;
+
+    // WAQI can return coordinates in different formats
+    // Check if first value is > 80 or < 80 
+    if (geo.length >= 2) {
+        const first = parseFloat(geo[0]);
+        const second = parseFloat(geo[1]);
+        // For Nepal: longitude is ~85, latitude is ~27
+        if (first > 80) {
+            // GeoJSON format: [lng, lat]
+            lng = first;
+            lat = second;
+        } else {
+            // Standard format: [lat, lng]
+            lat = first;
+            lng = second;
+        }
+    } else {
+        lat = 0;
+        lng = 0;
+    }
+
+    // Extract city name 
+    const cityName = waqiData.city?.name || 'Unknown';
+    const nameMatch = cityName.match(/^([^(]+)/);
+    const name = nameMatch ? nameMatch[1].trim() : cityName;
+
+    // Extract PM2.5 and PM10 from iaqi 
+    const pm25 = waqiData.iaqi?.pm25?.v || 0;
+    const pm10 = waqiData.iaqi?.pm10?.v || 0;
+
+    return {
+        name: name,
+        nepali: '',
+        lat: lat,
+        lng: lng,
+        aqi: aqi,
+        category: getAQICategory(aqi),
+        emoji: getAQIEmoji(aqi),
+        message: getHealthMessage(aqi),
+        timestamp: waqiData.time?.iso || new Date().toISOString(),
+        pm25: pm25,
+        pm10: pm10,
+        rawData: waqiData  // Store raw data for detailed view
+    };
+}
+
