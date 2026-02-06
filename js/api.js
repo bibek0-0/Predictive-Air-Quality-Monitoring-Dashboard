@@ -626,4 +626,3 @@ async function fetchWAQIKathmanduValleyData() {
         throw error;
     }
 }
-

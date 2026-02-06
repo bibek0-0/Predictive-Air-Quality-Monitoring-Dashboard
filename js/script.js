@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 150);
         });
         
-        // Add hover sound effect 
+        // Add hover sound effect (optional - can be removed)
         link.addEventListener('mouseenter', function() {
             this.style.transform = 'translateY(-2px) scale(1.02)';
         });
@@ -85,3 +85,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// ============================================
+// MOREINFO JS CODES
+// ============================================
+// Note: More Info page specific JavaScript is embedded in more-info.html
+// This section is reserved for any shared more-info functionality if needed in the future
+
+// ============================================
+// ALERTS JS CODES
+// ============================================
+// Note: Alerts page specific JavaScript is embedded in alerts.html
+// This section is reserved for any shared alerts functionality if needed in the future
+

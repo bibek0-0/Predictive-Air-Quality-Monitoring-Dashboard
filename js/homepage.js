@@ -1,5 +1,6 @@
-
+// ============================================
 // HOMEPAGE JS CODES
+// ============================================
 
 // Global variables for map and data management
 let mapInstance = null;
@@ -8,7 +9,7 @@ let updateIntervalId = null;
 let isLoading = false;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Explore button functionality 
+    // Explore button functionality - scroll to map
     const exploreBtn = document.querySelector('.btn-primary');
     if (exploreBtn) {
         exploreBtn.addEventListener('click', function() {
@@ -20,11 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const learnMoreBtn = document.querySelector('.btn-secondary');
     if (learnMoreBtn) {
         learnMoreBtn.addEventListener('click', function() {
-            // Navigate to More Info page 
+            // Navigate to More Info page (will be implemented later)
             const moreInfoLink = Array.from(document.querySelectorAll('.nav-link')).find(
                 link => link.textContent === 'More Info'
             );
             if (moreInfoLink) {
+                // For now, just show an alert
+                // Later this will navigate to the more info page
                 console.log('Navigate to More Info page');
             }
         });
@@ -50,10 +53,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize Air Quality Map with API integration
     initAirQualityMap();
     
-    // Start real-time data updates 
+    // Start real-time data updates
     startRealTimeUpdates();
 
-    // for scroll animations
+    // Intersection Observer for scroll animations
     const mapSection = document.getElementById('air-quality-map');
     if (mapSection) {
         const observer = new IntersectionObserver((entries) => {
@@ -69,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(mapSection);
     }
 
-    // for combined actions & capabilities section
+    // Intersection Observer for combined actions & capabilities section
     const combinedSection = document.getElementById('actions-capabilities');
     if (combinedSection) {
         const observer = new IntersectionObserver((entries) => {
@@ -85,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(combinedSection);
     }
 
-    // Scroll Indicator Show/Hide based on scroll position
+    // Scroll Indicator - Show/Hide based on scroll position
     const scrollIndicator = document.getElementById('scrollIndicator');
     if (scrollIndicator) {
         function checkScrollPosition() {
@@ -94,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
             const scrollBottom = scrollTop + windowHeight;
             
-            // Show indicator if not at bottom 
+            // Show indicator if not at bottom (with 100px threshold)
             if (scrollBottom < documentHeight - 100) {
                 scrollIndicator.classList.add('visible');
             } else {
@@ -123,7 +126,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// ============================================
 // HOMEPAGE JS CODES - Functions
+// ============================================
 
 // Scroll to map function
 function scrollToMap() {
@@ -140,7 +145,10 @@ function scrollToMap() {
     }
 }
 
-// Initialize Leaflet Map
+// No fallback data - using API data only
+
+// Helper Functions for Map
+// Get AQI color based on value
 function getAQIColor(aqi) {
     if (aqi <= 50) return '#00e400'; // Green - Good
     if (aqi <= 100) return '#ffff00'; // Yellow - Moderate
@@ -149,7 +157,7 @@ function getAQIColor(aqi) {
     return '#8f3f97'; // Purple - Hazardous
 }
 
-// Get text color based on background 
+// Get text color based on background (for contrast)
 function getTextColor(bgColor) {
     // For light colors (yellow), use dark text
     if (bgColor === '#ffff00' || bgColor === '#00e400') {
@@ -165,12 +173,12 @@ function initAirQualityMap() {
     const mapContainer = document.getElementById('map');
     if (!mapContainer) return;
     
-    // Initialize map centered on Nepal 
+    // Initialize map centered on Nepal (showing entire country)
     mapInstance = L.map('map', {
         zoomControl: true,
         scrollWheelZoom: false, // Disabled by default
         doubleClickZoom: true
-    }).setView([28.3949, 84.1240], 7);  // Center of Nepal, zoom level 7 
+    }).setView([28.3949, 84.1240], 7);  // Center of Nepal, zoom level 7 to show entire country
     
     // Enable scroll wheel zoom only when Ctrl (Windows/Linux) or Cmd (Mac) is held
     // This allows normal page scrolling when cursor is over map
@@ -213,7 +221,7 @@ async function loadAirQualityData() {
     if (isLoading) return;
     
     isLoading = true;
-    showLoadingState(); 
+    showLoadingState();
     
     try {
         let data = [];
@@ -241,23 +249,24 @@ async function loadAirQualityData() {
             data.forEach(station => {
                 station.fetchedAt = fetchedAt;
             });
-            updateMapMarkers(data); 
-            hideLoadingState(); 
-            showLastUpdateTime(); 
+            updateMapMarkers(data);
+            hideLoadingState();
+            showLastUpdateTime();
         } else {
             throw new Error('No data received from API');
         }
     } catch (error) {
         console.error('Error loading air quality data:', error);
-        hideLoadingState(); 
-        showErrorState(`Unable to load air quality data: ${error.message}`);
+        hideLoadingState();
+        showErrorState(`Unable to load air quality data: ${error.message}. Please check your internet connection and API configuration.`);
+        // Don't update map markers if API fails - show error instead
     } finally {
         isLoading = false;
     }
 }
 
 /**
- * Format timestamp for display 
+ * Format timestamp for display (relative time)
  */
 function formatTimestamp(timestamp) {
     if (!timestamp) return '';
@@ -274,32 +283,6 @@ function formatTimestamp(timestamp) {
         return date.toLocaleString();
     } catch (e) {
         return new Date(timestamp).toLocaleTimeString();
-    }
-}
-
-/**
- * Start real-time data updates
- */
-function startRealTimeUpdates() {
-    // Clear any existing interval
-    if (updateIntervalId) {
-        clearInterval(updateIntervalId);
-    }
-    
-    const interval = (typeof API_CONFIG !== 'undefined' && API_CONFIG.updateInterval) ? API_CONFIG.updateInterval : 60000;
-    
-    updateIntervalId = setInterval(() => {
-        loadAirQualityData();
-    }, interval);
-}
-
-/**
- * Stop real-time updates
- */
-function stopRealTimeUpdates() {
-    if (updateIntervalId) {
-        clearInterval(updateIntervalId);
-        updateIntervalId = null;
     }
 }
 
@@ -379,7 +362,7 @@ function updateMapMarkers(data) {
         
         const popupContent = createPopupContent(location);
 
-        // Add popup 
+        // Add popup (will be shown on hover)
         marker.bindPopup(popupContent, {
             className: 'aqi-popup-wrapper',
             maxWidth: 140,
@@ -399,7 +382,7 @@ function updateMapMarkers(data) {
             const popup = marker.getPopup();
             const popupElement = popup.getElement();
             if (popupElement && marker._locationData) {
-                // Update popup content with fresh timestamps
+                // Update popup content with fresh timestamps (calculated in real-time)
                 const updatedContent = createPopupContent(marker._locationData);
                 popup.setContent(updatedContent);
                 
@@ -425,12 +408,12 @@ function updateMapMarkers(data) {
             }
         }, 30000);
 
-        // Show popup on hover 
+        // Show popup on hover (mouseover)
         marker.on('mouseover', function() {
             marker.openPopup();
         });
 
-        // Hide popup when hover out 
+        // Hide popup when hover out (mouseout)
         marker.on('mouseout', function() {
             marker.closePopup();
         });
@@ -439,6 +422,31 @@ function updateMapMarkers(data) {
     });
 }
 
+/**
+ * Start real-time data updates
+ */
+function startRealTimeUpdates() {
+    // Clear any existing interval
+    if (updateIntervalId) {
+        clearInterval(updateIntervalId);
+    }
+    
+    const interval = (typeof API_CONFIG !== 'undefined' && API_CONFIG.updateInterval) ? API_CONFIG.updateInterval : 60000;
+    
+    updateIntervalId = setInterval(() => {
+        loadAirQualityData();
+    }, interval);
+}
+
+/**
+ * Stop real-time updates
+ */
+function stopRealTimeUpdates() {
+    if (updateIntervalId) {
+        clearInterval(updateIntervalId);
+        updateIntervalId = null;
+    }
+}
 
 /**
  * Show loading state on map

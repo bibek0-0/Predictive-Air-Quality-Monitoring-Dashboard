@@ -52,45 +52,47 @@
             </div>
         </div>
     </div>
+
     <!-- AQI Section -->
     <section class="help-info-section">
         <div class="help-info-container">
-            <!-- AQI Gauge Meter At Top -->
+            <!-- AQI Gauge Meter - At Top -->
             <div class="aqi-gauge-wrapper">
                 <div class="aqi-gauge-container">
                     <svg class="aqi-gauge" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Gauge Segments using arc paths  -->
-                    
+                        <!-- Gauge Segments using arc paths - Center: 200, 200 | Radius: 160 -->
+                        <!-- Each segment is a filled wedge shape -->
+                        
                         <!-- Good (Green) - 0-50 AQI (180° to 150°) -->
                         <path d="M 200 200 L 40 200 A 160 160 0 0 1 61 117 L 200 200 Z" 
-                              fill="#4ade80" 
-                              class="gauge-segment segment-good"/>
+                               fill="#4ade80" 
+                               class="gauge-segment segment-good"/>
                         
                         <!-- Moderate (Yellow) - 50-100 AQI (150° to 120°) -->
                         <path d="M 200 200 L 61 117 A 160 160 0 0 1 120 57 L 200 200 Z" 
-                              fill="#fde047" 
-                              class="gauge-segment segment-moderate"/>
+                               fill="#fde047" 
+                               class="gauge-segment segment-moderate"/>
                         
                         <!-- Unhealthy for Sensitive (Orange) - 100-150 AQI (120° to 90°) -->
                         <path d="M 200 200 L 120 57 A 160 160 0 0 1 200 40 L 200 200 Z" 
-                              fill="#fb923c" 
-                              class="gauge-segment segment-unhealthy-sensitive"/>
+                               fill="#fb923c" 
+                               class="gauge-segment segment-unhealthy-sensitive"/>
                         
                         <!-- Unhealthy (Red) - 150-200 AQI (90° to 60°) -->
-                       
+                        <!-- Red segment starts from exact same point and extends slightly left to cover boundary -->
                         <path d="M 200 200 L 199.5 40 A 160 160 0 0 1 280 57 L 200 200 Z" 
-                              fill="#ef4444" 
-                              class="gauge-segment segment-unhealthy"/>
+                               fill="#ef4444" 
+                               class="gauge-segment segment-unhealthy"/>
                         
                         <!-- Very Unhealthy (Purple) - 200-300 AQI (60° to 30°) -->
                         <path d="M 200 200 L 280 57 A 160 160 0 0 1 339 117 L 200 200 Z" 
-                              fill="#a855f7" 
-                              class="gauge-segment segment-very-unhealthy"/>
+                               fill="#a855f7" 
+                               class="gauge-segment segment-very-unhealthy"/>
                         
                         <!-- Hazardous (Dark Red) - 300-500 AQI (30° to 0°) -->
                         <path d="M 200 200 L 339 117 A 160 160 0 0 1 360 200 L 200 200 Z" 
-                              fill="#991b1b" 
-                              class="gauge-segment segment-hazardous"/>
+                               fill="#991b1b" 
+                               class="gauge-segment segment-hazardous"/>
                         
                         <!-- Inner circle that changes color based on current segment -->
                         <circle cx="200" cy="200" r="80" fill="#4ade80" class="gauge-inner-circle" id="gaugeInnerCircle"/>
@@ -118,7 +120,7 @@
                         <!-- 500 at right (0°) -->
                         <text x="375" y="205" class="gauge-number">500</text>
                         
-                        <!-- Labels within segments centered in each wedge -->
+                        <!-- Labels within segments - centered in each wedge -->
                         <!-- GOOD - center of 180°-150° segment (165°) -->
                         <text x="89" y="170" class="gauge-label-text gauge-label-tiny">GOOD</text>
                         <!-- MODERATE - center of 150°-120° segment (135°) -->
