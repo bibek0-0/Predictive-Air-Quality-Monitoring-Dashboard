@@ -141,6 +141,25 @@ function scrollToMap() {
 }
 
 // Initialize Leaflet Map
+function getAQIColor(aqi) {
+    if (aqi <= 50) return '#00e400'; // Green - Good
+    if (aqi <= 100) return '#ffff00'; // Yellow - Moderate
+    if (aqi <= 150) return '#ff7e00'; // Orange - Unhealthy
+    if (aqi <= 200) return '#ff0000'; // Red - Very Unhealthy
+    return '#8f3f97'; // Purple - Hazardous
+}
+
+// Get text color based on background 
+function getTextColor(bgColor) {
+    // For light colors (yellow), use dark text
+    if (bgColor === '#ffff00' || bgColor === '#00e400') {
+        return '#1f2937';
+    }
+    // For dark colors, use white text
+    return '#ffffff';
+}
+
+// Initialize Leaflet Map
 function initAirQualityMap() {
     // Wait for map container to be visible
     const mapContainer = document.getElementById('map');
