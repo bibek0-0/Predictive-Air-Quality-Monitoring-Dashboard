@@ -299,3 +299,30 @@ function transformWAQIStations(stations) {
         .filter(station => station !== null);  // Remove any null entries
 }
 
+/**
+ * Fetch air quality data from WAQI API by station ID
+ * Station IDs are numeric identifiers for specific monitoring stations
+ */
+async function fetchWAQIByStationId(stationId) {
+    try {
+        const token = API_CONFIG.waqi.token;
+        // WAQI station format: @stationId
+        const url = `${API_CONFIG.waqi.baseURL}/feed/@${stationId}/?token=${token}`;
+        const response = await fetch(url, { method: 'GET', mode: 'cors' });
+
+        if (!response.ok) {
+            return null;
+        }
+
+        const result = await response.json();
+
+        if (result.status === 'ok' && result.data) {
+            return result.data;
+        }
+
+        return null;
+    } catch (error) {
+        return null;  // Silently return null for unavailable stations
+    }
+}
+
