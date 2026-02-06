@@ -213,7 +213,7 @@ async function loadAirQualityData() {
     if (isLoading) return;
     
     isLoading = true;
-    // showLoadingState(); 
+    showLoadingState(); 
     
     try {
         let data = [];
@@ -242,15 +242,15 @@ async function loadAirQualityData() {
                 station.fetchedAt = fetchedAt;
             });
             updateMapMarkers(data); 
-            // hideLoadingState(); 
-            // showLastUpdateTime(); 
+            hideLoadingState(); 
+            showLastUpdateTime(); 
         } else {
             throw new Error('No data received from API');
         }
     } catch (error) {
         console.error('Error loading air quality data:', error);
-        // hideLoadingState(); 
-        // showErrorState(`Unable to load air quality data: ${error.message}`);
+        hideLoadingState(); 
+        showErrorState(`Unable to load air quality data: ${error.message}`);
     } finally {
         isLoading = false;
     }
@@ -379,7 +379,7 @@ function updateMapMarkers(data) {
         
         const popupContent = createPopupContent(location);
 
-        // Add popup (will be shown on hover)
+        // Add popup 
         marker.bindPopup(popupContent, {
             className: 'aqi-popup-wrapper',
             maxWidth: 140,
@@ -399,7 +399,7 @@ function updateMapMarkers(data) {
             const popup = marker.getPopup();
             const popupElement = popup.getElement();
             if (popupElement && marker._locationData) {
-                // Update popup content with fresh timestamps (calculated in real-time)
+                // Update popup content with fresh timestamps
                 const updatedContent = createPopupContent(marker._locationData);
                 popup.setContent(updatedContent);
                 
@@ -425,16 +425,191 @@ function updateMapMarkers(data) {
             }
         }, 30000);
 
-        // Show popup on hover (mouseover)
+        // Show popup on hover 
         marker.on('mouseover', function() {
             marker.openPopup();
         });
 
-        // Hide popup when hover out (mouseout)
+        // Hide popup when hover out 
         marker.on('mouseout', function() {
             marker.closePopup();
         });
         
         mapMarkers.push(marker);
     });
+}
+
+
+/**
+ * Show loading state on map
+ */
+function showLoadingState() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+    
+    // Create or update loading indicator
+    let loadingIndicator = document.getElementById('map-loading-indicator');
+    if (!loadingIndicator) {
+        loadingIndicator = document.createElement('div');
+        loadingIndicator.id = 'map-loading-indicator';
+        loadingIndicator.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            color: #1f2937;
+        `;
+        mapContainer.style.position = 'relative';
+        mapContainer.appendChild(loadingIndicator);
+    }
+    
+    loadingIndicator.innerHTML = `
+        <div style="
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        "></div>
+        <span>Loading real-time data...</span>
+    `;
+    
+    // Add spin animation if not already in styles
+    if (!document.getElementById('loading-spin-style')) {
+        const style = document.createElement('style');
+        style.id = 'loading-spin-style';
+        style.textContent = `
+            @keyframes spin {
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+/**
+ * Hide loading state
+ */
+function hideLoadingState() {
+    const loadingIndicator = document.getElementById('map-loading-indicator');
+    if (loadingIndicator) {
+        loadingIndicator.remove();
+    }
+}
+
+/**
+ * Show error state
+ */
+function showErrorState(message) {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) return;
+    
+    let errorIndicator = document.getElementById('map-error-indicator');
+    if (!errorIndicator) {
+        errorIndicator = document.createElement('div');
+        errorIndicator.id = 'map-error-indicator';
+        errorIndicator.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(239, 68, 68, 0.95);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            font-size: 0.875rem;
+            font-weight: 500;
+            max-width: 300px;
+        `;
+        mapContainer.style.position = 'relative';
+        mapContainer.appendChild(errorIndicator);
+    }
+    
+    errorIndicator.textContent = message;
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        if (errorIndicator) {
+            errorIndicator.style.opacity = '0';
+            errorIndicator.style.transition = 'opacity 0.3s';
+            setTimeout(() => {
+                if (errorIndicator) errorIndicator.remove();
+            }, 300);
+        }
+    }, 5000);
+}
+
+/**
+ * Show last update time with refresh button
+ */
+function showLastUpdateTime() {
+    const mapHeader = document.querySelector('.map-header');
+    if (!mapHeader) return;
+    
+    let updateContainer = document.getElementById('update-container');
+    if (!updateContainer) {
+        updateContainer = document.createElement('div');
+        updateContainer.id = 'update-container';
+        updateContainer.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        `;
+        mapHeader.appendChild(updateContainer);
+        
+        const refreshBtn = document.createElement('button');
+        refreshBtn.id = 'refresh-btn';
+        refreshBtn.innerHTML = '🔄';
+        refreshBtn.title = 'Refresh data now';
+        refreshBtn.style.cssText = `
+            background: var(--primary-color, #10b981);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        refreshBtn.onmouseover = () => refreshBtn.style.opacity = '0.8';
+        refreshBtn.onmouseout = () => refreshBtn.style.opacity = '1';
+        refreshBtn.onclick = () => {
+            refreshBtn.style.transform = 'rotate(360deg)';
+            refreshBtn.style.transition = 'transform 0.5s';
+            setTimeout(() => {
+                refreshBtn.style.transform = 'rotate(0deg)';
+            }, 500);
+            loadAirQualityData();
+        };
+        updateContainer.appendChild(refreshBtn);
+    }
+    
+    let updateTimeElement = document.getElementById('last-update-time');
+    if (!updateTimeElement) {
+        updateTimeElement = document.createElement('div');
+        updateTimeElement.id = 'last-update-time';
+        updateTimeElement.style.cssText = `
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        `;
+        updateContainer.appendChild(updateTimeElement);
+    }
+    
+    updateTimeElement.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
 }
