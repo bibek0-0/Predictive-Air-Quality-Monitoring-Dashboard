@@ -88,3 +88,39 @@ async function fetchWAQICityFeed(city = 'kathmandu') {
     }
 }
 
+/**
+ * Fetch air quality data from WAQI API by geographic coordinates
+ */
+async function fetchWAQIByCoordinates(lat, lng) {
+    try {
+        const token = API_CONFIG.waqi.token;
+        // WAQI uses format
+        const url = `${API_CONFIG.waqi.baseURL}/feed/geo:${lat};${lng}/?token=${token}`;
+        const response = await fetch(url, { method: 'GET', mode: 'cors' });
+
+        if (!response.ok) {
+            throw new Error(`WAQI API error: ${response.status} ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status === 'error') {
+            throw new Error(`WAQI API error: ${result.data || 'Unknown error'}`);
+        }
+
+        // "nope" status means no station at this location return null
+        if (result.status === 'nope') {
+            return null;
+        }
+
+        if (result.status !== 'ok' || !result.data) {
+            throw new Error(`Invalid response from WAQI API. Status: ${result.status}`);
+        }
+
+        return result.data;
+    } catch (error) {
+        console.error(`Error fetching WAQI by coordinates (${lat}, ${lng}):`, error);
+        throw error;
+    }
+}
+
