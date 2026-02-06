@@ -103,7 +103,214 @@
     color: var(--text-secondary);
 }
 
-/* AQI Table now inside help-info-section */
+/* AQI Table (keeping for reference, can be removed later) */
+.aqi-table-wrapper {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 
+        0 4px 16px rgba(0, 0, 0, 0.08),
+        0 0 0 1px rgba(37, 99, 235, 0.1);
+    overflow: hidden;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    height: 383px;
+    display: flex;
+    flex-direction: column;
+}
+
+.aqi-table-wrapper .aqi-table-container {
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1;
+    height: 0;
+}
+
+[data-theme="dark"] .aqi-table-wrapper {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.aqi-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8125rem;
+    table-layout: fixed;
+}
+
+.aqi-table thead {
+    background: #ffffff;
+    display: table-header-group;
+}
+
+[data-theme="dark"] .aqi-table thead {
+    background: #1e293b;
+}
+
+.aqi-table th {
+    padding: 0.875rem 0.75rem;
+    text-align: center;
+    font-weight: 600;
+    color: #1f2937;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: #ffffff;
+    backdrop-filter: blur(10px);
+    vertical-align: middle;
+}
+
+.aqi-table th::before {
+    content: '';
+    position: absolute;
+    top: 0.25rem;
+    left: 0.25rem;
+    right: 0.25rem;
+    bottom: 0.25rem;
+    border: 2px solid rgba(37, 99, 235, 0.2);
+    border-radius: 8px;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* Column-specific alignment - All headers and cells centered */
+.aqi-table th:nth-child(1),
+.aqi-table th:nth-child(2),
+.aqi-table th:nth-child(3),
+.aqi-table th:nth-child(4),
+.aqi-table th:nth-child(5),
+.aqi-table td:nth-child(1),
+.aqi-table td:nth-child(2),
+.aqi-table td:nth-child(3),
+.aqi-table td:nth-child(4),
+.aqi-table td:nth-child(5) {
+    text-align: center;
+}
+
+[data-theme="dark"] .aqi-table th {
+    background: #1e293b;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .aqi-table th::before {
+    border: 2px solid rgba(96, 165, 250, 0.3);
+}
+
+.aqi-table td {
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid rgba(37, 99, 235, 0.1);
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    color: var(--text-primary);
+    font-size: 0.8125rem;
+    vertical-align: middle;
+    line-height: 1.5;
+    outline: none;
+}
+
+/* AQI Color Coding for Rows */
+.aqi-table tbody tr.aqi-good td {
+    background: rgba(0, 228, 0, 0.08);
+    border-bottom-color: rgba(0, 228, 0, 0.2);
+}
+
+.aqi-table tbody tr.aqi-moderate td {
+    background: rgba(255, 255, 0, 0.12);
+    border-bottom-color: rgba(255, 255, 0, 0.3);
+}
+
+.aqi-table tbody tr.aqi-unhealthy-sensitive td {
+    background: rgba(255, 126, 0, 0.1);
+    border-bottom-color: rgba(255, 126, 0, 0.25);
+}
+
+.aqi-table tbody tr.aqi-unhealthy td {
+    background: rgba(255, 0, 0, 0.1);
+    border-bottom-color: rgba(255, 0, 0, 0.25);
+}
+
+.aqi-table tbody tr.aqi-very-unhealthy td {
+    background: rgba(143, 63, 151, 0.12);
+    border-bottom-color: rgba(143, 63, 151, 0.3);
+}
+
+.aqi-table tbody tr.aqi-hazardous td {
+    background: rgba(126, 0, 35, 0.12);
+    border-bottom-color: rgba(126, 0, 35, 0.3);
+}
+
+[data-theme="dark"] .aqi-table tbody tr.aqi-good td {
+    background: rgba(0, 228, 0, 0.15);
+    border-bottom-color: rgba(0, 228, 0, 0.3);
+}
+
+[data-theme="dark"] .aqi-table tbody tr.aqi-moderate td {
+    background: rgba(255, 255, 0, 0.18);
+    border-bottom-color: rgba(255, 255, 0, 0.35);
+}
+
+[data-theme="dark"] .aqi-table tbody tr.aqi-unhealthy-sensitive td {
+    background: rgba(255, 126, 0, 0.15);
+    border-bottom-color: rgba(255, 126, 0, 0.3);
+}
+
+[data-theme="dark"] .aqi-table tbody tr.aqi-unhealthy td {
+    background: rgba(255, 0, 0, 0.15);
+    border-bottom-color: rgba(255, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .aqi-table tbody tr.aqi-very-unhealthy td {
+    background: rgba(143, 63, 151, 0.18);
+    border-bottom-color: rgba(143, 63, 151, 0.35);
+}
+
+[data-theme="dark"] .aqi-table tbody tr.aqi-hazardous td {
+    background: rgba(126, 0, 35, 0.18);
+    border-bottom-color: rgba(126, 0, 35, 0.35);
+}
+
+.aqi-table td.status-emoji {
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.625rem 0.75rem;
+    font-size: 1.625rem;
+    line-height: 1;
+    height: auto;
+}
+
+.aqi-table tbody tr {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.aqi-table tbody tr:hover td {
+    opacity: 0.9;
+    outline: none;
+    border: none;
+    box-shadow: none;
+}
+
+.aqi-table tbody tr:hover {
+    transform: translateX(2px);
+    outline: none;
+    box-shadow: none;
+}
+
+.color-bar {
+    display: inline-block;
+    width: 55px;
+    height: 22px;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
 
 /* AQI Content Wrapper - Cards Layout */
 .aqi-content-wrapper {
@@ -361,8 +568,38 @@
     position: relative;
     overflow: hidden;
     flex-shrink: 0;
+    opacity: 0;
+    animation: fadeInUp 0.8s ease-out forwards;
     display: flex;
     flex-direction: column;
+}
+
+.aqi-info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2563eb 0%, #7c3aed 50%, #ec4899 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.aqi-info-card:hover::before {
+    opacity: 1;
+}
+
+.aqi-info-card:nth-child(1) {
+    animation-delay: 0.2s;
+}
+
+.aqi-info-card:nth-child(2) {
+    animation-delay: 0.4s;
+}
+
+.aqi-info-card:nth-child(3) {
+    animation-delay: 0.6s;
 }
 
 .aqi-info-card::before {
@@ -375,10 +612,6 @@
     background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
     opacity: 0;
     transition: opacity 0.3s ease;
-}
-
-.aqi-info-card:hover::before {
-    opacity: 1;
 }
 
 [data-theme="dark"] .aqi-info-card {
@@ -898,7 +1131,8 @@
     border-color: rgba(96, 165, 250, 0.2);
 }
 
-.matter-card:hover {
+.matter-card:hover,
+.matter-card.auto-hover {
     transform: translateY(-8px) scale(1.02);
     box-shadow: 
         0 20px 40px rgba(37, 99, 235, 0.18),
@@ -908,7 +1142,8 @@
 }
 
 /* Green card border (first card - Lung Health) */
-.matter-card:nth-child(1):hover {
+.matter-card:nth-child(1):hover,
+.matter-card:nth-child(1).auto-hover {
     border: 2px solid rgba(16, 185, 129, 0.8);
     box-shadow: 
         0 20px 40px rgba(16, 185, 129, 0.18),
@@ -918,7 +1153,8 @@
 }
 
 /* Red card border (second card - Heart Health) */
-.matter-card:nth-child(2):hover {
+.matter-card:nth-child(2):hover,
+.matter-card:nth-child(2).auto-hover {
     border: 2px solid rgba(239, 68, 68, 0.8);
     box-shadow: 
         0 20px 40px rgba(239, 68, 68, 0.18),
@@ -928,13 +1164,52 @@
 }
 
 /* Yellow card border (third card - Sensitive Groups) */
-.matter-card:nth-child(3):hover {
+.matter-card:nth-child(3):hover,
+.matter-card:nth-child(3).auto-hover {
     border: 2px solid rgba(251, 191, 36, 0.8);
     box-shadow: 
         0 20px 40px rgba(251, 191, 36, 0.18),
         0 8px 16px rgba(0, 0, 0, 0.12),
         0 0 0 2px rgba(251, 191, 36, 0.3),
         inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.matter-card.auto-hover .matter-icon {
+    transform: translateY(-4px) scale(1.08);
+    box-shadow: 
+        0 12px 28px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.matter-card.auto-hover .matter-icon::before {
+    opacity: 1;
+}
+
+.matter-card.auto-hover .matter-icon svg {
+    transform: scale(1.1);
+}
+
+.matter-card.auto-hover .matter-title {
+    color: #1e40af;
+}
+
+[data-theme="dark"] .matter-card.auto-hover .matter-title {
+    color: #60a5fa;
+}
+
+.matter-card.auto-hover .matter-list li {
+    color: #334155;
+}
+
+[data-theme="dark"] .matter-card.auto-hover .matter-list li {
+    color: #e2e8f0;
+}
+
+.matter-card.auto-hover .matter-list .bullet-green,
+.matter-card.auto-hover .matter-list .bullet-red,
+.matter-card.auto-hover .matter-list .bullet-yellow {
+    transform: scale(1.3);
 }
 
 .matter-icon {
