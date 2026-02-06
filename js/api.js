@@ -486,3 +486,144 @@ async function fetchWAQINepalData() {
     }
 }
 
+/**
+ * Fetch air quality data for Kathmandu Valley only
+ * Filters stations to only include those within Kathmandu Valley boundaries
+ */
+async function fetchWAQIKathmanduValleyData() {
+    try {
+        const results = [];
+
+        // Known station IDs in Kathmandu Valley
+        const knownStationIds = ['9286'];
+
+        for (const stationId of knownStationIds) {
+            try {
+                const stationData = await fetchWAQIByStationId(stationId);
+                if (stationData) {
+                    const transformed = transformWAQIData(stationData);
+                    if (transformed && transformed.lat && transformed.lng) {
+                        // Check if within Kathmandu Valley bounds (27.6-27.8 lat, 85.2-85.5 lng)
+                        if (transformed.lat >= 27.6 && transformed.lat <= 27.8 &&
+                            transformed.lng >= 85.2 && transformed.lng <= 85.5) {
+                            const exists = results.some(r =>
+                                Math.abs(r.lat - transformed.lat) < 0.01 &&
+                                Math.abs(r.lng - transformed.lng) < 0.01
+                            );
+                            if (!exists) {
+                                results.push(transformed);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                // Silently skip unavailable stations
+            }
+        }
+
+        // Fetch stations within Kathmandu Valley bounding box
+        const boundsAreas = [
+            { name: 'Central Valley', lat1: 27.6, lng1: 85.2, lat2: 27.8, lng2: 85.5 },
+            { name: 'North Extended', lat1: 27.75, lng1: 85.2, lat2: 27.85, lng2: 85.5 },
+            { name: 'South Extended', lat1: 27.55, lng1: 85.2, lat2: 27.65, lng2: 85.5 },
+            { name: 'East Extended', lat1: 27.6, lng1: 85.4, lat2: 27.8, lng2: 85.6 },
+            { name: 'West Extended', lat1: 27.6, lng1: 85.0, lat2: 27.8, lng2: 85.2 }
+        ];
+
+        for (const area of boundsAreas) {
+            try {
+                const stations = await fetchWAQIStationsByBounds(area.lat1, area.lng1, area.lat2, area.lng2);
+                const transformedStations = transformWAQIStations(stations);
+
+                transformedStations.forEach(station => {
+                    if (station && station.lat && station.lng) {
+                        // Filter to only Kathmandu Valley (27.6-27.8 lat, 85.2-85.5 lng)
+                        if (station.lat >= 27.6 && station.lat <= 27.8 &&
+                            station.lng >= 85.2 && station.lng <= 85.5) {
+                            if (!station.aqi || station.aqi === 0 || isNaN(station.aqi)) {
+                                station.aqi = 0;
+                            }
+
+                            const exists = results.some(r =>
+                                Math.abs(r.lat - station.lat) < 0.01 &&
+                                Math.abs(r.lng - station.lng) < 0.01
+                            );
+                            if (!exists) {
+                                results.push(station);
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.warn(`Could not fetch stations for ${area.name}:`, error.message);
+            }
+        }
+
+        // Fetch by coordinates for major Kathmandu Valley locations
+        const locations = [
+            { name: 'Kathmandu', lat: 27.7172, lng: 85.3240 },
+            { name: 'Lalitpur', lat: 27.6588, lng: 85.3244 },
+            { name: 'Bhaktapur', lat: 27.6710, lng: 85.4298 },
+            { name: 'Kirtipur', lat: 27.6750, lng: 85.2814 },
+            { name: 'Thamel', lat: 27.7150, lng: 85.3120 },
+            { name: 'Boudha', lat: 27.7214, lng: 85.3617 },
+            { name: 'Patan', lat: 27.6766, lng: 85.3244 },
+            { name: 'Budhanilkantha', lat: 27.7833, lng: 85.3667 },
+            { name: 'Tokha', lat: 27.7500, lng: 85.2833 },
+            { name: 'Sankhu', lat: 27.7167, lng: 85.4833 }
+        ];
+
+        for (const location of locations) {
+            // Filter to only Kathmandu Valley locations
+            if (location.lat >= 27.6 && location.lat <= 27.8 &&
+                location.lng >= 85.2 && location.lng <= 85.5) {
+                const nearbyExists = results.some(r =>
+                    Math.abs(r.lat - location.lat) < 0.05 &&
+                    Math.abs(r.lng - location.lng) < 0.05
+                );
+
+                if (!nearbyExists) {
+                    try {
+                        const coordData = await fetchWAQIByCoordinates(location.lat, location.lng);
+                        if (coordData) {
+                            const transformed = transformWAQIData(coordData);
+                            if (transformed && transformed.lat && transformed.lng) {
+                                transformed.name = location.name;
+                                results.push(transformed);
+                            }
+                        }
+                    } catch (error) {
+                        console.warn(`Could not fetch data for ${location.name}:`, error.message);
+                    }
+                }
+            }
+        }
+
+        // Fallback to city feed if no stations found
+        if (results.length === 0) {
+            try {
+                const cityData = await fetchWAQICityFeed('kathmandu');
+                const transformed = transformWAQIData(cityData);
+                if (transformed && transformed.lat && transformed.lng) {
+                    // Verify it's in Kathmandu Valley
+                    if (transformed.lat >= 27.6 && transformed.lat <= 27.8 &&
+                        transformed.lng >= 85.2 && transformed.lng <= 85.5) {
+                        results.push(transformed);
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not fetch Kathmandu city feed:', error.message);
+            }
+        }
+
+        if (results.length > 0) {
+            return results;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching WAQI Kathmandu Valley data:', error);
+        throw error;
+    }
+}
+
