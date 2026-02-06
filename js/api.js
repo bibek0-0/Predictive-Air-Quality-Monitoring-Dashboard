@@ -326,3 +326,163 @@ async function fetchWAQIByStationId(stationId) {
     }
 }
 
+/**
+ * Main function to fetch air quality data for all of Nepal
+ * Uses multiple methods to maximize station coverage across the entire country:
+ * 1. Known station IDs
+ * 2. Bounding box searches covering all regions of Nepal
+ * 3. Coordinate-based lookups for major cities across Nepal
+ * 4. City feed as fallback
+ */
+async function fetchWAQINepalData() {
+    try {
+        const results = [];
+
+        // Method 1: Fetch known station IDs
+        const knownStationIds = ['9286'];
+
+        for (const stationId of knownStationIds) {
+            try {
+                const stationData = await fetchWAQIByStationId(stationId);
+                if (stationData) {
+                    const transformed = transformWAQIData(stationData);
+                    if (transformed && transformed.lat && transformed.lng) {
+                        // Check for duplicates 
+                        const exists = results.some(r =>
+                            Math.abs(r.lat - transformed.lat) < 0.01 &&
+                            Math.abs(r.lng - transformed.lng) < 0.01
+                        );
+                        if (!exists) {
+                            results.push(transformed);
+                        }
+                    }
+                }
+            } catch (error) {
+                // Silently skip unavailable stations
+            }
+        }
+
+        // Method 2: Fetch stations within multiple bounding box areas covering all of Nepal
+        // Nepal's approximate boundaries: 26.0°N to 30.5°N latitude, 80.0°E to 88.5°E longitude
+        const boundsAreas = [
+            // Western Nepal
+            { name: 'Far Western', lat1: 28.5, lng1: 80.0, lat2: 30.5, lng2: 81.5 },
+            { name: 'Mid Western', lat1: 28.0, lng1: 81.5, lat2: 29.5, lng2: 83.0 },
+            // Central Nepal (Kathmandu Valley and surrounding)
+            { name: 'Central Valley', lat1: 27.6, lng1: 85.2, lat2: 27.8, lng2: 85.5 },
+            { name: 'Central North', lat1: 27.8, lng1: 84.0, lat2: 28.5, lng2: 85.5 },
+            { name: 'Central South', lat1: 26.5, lng1: 84.0, lat2: 27.6, lng2: 85.5 },
+            // Eastern Nepal
+            { name: 'Eastern Terai', lat1: 26.0, lng1: 86.0, lat2: 27.0, lng2: 88.5 },
+            { name: 'Eastern Hills', lat1: 27.0, lng1: 85.5, lat2: 28.0, lng2: 88.0 },
+            // Additional coverage areas
+            { name: 'Pokhara Region', lat1: 28.0, lng1: 83.5, lat2: 28.5, lng2: 84.5 },
+            { name: 'Chitwan Region', lat1: 27.4, lng1: 84.0, lat2: 27.8, lng2: 85.0 },
+            { name: 'Biratnagar Region', lat1: 26.3, lng1: 87.0, lat2: 26.6, lng2: 87.5 }
+        ];
+
+        for (const area of boundsAreas) {
+            try {
+                const stations = await fetchWAQIStationsByBounds(area.lat1, area.lng1, area.lat2, area.lng2);
+                const transformedStations = transformWAQIStations(stations);
+
+                transformedStations.forEach(station => {
+                    if (station && station.lat && station.lng) {
+                        // Handle stations with missing or invalid AQI
+                        if (!station.aqi || station.aqi === 0 || isNaN(station.aqi)) {
+                            station.aqi = 0;
+                        }
+
+                        // Check for duplicates before adding
+                        const exists = results.some(r =>
+                            Math.abs(r.lat - station.lat) < 0.01 &&
+                            Math.abs(r.lng - station.lng) < 0.01
+                        );
+                        if (!exists) {
+                            results.push(station);
+                        }
+                    }
+                });
+            } catch (error) {
+                console.warn(`Could not fetch stations for ${area.name}:`, error.message);
+            }
+        }
+
+        // Method 3: Fetch by coordinates for major cities across Nepal
+        // Covers major urban centers and monitoring locations
+        const locations = [
+            // Kathmandu Valley
+            { name: 'Kathmandu', lat: 27.7172, lng: 85.3240 },
+            { name: 'Lalitpur', lat: 27.6588, lng: 85.3244 },
+            { name: 'Bhaktapur', lat: 27.6710, lng: 85.4298 },
+            { name: 'Kirtipur', lat: 27.6750, lng: 85.2814 },
+            { name: 'Thamel', lat: 27.7150, lng: 85.3120 },
+            { name: 'Boudha', lat: 27.7214, lng: 85.3617 },
+            { name: 'Patan', lat: 27.6766, lng: 85.3244 },
+            // Western Nepal
+            { name: 'Pokhara', lat: 28.2096, lng: 83.9856 },
+            { name: 'Butwal', lat: 27.7000, lng: 83.4500 },
+            { name: 'Nepalgunj', lat: 28.0500, lng: 81.6167 },
+            { name: 'Dhangadhi', lat: 28.6833, lng: 80.6167 },
+            // Central Nepal
+            { name: 'Bharatpur', lat: 27.6783, lng: 84.4347 },
+            { name: 'Hetauda', lat: 27.4283, lng: 85.0322 },
+            { name: 'Birgunj', lat: 27.0000, lng: 84.8667 },
+            // Eastern Nepal
+            { name: 'Biratnagar', lat: 26.4525, lng: 87.2718 },
+            { name: 'Janakpur', lat: 26.7288, lng: 85.9254 },
+            { name: 'Dharan', lat: 26.8144, lng: 87.2844 },
+            { name: 'Itahari', lat: 26.6667, lng: 87.2833 }
+        ];
+
+        for (const location of locations) {
+            // Skip if we already have a station near this location
+            const nearbyExists = results.some(r =>
+                Math.abs(r.lat - location.lat) < 0.05 &&
+                Math.abs(r.lng - location.lng) < 0.05
+            );
+
+            if (!nearbyExists) {
+                try {
+                    const coordData = await fetchWAQIByCoordinates(location.lat, location.lng);
+                    if (coordData) {
+                        const transformed = transformWAQIData(coordData);
+                        if (transformed && transformed.lat && transformed.lng) {
+                            transformed.name = location.name;  // Use our location name
+                            results.push(transformed);
+                        }
+                    }
+                } catch (error) {
+                    console.warn(`Could not fetch data for ${location.name}:`, error.message);
+                }
+            }
+        }
+
+        // Method 4: Fallback to city feeds for major cities if no stations found
+        if (results.length === 0) {
+            const fallbackCities = ['kathmandu', 'pokhara', 'biratnagar'];
+            for (const city of fallbackCities) {
+                try {
+                    const cityData = await fetchWAQICityFeed(city);
+                    const transformed = transformWAQIData(cityData);
+                    if (transformed && transformed.lat && transformed.lng) {
+                        results.push(transformed);
+                        break;  // Stop after first successful fetch
+                    }
+                } catch (error) {
+                    console.warn(`Could not fetch ${city} city feed:`, error.message);
+                }
+            }
+        }
+
+        if (results.length > 0) {
+            return results;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching WAQI Nepal data:', error);
+        throw error;
+    }
+}
+
