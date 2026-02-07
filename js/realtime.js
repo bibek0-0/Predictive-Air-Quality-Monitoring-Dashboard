@@ -138,3 +138,37 @@ function estimatePM10(aqi) {
     if (aqi <= 200) return 140 + (aqi - 150) * 1.2;
     return 200 + (aqi - 200) * 1.5;
 }
+
+// Update alerts
+function updateAlerts(station) {
+    const aqi = station.aqi || 0;
+    
+    // Health Alert
+    const healthAlert = document.getElementById('healthAlertMessage');
+    const healthTime = document.getElementById('healthAlertTime');
+    if (healthAlert && healthTime) {
+        if (aqi > 150) {
+            healthAlert.textContent = 'AQI levels are unhealthy. Consider limiting outdoor activities and wearing protective masks.';
+            healthTime.textContent = formatTimestamp(station.timestamp);
+        } else if (aqi > 100) {
+            healthAlert.textContent = 'AQI levels are moderate. Sensitive groups should take precautions.';
+            healthTime.textContent = formatTimestamp(station.timestamp);
+        } else {
+            healthAlert.textContent = 'Air quality is acceptable. Enjoy outdoor activities safely.';
+            healthTime.textContent = formatTimestamp(station.timestamp);
+        }
+    }
+    
+    // PM2.5 Alert
+    const pmAlert = document.getElementById('pmAlertMessage');
+    const pmTime = document.getElementById('pmAlertTime');
+    if (pmAlert && pmTime) {
+        const pm25 = station.pm25 && station.pm25 > 0 ? station.pm25 : estimatePM25(aqi);
+        if (pm25 > 80) {
+            pmAlert.textContent = `PM2.5 levels are high (${pm25.toFixed(1)} µg/m³). Consider reducing outdoor exposure.`;
+        } else {
+            pmAlert.textContent = `PM2.5 levels are within acceptable range (${pm25.toFixed(1)} µg/m³).`;
+        }
+        pmTime.textContent = formatTimestamp(station.timestamp);
+    }
+}
