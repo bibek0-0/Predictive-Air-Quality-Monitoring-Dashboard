@@ -222,4 +222,99 @@ function initializeCharts() {
             }
         });
     }
+    
+    // AQI Last 24 Hours Chart
+    const aqiCtx = document.getElementById('aqiChart');
+    if (aqiCtx) {
+        aqiChart = new Chart(aqiCtx, {
+            type: 'line',
+            data: {
+                labels: generateTimeLabels(24),
+                datasets: [{
+                    label: 'AQI',
+                    data: generateSampleData(24, 100, 200),
+                    borderColor: '#ef4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'AQI'
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // City Comparison Chart
+    const comparisonCtx = document.getElementById('comparisonChart');
+    if (comparisonCtx) {
+        comparisonChart = new Chart(comparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: ['AQI', 'PM2.5', 'PM10', 'O3', 'NO2'],
+                datasets: [
+                    {
+                        label: 'City A',
+                        data: [175, 87.5, 142.8, 45, 30],
+                        backgroundColor: '#ef4444'
+                    },
+                    {
+                        label: 'City B',
+                        data: [175, 87.5, 142.8, 45, 30],
+                        backgroundColor: '#3b82f6'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Generate time labels for charts
+function generateTimeLabels(hours) {
+    const labels = [];
+    const now = new Date();
+    for (let i = hours - 1; i >= 0; i--) {
+        const time = new Date(now.getTime() - i * 60 * 60 * 1000);
+        labels.push(time.getHours() + ':00');
+    }
+    return labels;
+}
+
+// Generate sample data for charts
+function generateSampleData(count, min, max) {
+    const data = [];
+    for (let i = 0; i < count; i++) {
+        data.push(Math.random() * (max - min) + min);
+    }
+    return data;
 }
