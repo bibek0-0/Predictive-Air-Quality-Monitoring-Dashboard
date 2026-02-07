@@ -221,4 +221,237 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Extract name from email
             const userName = cleanEmail.split('@')[0];
-        
+            // Create premium styled HTML email content Optimized for both Windows and Mobile
+            const htmlMessage = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td {font-family: Arial, sans-serif !important;}
+        .benefit-cell {width: 50% !important;}
+    </style>
+    <![endif]-->
+    <style type="text/css">
+        @media only screen and (max-width: 600px) {
+            .benefit-cell {width: 100% !important; display: block !important;}
+            .benefit-row {display: block !important;}
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: Arial, Helvetica, sans-serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+        <tr>
+            <td align="center" style="padding: 20px 10px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+                    <!-- Thanks message - well formatted text -->
+                    <tr>
+                        <td align="center" style="padding: 30px 20px 35px 20px; background-color: #ffffff;">
+                            <h1 style="margin: 0 0 10px 0; font-size: 28px; font-weight: 800; color: #1e40af; letter-spacing: -0.5px; line-height: 1.2;">Thanks for subscribing AirKTM</h1>
+                            <p style="margin: 0; font-size: 16px; color: #64748b; font-weight: 500; line-height: 1.5;">We're excited to have you on board!</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Premium Popup Design -->
+                    <tr>
+                        <td style="background: #1e293b; border-radius: 16px; padding: 20px 15px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="background: #0f172a; border-radius: 16px; border: 2px solid #334155; padding: 25px 20px;">
+                                        <!-- PRO Badge -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding-bottom: 18px;">
+                                                    <span style="display: inline-block; background: #ffd700; color: #1a1a1a; font-size: 11px; padding: 6px 14px; border-radius: 20px; letter-spacing: 1.5px; text-transform: uppercase; font-weight: 700;">PRO</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Title -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding-bottom: 12px;">
+                                                    <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; text-align: center; line-height: 1.3;">Unlock AirKTM Pro</h2>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Subtitle -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding-bottom: 22px;">
+                                                    <p style="margin: 0; font-size: 15px; color: #e2e8f0; text-align: center; line-height: 1.5; font-weight: 500;">Get real-time AQI alerts, personalized health messages, and early warnings.</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Price Display -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding-bottom: 22px;">
+                                                    <div style="background: #ffd700; border-radius: 12px; padding: 18px; text-align: center; border: 2px solid #ffed4e;">
+                                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                                                            <tr>
+                                                                <td align="right" style="padding-right: 6px;">
+                                                                    <span style="font-size: 32px; font-weight: 800; color: #1a1a1a; line-height: 1;">NRS 100</span>
+                                                                </td>
+                                                                <td align="left" valign="bottom" style="padding-bottom: 4px;">
+                                                                    <span style="font-size: 15px; color: #1a1a1a; font-weight: 600;">/ month</span>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Benefits List - Responsive: 2 columns desktop, 1 column mobile -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr class="benefit-row">
+                                                <td class="benefit-cell" style="padding-bottom: 10px; padding-right: 5px; width: 50%;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td style="padding: 12px; background: #1e293b; border-radius: 10px; border: 1px solid #334155;">
+                                                                <span style="color: #ffd700; font-weight: bold; font-size: 16px; padding-right: 8px;">✓</span>
+                                                                <span style="font-size: 14px; color: #ffffff; font-weight: 500;">Instant AQI notifications</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                <td class="benefit-cell" style="padding-bottom: 10px; padding-left: 5px; width: 50%;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td style="padding: 12px; background: #1e293b; border-radius: 10px; border: 1px solid #334155;">
+                                                                <span style="color: #ffd700; font-weight: bold; font-size: 16px; padding-right: 8px;">✓</span>
+                                                                <span style="font-size: 14px; color: #ffffff; font-weight: 500;">Personalized health warnings</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr class="benefit-row">
+                                                <td class="benefit-cell" style="padding-bottom: 10px; padding-right: 5px; width: 50%;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td style="padding: 12px; background: #1e293b; border-radius: 10px; border: 1px solid #334155;">
+                                                                <span style="color: #ffd700; font-weight: bold; font-size: 16px; padding-right: 8px;">✓</span>
+                                                                <span style="font-size: 14px; color: #ffffff; font-weight: 500;">High/low AQI alerts</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                <td class="benefit-cell" style="padding-bottom: 10px; padding-left: 5px; width: 50%;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td style="padding: 12px; background: #1e293b; border-radius: 10px; border: 1px solid #334155;">
+                                                                <span style="color: #ffd700; font-weight: bold; font-size: 16px; padding-right: 8px;">✓</span>
+                                                                <span style="font-size: 14px; color: #ffffff; font-weight: 500;">Forecast alerting</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr class="benefit-row">
+                                                <td class="benefit-cell" style="padding-bottom: 18px; padding-right: 5px; width: 50%;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td style="padding: 12px; background: #1e293b; border-radius: 10px; border: 1px solid #334155;">
+                                                                <span style="color: #ffd700; font-weight: bold; font-size: 16px; padding-right: 8px;">✓</span>
+                                                                <span style="font-size: 14px; color: #ffffff; font-weight: 500;">Early spike detection</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                <td class="benefit-cell" style="padding-bottom: 18px; padding-left: 5px; width: 50%;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td style="padding: 12px; background: #1e293b; border-radius: 10px; border: 1px solid #334155;">
+                                                                <span style="color: #ffd700; font-weight: bold; font-size: 16px; padding-right: 8px;">✓</span>
+                                                                <span style="font-size: 14px; color: #ffffff; font-weight: 500;">Real-time updates</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Upgrade Button -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center" style="padding-bottom: 18px;">
+                                                    <a href="#" style="display: inline-block; padding: 12px 24px; background: #ffd700; color: #1a1a1a; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px;">Upgrade Now</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        
+                                        <!-- Cancel Note -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td align="center">
+                                                    <p style="margin: 0; font-size: 12px; color: #94a3b8; text-align: center; line-height: 1.5; font-weight: 500;">Cancel anytime • No hidden fees</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+            `;
+            
+            // Plain text fallback
+            const plainMessage = 'Thanks for subscribing AirKTM!';
+            
+            // EmailJS template parameters 
+            const templateParams = {
+                user_email: cleanEmail,            // For "To Email" field  
+                user_name: userName,                // For "From Name" field
+                to_name: userName,                  // For display in content
+                name: userName,                     // For message content
+                email: cleanEmail,                  // For "Reply To" field 
+                subject: 'Welcome to AirKTM - Thank You for Subscribing!',  // For "Subject" field
+                message: htmlMessage,               // HTML email content with premium styling
+                message_html: htmlMessage,          // Alternative HTML field 
+                message_text: plainMessage,         // Plain text fallback
+                time: timeString                    // For time display in content 
+            };
+            
+            // Log the parameters being sent
+            console.log('Sending email with parameters:', templateParams);
+            console.log('Email address being sent:', cleanEmail);
+            console.log('Email validation:', emailRegex.test(cleanEmail));
+            
+            // Send email using EmailJS
+            emailjs.send('service_w7ts8ar', 'template_a615bmk', templateParams)
+                .then(function(response) {
+                    console.log('✅ Email sent successfully!', response.status, response.text);
+                }, function(error) {
+                    console.error('❌ Failed to send email:', error);
+                    console.error('Error status:', error.status);
+                    console.error('Error text:', error.text);
+                    console.error('Error details:', JSON.stringify(error, null, 2));
+                    
+                    // Specific error handling
+                    if (error.text && error.text.includes('template ID not found')) {
+                        console.error('⚠️ Template ID not found. Please verify your template ID in EmailJS dashboard:');
+                        console.error('Visit: https://dashboard.emailjs.com/admin/templates');
+                        console.error('Current template ID: template_a615bmk');
+                    } else if (error.text && error.text.includes('recipients address is corrupted')) {
+                        console.error('⚠️ Recipients address error. Please check:');
+                        console.error('1. Your EmailJS service is properly connected (Gmail/Outlook)');
+                        console.error('2. The "To Email" field in template contains exactly: {{user_email}}');
+                        console.error('3. The email address format is valid:', cleanEmail);
+                        console.error('4. Go to: https://dashboard.emailjs.com/admin/integration');
+                        console.error('   and verify your email service is active and connected');
+                    }
+                    
+                });
+        }
+    });
+});
