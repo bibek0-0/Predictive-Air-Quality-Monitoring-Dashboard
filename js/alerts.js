@@ -455,3 +455,82 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+// How Alerts Work Cards Auto-Hover Animation All Cards Together 
+document.addEventListener('DOMContentLoaded', function() {
+    const howAlertsWorkCards = document.querySelectorAll('.how-alerts-work-card');
+    if (howAlertsWorkCards.length === 0) return;
+    
+    let autoHoverInterval = null;
+    let resumeTimeout = null;
+    let isUserHovering = false;
+    let isHovered = false;
+    
+    function setAutoHover(state) {
+        howAlertsWorkCards.forEach(card => {
+            if (state) {
+                card.classList.add('auto-hover');
+            } else {
+                card.classList.remove('auto-hover');
+            }
+        });
+    }
+    
+    function startAutoHover() {
+        // Clear any existing intervals/timeouts
+        if (autoHoverInterval) {
+            clearInterval(autoHoverInterval);
+        }
+        if (resumeTimeout) {
+            clearTimeout(resumeTimeout);
+        }
+        
+        // Initial state hover on
+        setAutoHover(true);
+            
+        // Toggle every 4 seconds simple on/off cycle
+        autoHoverInterval = setInterval(function() {
+            if (!isUserHovering && !isHovered) {
+                const currentState = howAlertsWorkCards[0].classList.contains('auto-hover');
+                setAutoHover(!currentState);
+            }
+        }, 4000);
+    }
+    
+    function stopAutoHover() {
+        if (autoHoverInterval) {
+            clearInterval(autoHoverInterval);
+            autoHoverInterval = null;
+        }
+        if (resumeTimeout) {
+            clearTimeout(resumeTimeout);
+            resumeTimeout = null;
+        }
+        setAutoHover(false);
+    }
+    
+    // Add hover event listeners to all cards
+    howAlertsWorkCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            isUserHovering = true;
+            isHovered = true;
+            stopAutoHover();
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            isHovered = false;
+            // Debounce resume
+            if (resumeTimeout) {
+                clearTimeout(resumeTimeout);
+            }
+            resumeTimeout = setTimeout(() => {
+                isUserHovering = false;
+                if (!isHovered) {
+                    startAutoHover();
+                }
+            }, 300);
+        });
+    });
+    
+    // Start after page load
+    setTimeout(startAutoHover, 1000);
+});
