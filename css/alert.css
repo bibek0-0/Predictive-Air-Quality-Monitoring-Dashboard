@@ -393,6 +393,21 @@ Alerts Page - Two Column Layout
     }
 }
 
+@keyframes emojiBounce {
+    0%, 100% {
+        transform: translateY(0) scale(1);
+    }
+    25% {
+        transform: translateY(-10px) scale(1.2) rotate(-5deg);
+    }
+    50% {
+        transform: translateY(-5px) scale(1.1) rotate(5deg);
+    }
+    75% {
+        transform: translateY(-8px) scale(1.15) rotate(-3deg);
+    }
+}
+
 @keyframes successShine {
     0% {
         left: -100%;
@@ -523,25 +538,48 @@ Alerts Page - Two Column Layout
 [data-theme="dark"] .alerts-page-subscription-icon {
     background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
     color: #ffffff;
+    box-shadow: 
+        0 4px 12px rgba(59, 130, 246, 0.3),
+        0 2px 4px rgba(59, 130, 246, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 [data-theme="dark"] .alerts-page-subscription-title {
-    color: #f8fafc;
+    color: #f1f5f9;
 }
 
 [data-theme="dark"] .alerts-page-subscription-subtitle {
-    color: #94a3b8;
+    color: #cbd5e1;
 }
 
 [data-theme="dark"] .alerts-page-email-input {
-    background: #0f172a;
-    border-color: #334155;
-    color: #f8fafc;
+    background: rgba(15, 23, 42, 0.6);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: #f1f5f9;
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .alerts-page-email-input::placeholder {
+    color: #64748b;
+}
+
+[data-theme="dark"] .alerts-page-email-input:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 
+        0 2px 6px rgba(0, 0, 0, 0.4),
+        inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 [data-theme="dark"] .alerts-page-email-input:focus {
     border-color: #3b82f6;
-    background: #0f172a;
+    background: rgba(15, 23, 42, 0.8);
+    box-shadow: 
+        0 0 0 4px rgba(59, 130, 246, 0.2),
+        0 4px 12px rgba(59, 130, 246, 0.25),
+        inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    transform: translateY(-1px);
 }
 
 /* Right Column - Recent Alerts */
@@ -804,6 +842,14 @@ Alerts Page - Two Column Layout
     background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%);
 }
 
+[data-theme="dark"] .alerts-right-column::before {
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+}
+
+[data-theme="dark"] .alerts-right-column::after {
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0%, transparent 70%);
+}
+
 [data-theme="dark"] .alerts-page-recent-alerts {
     background: transparent;
 }
@@ -952,12 +998,433 @@ Alerts Page - Two Column Layout
 
     .alerts-page-alert-card {
         padding: 1.25rem;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .alerts-page-alert-emoji {
+        font-size: 1.75rem;
+    }
+
+    .alerts-page-alert-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
     }
 }
 
-/* ============================================
+/*
+   How Alerts Work Section
+*/
+
+.how-alerts-work-section {
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%);
+    position: relative;
+    min-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.how-alerts-work-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(37, 99, 235, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+[data-theme="dark"] .how-alerts-work-section {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+}
+
+.how-alerts-work-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.how-alerts-work-title {
+    font-family: 'Inter', 'Poppins', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #0f172a;
+    text-align: center;
+    margin: 0 0 0.75rem 0;
+    letter-spacing: -0.02em;
+}
+
+.how-alerts-work-subtitle {
+    font-size: 1.125rem;
+    color: #64748b;
+    text-align: center;
+    margin: 0 0 3rem 0;
+}
+
+.how-alerts-work-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    align-items: stretch;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.how-alerts-work-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 18px;
+    padding: 2rem;
+    box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid rgba(37, 99, 235, 0.12);
+    position: relative;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.how-alerts-work-card:hover,
+.how-alerts-work-card.auto-hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 
+        0 20px 40px rgba(37, 99, 235, 0.18),
+        0 8px 16px rgba(0, 0, 0, 0.12),
+        0 0 0 2px rgba(37, 99, 235, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Blue card border (first card - When We Send Alerts) */
+.how-alerts-work-card:nth-child(1):hover,
+.how-alerts-work-card:nth-child(1).auto-hover {
+    border: 2px solid rgba(59, 130, 246, 0.8);
+    box-shadow: 
+        0 20px 40px rgba(59, 130, 246, 0.18),
+        0 8px 16px rgba(0, 0, 0, 0.12),
+        0 0 0 2px rgba(59, 130, 246, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Green card border (second card - Why Alerts Matter) */
+.how-alerts-work-card:nth-child(2):hover,
+.how-alerts-work-card:nth-child(2).auto-hover {
+    border: 2px solid rgba(16, 185, 129, 0.8);
+    box-shadow: 
+        0 20px 40px rgba(16, 185, 129, 0.18),
+        0 8px 16px rgba(0, 0, 0, 0.12),
+        0 0 0 2px rgba(16, 185, 129, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+/* Purple card border (third card - Who Should Subscribe) */
+.how-alerts-work-card:nth-child(3):hover,
+.how-alerts-work-card:nth-child(3).auto-hover {
+    border: 2px solid rgba(139, 92, 246, 0.8);
+    box-shadow: 
+        0 20px 40px rgba(139, 92, 246, 0.18),
+        0 8px 16px rgba(0, 0, 0, 0.12),
+        0 0 0 2px rgba(139, 92, 246, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.how-alerts-work-card.auto-hover .how-alerts-work-icon {
+    transform: translateY(-4px) scale(1.08);
+    box-shadow: 
+        0 12px 28px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.how-alerts-work-card.auto-hover .how-alerts-work-icon::before {
+    opacity: 1;
+}
+
+.how-alerts-work-card.auto-hover .how-alerts-work-icon svg {
+    transform: scale(1.1);
+}
+
+.how-alerts-work-card.auto-hover .how-alerts-work-card-title {
+    color: #1e40af;
+}
+
+[data-theme="dark"] .how-alerts-work-card.auto-hover .how-alerts-work-card-title {
+    color: #60a5fa;
+}
+
+.how-alerts-work-card.auto-hover .how-alerts-work-list li {
+    color: #334155;
+}
+
+[data-theme="dark"] .how-alerts-work-card.auto-hover .how-alerts-work-list li {
+    color: #e2e8f0;
+}
+
+.how-alerts-work-card.auto-hover .how-alerts-work-list .bullet-blue,
+.how-alerts-work-card.auto-hover .how-alerts-work-list .bullet-green,
+.how-alerts-work-card.auto-hover .how-alerts-work-list .bullet-purple {
+    transform: scale(1.3);
+}
+
+[data-theme="dark"] .how-alerts-work-card {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: rgba(96, 165, 250, 0.2);
+}
+
+.how-alerts-work-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    color: white;
+    box-shadow: 
+        0 8px 20px rgba(0, 0, 0, 0.2),
+        0 2px 6px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.how-alerts-work-icon::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.how-alerts-work-icon-blue {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1e40af 100%);
+}
+
+.how-alerts-work-icon-green {
+    background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%);
+}
+
+.how-alerts-work-icon-purple {
+    background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 50%, #7c3aed 100%);
+}
+
+.how-alerts-work-card:hover .how-alerts-work-icon,
+.how-alerts-work-card.auto-hover .how-alerts-work-icon {
+    transform: translateY(-4px) scale(1.08);
+    box-shadow: 
+        0 12px 28px rgba(0, 0, 0, 0.25),
+        0 4px 10px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.how-alerts-work-card:hover .how-alerts-work-icon::before,
+.how-alerts-work-card.auto-hover .how-alerts-work-icon::before {
+    opacity: 1;
+}
+
+.how-alerts-work-icon svg {
+    width: 32px;
+    height: 32px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    transition: transform 0.4s ease;
+    z-index: 1;
+    position: relative;
+}
+
+.how-alerts-work-card:hover .how-alerts-work-icon svg,
+.how-alerts-work-card.auto-hover .how-alerts-work-icon svg {
+    transform: scale(1.1);
+}
+
+.how-alerts-work-card-title {
+    font-size: 1.375rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 1.25rem;
+    font-family: 'Inter', 'Poppins', sans-serif;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    transition: color 0.3s ease;
+}
+
+[data-theme="dark"] .how-alerts-work-card-title {
+    color: #f8fafc;
+}
+
+.how-alerts-work-card:hover .how-alerts-work-card-title,
+.how-alerts-work-card.auto-hover .how-alerts-work-card-title {
+    color: #1e40af;
+}
+
+[data-theme="dark"] .how-alerts-work-card:hover .how-alerts-work-card-title,
+[data-theme="dark"] .how-alerts-work-card.auto-hover .how-alerts-work-card-title {
+    color: #60a5fa;
+}
+
+.how-alerts-work-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    flex: 1;
+}
+
+.how-alerts-work-list li {
+    color: #475569;
+    font-size: 1rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    line-height: 1.5;
+    transition: all 0.3s ease;
+    min-height: 1.5rem;
+    padding: 0;
+    margin: 0;
+}
+
+[data-theme="dark"] .how-alerts-work-list li {
+    color: #cbd5e1;
+}
+
+.how-alerts-work-card:hover .how-alerts-work-list li,
+.how-alerts-work-card.auto-hover .how-alerts-work-list li {
+    color: #334155;
+}
+
+[data-theme="dark"] .how-alerts-work-card:hover .how-alerts-work-list li,
+[data-theme="dark"] .how-alerts-work-card.auto-hover .how-alerts-work-list li {
+    color: #e2e8f0;
+}
+
+.how-alerts-work-list .list-text {
+    flex: 1;
+    min-width: 0;
+    display: block;
+    line-height: 1.4;
+}
+
+.how-alerts-work-list .bullet-circle {
+    flex-shrink: 0;
+    display: block;
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    max-width: 8px;
+    min-height: 8px;
+    max-height: 8px;
+    border-radius: 50%;
+    margin: 0.25rem 0 0 0;
+}
+
+.how-alerts-work-list .bullet-blue {
+    background: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.how-alerts-work-list .bullet-green {
+    background: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.how-alerts-work-list .bullet-purple {
+    background: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+.how-alerts-work-card:hover .how-alerts-work-list .bullet-blue,
+.how-alerts-work-card.auto-hover .how-alerts-work-list .bullet-blue {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+.how-alerts-work-card:hover .how-alerts-work-list .bullet-green,
+.how-alerts-work-card.auto-hover .how-alerts-work-list .bullet-green {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.3), 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.how-alerts-work-card:hover .how-alerts-work-list .bullet-purple,
+.how-alerts-work-card.auto-hover .how-alerts-work-list .bullet-purple {
+    transform: scale(1.3);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3), 0 2px 8px rgba(139, 92, 246, 0.4);
+}
+
+[data-theme="dark"] .how-alerts-work-title {
+    color: #f8fafc;
+}
+
+[data-theme="dark"] .how-alerts-work-subtitle {
+    color: #cbd5e1;
+}
+
+/* Responsive Design for How Alerts Work Section */
+@media (max-width: 968px) {
+    .how-alerts-work-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .how-alerts-work-section {
+        padding: 3rem 1.5rem;
+        min-height: auto;
+    }
+
+    .how-alerts-work-title {
+        font-size: 2rem;
+    }
+
+    .how-alerts-work-subtitle {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .how-alerts-work-card {
+        padding: 2rem;
+    }
+
+    .how-alerts-work-icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 1.5rem;
+    }
+
+    .how-alerts-work-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+
+    .how-alerts-work-card-title {
+        font-size: 1.375rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .how-alerts-work-list li {
+        font-size: 1rem;
+    }
+}
+
+/*
    Premium Popup Modal
-   ============================================ */
+*/
 
 .premium-popup-overlay {
     position: fixed;
