@@ -10,6 +10,7 @@ let pollutantChart = null;
 let aqiChart = null;
 let comparisonChart = null;
 let updateInterval = null;
+let autoRotateInterval = null;
 
 // AQI color mapping
 function getAQIColor(aqi) {
@@ -71,6 +72,9 @@ document.addEventListener('DOMContentLoaded', function() {
             loadInitialData();
         }, API_CONFIG.updateInterval || 60000);
     }
+    
+    // Start auto-rotation for AQI display (5 seconds per station)
+    startAutoRotation();
 });
 
 // Initialize Leaflet map
@@ -206,9 +210,36 @@ function navigateToStation(direction) {
     updateCharts(currentStation);
     updateNavigationArrows();
     
+    // Pause auto-rotation and restart after 5 seconds of inactivity
+    stopAutoRotation();
+    setTimeout(() => {
+        startAutoRotation();
+    }, 5000);
+    
     // Center map on selected station
     if (realtimeMap && currentStation.lat && currentStation.lng) {
         realtimeMap.setView([currentStation.lat, currentStation.lng], 13);
+    }
+}
+
+// Start auto-rotation
+function startAutoRotation() {
+    // Clear any existing interval
+    stopAutoRotation();
+    
+    // Only start if there are multiple stations
+    if (allStations.length > 1) {
+        autoRotateInterval = setInterval(() => {
+            navigateToStation(1); // Move to next station
+        }, 3000); // 3 seconds per station
+    }
+}
+
+// Stop auto-rotation
+function stopAutoRotation() {
+    if (autoRotateInterval) {
+        clearInterval(autoRotateInterval);
+        autoRotateInterval = null;
     }
 }
 
@@ -654,6 +685,9 @@ function updateAlerts(station) {
 window.addEventListener('beforeunload', function() {
     if (updateInterval) {
         clearInterval(updateInterval);
+    }
+    if (autoRotateInterval) {
+        clearInterval(autoRotateInterval);
     }
 });
 
