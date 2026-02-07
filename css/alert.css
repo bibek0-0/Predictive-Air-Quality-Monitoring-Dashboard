@@ -1076,3 +1076,254 @@ Alerts Page - Two Column Layout
     width: 16px;
     height: 16px;
 }
+
+.premium-badge-top {
+    display: inline-block;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 800;
+    padding: 0.4375rem 0.875rem;
+    border-radius: 20px;
+    vertical-align: middle;
+    align-self: center;
+    flex-shrink: 0;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    box-shadow: 
+        0 4px 12px rgba(245, 158, 11, 0.5),
+        0 2px 6px rgba(245, 158, 11, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    margin-left: 0.75rem;
+    vertical-align: middle;
+}
+
+.premium-popup-content {
+    text-align: center;
+    position: relative;
+}
+
+.premium-title-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: nowrap;
+}
+
+.premium-popup-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+    line-height: 1.2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.premium-popup-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0 0 1.5rem 0;
+    line-height: 1.5;
+    font-weight: 400;
+}
+
+.premium-price-display {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #ffcc33 0%, #ffb400 50%, #ff9f00 100%);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 
+        0 0 15px rgba(255, 204, 51, 0.4),
+        0 0 30px rgba(255, 180, 0, 0.3),
+        0 0 45px rgba(255, 159, 0, 0.2),
+        0 4px 16px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    position: relative;
+}
+
+.premium-price-display::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 50%;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 100%);
+    border-radius: 16px 16px 0 0;
+    pointer-events: none;
+}
+
+.premium-price-main {
+    font-family: 'Poppins', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.premium-price-period {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 400;
+}
+
+.premium-benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+    text-align: left;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.premium-benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.875rem;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.premium-benefit-item:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateX(4px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.premium-checkmark-icon {
+    flex-shrink: 0;
+    color: #f59e0b;
+    filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.4));
+}
+
+.premium-upgrade-button {
+    width: auto;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #b45309 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 
+        0 6px 20px rgba(245, 158, 11, 0.5),
+        0 3px 10px rgba(245, 158, 11, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+    text-transform: none;
+    display: inline-block;
+}
+
+.premium-upgrade-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.premium-upgrade-button:hover::before {
+    left: 100%;
+}
+
+.premium-upgrade-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 12px 32px rgba(245, 158, 11, 0.6),
+        0 6px 16px rgba(245, 158, 11, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background: linear-gradient(135deg, #d97706 0%, #b45309 50%, #92400e 100%);
+}
+
+.premium-upgrade-button:active {
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 20px rgba(245, 158, 11, 0.5),
+        inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive Design for Premium Popup */
+@media (max-width: 768px) {
+    .premium-popup-overlay {
+        padding: 1rem;
+    }
+
+    .premium-popup-card {
+        padding: 1.5rem 1.25rem;
+        border-radius: 20px;
+        max-width: 400px;
+    }
+
+    .premium-popup-title {
+        font-size: 1.5rem;
+    }
+
+    .premium-popup-subtitle {
+        font-size: 1rem;
+    }
+
+    .premium-price-main {
+        font-size: 2.25rem;
+    }
+
+    .premium-price-period {
+        font-size: 1rem;
+    }
+
+    .premium-benefits-list {
+        grid-template-columns: 1fr;
+        gap: 0.625rem;
+    }
+
+    .premium-benefit-item {
+        font-size: 0.875rem;
+        padding: 0.75rem;
+    }
+
+    .premium-upgrade-button {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
+
+    .premium-title-wrapper {
+        gap: 0.5rem;
+    }
+
+    .premium-badge-top {
+        font-size: 0.625rem;
+        padding: 0.375rem 0.75rem;
+    }
+}
