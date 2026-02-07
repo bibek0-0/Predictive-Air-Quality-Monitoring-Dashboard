@@ -52,16 +52,14 @@
             </div>
         </div>
     </div>
-
     <!-- AQI Section -->
     <section class="help-info-section">
         <div class="help-info-container">
-            <!-- AQI Gauge Meter - At Top -->
+            <!-- AQI Gauge Meter At Top -->
             <div class="aqi-gauge-wrapper">
                 <div class="aqi-gauge-container">
                     <svg class="aqi-gauge" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Gauge Segments using arc paths - Center: 200, 200 | Radius: 160 -->
-                        <!-- Each segment is a filled wedge shape -->
+                        <!-- Gauge Segments using arc paths  -->
                         
                         <!-- Good (Green) - 0-50 AQI (180° to 150°) -->
                         <path d="M 200 200 L 40 200 A 160 160 0 0 1 61 117 L 200 200 Z" 
@@ -79,7 +77,7 @@
                                class="gauge-segment segment-unhealthy-sensitive"/>
                         
                         <!-- Unhealthy (Red) - 150-200 AQI (90° to 60°) -->
-                        <!-- Red segment starts from exact same point and extends slightly left to cover boundary -->
+                       
                         <path d="M 200 200 L 199.5 40 A 160 160 0 0 1 280 57 L 200 200 Z" 
                                fill="#ef4444" 
                                class="gauge-segment segment-unhealthy"/>
@@ -120,7 +118,7 @@
                         <!-- 500 at right (0°) -->
                         <text x="375" y="205" class="gauge-number">500</text>
                         
-                        <!-- Labels within segments - centered in each wedge -->
+                        <!-- Labels within segments centered in each wedge -->
                         <!-- GOOD - center of 180°-150° segment (165°) -->
                         <text x="89" y="170" class="gauge-label-text gauge-label-tiny">GOOD</text>
                         <!-- MODERATE - center of 150°-120° segment (135°) -->

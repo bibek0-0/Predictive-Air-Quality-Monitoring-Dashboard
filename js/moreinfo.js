@@ -1,6 +1,3 @@
-// ============================================
-// MOREINFO JS CODES
-// ============================================
 
 // FAQ Toggle Functionality
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Matter Cards Auto-Hover Animation - All Cards Together (Optimized)
+    // Matter Cards Auto-Hover Animation All Cards Together (Optimized)
     const matterCards = document.querySelectorAll('.matter-card');
     if (matterCards.length === 0) return;
     
