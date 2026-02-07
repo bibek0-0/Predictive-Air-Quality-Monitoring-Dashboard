@@ -72,3 +72,63 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 });
+// Typing animation for email placeholder
+document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('alertsEmailInput');
+    if (!emailInput) return;
+    
+    const placeholderText = 'Enter your email address';
+    let currentIndex = 0;
+    let isDeleting = false;
+    let typingSpeed = 100;
+    
+    function typePlaceholder() {
+        if (emailInput.value !== '') {
+            // If user is typing, stop animation
+            return;
+        }
+        
+        if (isDeleting) {
+            // Delete characters
+            emailInput.placeholder = placeholderText.substring(0, currentIndex - 1);
+            currentIndex--;
+            typingSpeed = 50; // Faster when deleting
+            
+            if (currentIndex === 0) {
+                isDeleting = false;
+                typingSpeed = 100;
+            }
+        } else {
+            // Type characters
+            emailInput.placeholder = placeholderText.substring(0, currentIndex + 1);
+            currentIndex++;
+            typingSpeed = 100;
+            
+            if (currentIndex === placeholderText.length) {
+                // Wait before deleting
+                setTimeout(() => {
+                    isDeleting = true;
+                }, 2000);
+            }
+        }
+        
+        setTimeout(typePlaceholder, typingSpeed);
+    }
+    
+    // Start typing animation after a short delay
+    setTimeout(typePlaceholder, 500);
+    
+    // Pause animation when user focuses on input
+    emailInput.addEventListener('focus', function() {
+        emailInput.placeholder = placeholderText;
+    });
+    
+    // Resume animation when user blurs (if input is empty)
+    emailInput.addEventListener('blur', function() {
+        if (emailInput.value === '') {
+            currentIndex = 0;
+            isDeleting = false;
+            setTimeout(typePlaceholder, 500);
+        }
+    });
+});
