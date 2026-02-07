@@ -1,0 +1,28 @@
+
+/* 
+Alerts Page - Two Column Layout
+*/
+
+   .alerts-page-container {
+    padding: 5rem 2.5rem 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+}
+
+.alerts-layout {
+    display: grid;
+    grid-template-columns: 38% 62%;
+    gap: 2rem;
+    align-items: center;
+    width: 100%;
+}
+
+/* Left Column */
+.alerts-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
