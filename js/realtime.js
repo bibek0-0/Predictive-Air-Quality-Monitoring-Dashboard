@@ -72,9 +72,6 @@ document.addEventListener('DOMContentLoaded', function() {
             loadInitialData();
         }, API_CONFIG.updateInterval || 60000);
     }
-    
-    // Start auto-rotation for AQI display (5 seconds per station)
-    startAutoRotation();
 });
 
 // Initialize Leaflet map
@@ -127,6 +124,9 @@ async function loadInitialData() {
                 updateCharts(currentStation);
                 updateNavigationArrows();
                 updateCityComparisonDropdowns(data);
+                
+                // Start auto-rotation after data is loaded
+                startAutoRotation();
             }
         }
     } catch (error) {
