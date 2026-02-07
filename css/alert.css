@@ -954,3 +954,125 @@ Alerts Page - Two Column Layout
         padding: 1.25rem;
     }
 }
+
+/* ============================================
+   Premium Popup Modal
+   ============================================ */
+
+.premium-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.premium-popup-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.premium-popup-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 1.5rem;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.4),
+        0 8px 24px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    transform: scale(0.9) translateY(30px);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.premium-popup-overlay.active .premium-popup-card {
+    transform: scale(1) translateY(0);
+}
+
+.premium-popup-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.premium-popup-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    transform: rotate(90deg) scale(1.1);
+}
+
+.premium-popup-close-hint {
+    position: absolute;
+    top: 45px;
+    right: 0.75rem;
+    background: rgba(255, 255, 255, 0.95);
+    color: #1f2937;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 10002;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    animation: hintPulse 2s ease-in-out infinite;
+}
+
+.premium-popup-close-hint.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.premium-popup-close-hint::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    right: 12px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid rgba(255, 255, 255, 0.95);
+}
+
+.premium-popup-close svg {
+    width: 16px;
+    height: 16px;
+}
