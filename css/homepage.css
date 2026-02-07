@@ -506,7 +506,7 @@
     min-height: 0;
     height: calc(100vh - 250px);
     border-radius: 16px;
-    overflow: hidden;
+    overflow: visible; /* Allow popups to extend beyond map */
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
     opacity: 0;
     transform: scale(0.95);
@@ -577,6 +577,28 @@
     background: transparent;
     border: none;
     box-shadow: none;
+    display: none; /* Hide the default tip arrow */
+}
+
+/* Bottom popup styling - popup appears below marker */
+.aqi-popup-bottom .leaflet-popup-tip-container {
+    top: -10px;
+    bottom: auto;
+    transform: rotate(180deg);
+}
+
+/* Ensure popups are visible outside map bounds */
+.leaflet-pane {
+    z-index: 400;
+}
+
+.leaflet-popup-pane {
+    z-index: 700;
+    overflow: visible !important;
+}
+
+.leaflet-popup {
+    z-index: 701;
 }
 
 .aqi-popup {

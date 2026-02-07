@@ -172,12 +172,15 @@ function initAirQualityMap() {
   const mapContainer = document.getElementById("map");
   if (!mapContainer) return;
 
-  // Initialize map centered on Nepal
+  // Initialize map centered on Kathmandu Valley
   mapInstance = L.map("map", {
     zoomControl: true,
-    scrollWheelZoom: false, // Disabled by default
+    scrollWheelZoom: false, // Disabled by default (use Ctrl+scroll)
     doubleClickZoom: true,
-  }).setView([28.3949, 84.124], 7); // Center of Nepal, zoom level 7
+    dragging: true, // Enable free cursor drag
+    touchZoom: true,
+    keyboard: true, // Arrow keys
+  }).setView([27.7172, 85.3240], 11); // Kathmandu Valley, zoom level 11
 
   // Enable scroll wheel zoom only when Ctrl (Windows/Linux) or Cmd (Mac) is held
   // This allows normal page scrolling when cursor is over map
@@ -215,6 +218,75 @@ function initAirQualityMap() {
 
   // Load initial data (try API first, fallback to static data)
   loadAirQualityData();
+  
+  // Arrow key navigation for map panning
+  document.addEventListener('keydown', function(e) {
+    if (!mapInstance || e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      return;
+    }
+    
+    const panAmount = 100; // pixels to pan per key press
+    
+    switch(e.key) {
+      case 'ArrowUp':
+        mapInstance.panBy([0, -panAmount], { animate: true, duration: 0.2 });
+        e.preventDefault();
+        break;
+      case 'ArrowDown':
+        mapInstance.panBy([0, panAmount], { animate: true, duration: 0.2 });
+        e.preventDefault();
+        break;
+      case 'ArrowLeft':
+        mapInstance.panBy([-panAmount, 0], { animate: true, duration: 0.2 });
+        e.preventDefault();
+        break;
+      case 'ArrowRight':
+        mapInstance.panBy([panAmount, 0], { animate: true, duration: 0.2 });
+        e.preventDefault();
+        break;
+    }
+  });
+  
+  // Pointer-based edge panning - move map when cursor near edges
+  let edgePanInterval = null;
+  const mapEl = document.getElementById("map");
+  
+  mapEl.addEventListener('mousemove', function(e) {
+    const rect = mapEl.getBoundingClientRect();
+    const edgeSize = 50; // pixels from edge to trigger panning
+    const panSpeed = 5; // pixels per frame
+    
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    let panX = 0;
+    let panY = 0;
+    
+    // Check edges
+    if (mouseX < edgeSize) panX = -panSpeed; // Left edge
+    else if (mouseX > rect.width - edgeSize) panX = panSpeed; // Right edge
+    
+    if (mouseY < edgeSize) panY = -panSpeed; // Top edge
+    else if (mouseY > rect.height - edgeSize) panY = panSpeed; // Bottom edge
+    
+    // Clear existing interval
+    if (edgePanInterval) clearInterval(edgePanInterval);
+    
+    // Start panning if near edge
+    if (panX !== 0 || panY !== 0) {
+      edgePanInterval = setInterval(() => {
+        mapInstance.panBy([panX, panY], { animate: false });
+      }, 16); // ~60fps
+    }
+  });
+  
+  // Stop panning when mouse leaves map
+  mapEl.addEventListener('mouseleave', function() {
+    if (edgePanInterval) {
+      clearInterval(edgePanInterval);
+      edgePanInterval = null;
+    }
+  });
 }
 
 /**
@@ -379,15 +451,9 @@ function updateMapMarkers(data) {
       icon: customIcon,
     }).addTo(mapInstance);
 
-    // Function to create popup content with current timestamps
+    // Function to create popup content 
     const createPopupContent = (loc) => {
       const aqiDisplay = loc.aqi > 0 ? `AQI ${loc.aqi}` : "AQI N/A";
-      const apiTime = loc.timestamp
-        ? formatTimestamp(loc.timestamp)
-        : "Unknown";
-      const fetchedTime = loc.fetchedAt
-        ? formatTimestamp(loc.fetchedAt)
-        : "Just now";
 
       return `
             <div class="aqi-popup" style="color: ${textColor};">
@@ -395,10 +461,6 @@ function updateMapMarkers(data) {
                     <span class="aqi-value">${aqiDisplay}</span>
                     <div class="aqi-category">${loc.category}</div>
                     <div class="aqi-message">${loc.message}</div>
-                    <div class="aqi-timestamp" style="font-size: 0.7rem; margin-top: 0.5rem; opacity: 0.9; line-height: 1.4;">
-                        ${loc.timestamp ? `<div>Data from API: ${apiTime}</div>` : ""}
-                        <div>Fetched: ${fetchedTime}</div>
-                    </div>
             </div>
         `;
     };
@@ -407,11 +469,12 @@ function updateMapMarkers(data) {
 
     // Add popup
     marker.bindPopup(popupContent, {
-      className: "aqi-popup-wrapper",
-      maxWidth: 140,
-      minWidth: 120,
-      autoPan: true,
-      autoPanPadding: [50, 50],
+      className: "aqi-popup-wrapper aqi-popup-bottom",
+      maxWidth: 180,
+      minWidth: 160,
+      autoPan: true, // Enable map pan to show full popup
+      autoPanPadding: [50, 50], // 50px padding from edges
+      offset: [0, 20], // Position popup below the marker
       closeOnClick: false,
       autoClose: false,
       closeButton: false,
@@ -424,6 +487,31 @@ function updateMapMarkers(data) {
     marker.on("popupopen", function () {
       const popup = marker.getPopup();
       const popupElement = popup.getElement();
+      
+      // Custom pan to center marker/popup in view
+      const markerLatLng = marker.getLatLng();
+      const markerPoint = mapInstance.latLngToContainerPoint(markerLatLng);
+      const mapHeight = mapInstance.getContainer().clientHeight;
+      const mapWidth = mapInstance.getContainer().clientWidth;
+      
+      // Calculate how much to pan (in pixels)
+      let panX = 0;
+      let panY = 0;
+      
+      // If marker is in top third, pan down
+      if (markerPoint.y < mapHeight * 0.35) {
+        panY = markerPoint.y - mapHeight * 0.4;
+      }
+      // If marker is in bottom third, pan up
+      else if (markerPoint.y > mapHeight * 0.65) {
+        panY = markerPoint.y - mapHeight * 0.4;
+      }
+      
+      // Pan map if needed
+      if (panY !== 0) {
+        mapInstance.panBy([panX, panY], { animate: true, duration: 0.3 });
+      }
+      
       if (popupElement && marker._locationData) {
         // Update popup content with fresh timestamps (calculated in real-time)
         const updatedContent = createPopupContent(marker._locationData);
@@ -453,14 +541,33 @@ function updateMapMarkers(data) {
       }
     }, 30000);
 
-    // Show popup on hover (mouseover)
+    // Track if mouse is over popup
+    let isOverPopup = false;
+    
+    // Show popup on hover
     marker.on("mouseover", function () {
       marker.openPopup();
     });
 
-    // Hide popup when hover out (mouseout)
+    // Hide popup when mouse leaves marker (with delay to check popup)
     marker.on("mouseout", function () {
-      marker.closePopup();
+      setTimeout(() => {
+        if (!isOverPopup) {
+          marker.closePopup();
+        }
+      }, 150);
+    });
+    
+    // Track popup hover state
+    marker.on("popupopen", function() {
+      const popupEl = marker.getPopup().getElement();
+      if (popupEl) {
+        popupEl.addEventListener("mouseenter", () => { isOverPopup = true; });
+        popupEl.addEventListener("mouseleave", () => { 
+          isOverPopup = false;
+          marker.closePopup();
+        });
+      }
     });
 
     mapMarkers.push(marker);
