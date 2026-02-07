@@ -172,3 +172,54 @@ function updateAlerts(station) {
         pmTime.textContent = formatTimestamp(station.timestamp);
     }
 }
+
+// Initialize charts
+function initializeCharts() {
+    // Pollutant Levels Chart
+    const pollutantCtx = document.getElementById('pollutantChart');
+    if (pollutantCtx) {
+        pollutantChart = new Chart(pollutantCtx, {
+            type: 'line',
+            data: {
+                labels: generateTimeLabels(24),
+                datasets: [
+                    {
+                        label: 'PM2.5',
+                        data: generateSampleData(24, 50, 100),
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'PM10',
+                        data: generateSampleData(24, 80, 150),
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'µg/m³'
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
