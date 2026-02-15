@@ -115,6 +115,33 @@
             </div>
         </section>
 
+        <!-- Health Impact Timeline -->
+        <section class="health-timeline-section">
+            <div class="timeline-header">
+                <h2 class="timeline-title">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Today's Health Impact Timeline
+                </h2>
+                <div class="timeline-legend">
+                    <span class="legend-item"><span class="legend-dot legend-good"></span>Safe</span>
+                    <span class="legend-item"><span class="legend-dot legend-moderate"></span>Moderate</span>
+                    <span class="legend-item"><span class="legend-dot legend-caution"></span>Caution</span>
+                    <span class="legend-item"><span class="legend-dot legend-unsafe"></span>Unsafe</span>
+                </div>
+            </div>
+            <div class="timeline-bar-wrapper">
+                <div class="timeline-bar" id="healthTimeline">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+            <div class="timeline-best-window" id="bestWindow">
+                <!-- Populated by JS -->
+            </div>
+        </section>
+
         <!-- Predicted AQI Section -->
         <section class="predicted-aqi-section">
             <h2 class="predicted-aqi-title">Predicted AQI &nbsp;- Kathmandu Valley</h2>

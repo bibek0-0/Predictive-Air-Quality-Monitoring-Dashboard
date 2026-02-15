@@ -8,6 +8,7 @@ let predictionChart = null;
 document.addEventListener('DOMContentLoaded', () => {
     initPredictionChart('24');
     initToggle();
+    initHealthTimeline();
     initForecastMap();
 });
 
@@ -146,6 +147,69 @@ function initToggle() {
         btn24.classList.remove('active');
         initPredictionChart('48');
     });
+}
+
+/* ===== Health Impact Timeline ===== */
+function initHealthTimeline() {
+    const container = document.getElementById('healthTimeline');
+    const bestWindowEl = document.getElementById('bestWindow');
+    if (!container) return;
+
+    // Hourly AQI data (placeholder — same as 24h chart data)
+    const hourlyAQI = chartData['24'].data;
+
+    // Build slots
+    let html = '';
+    hourlyAQI.forEach((aqi, i) => {
+        const level = getTimelineLevel(aqi);
+        const timeLabel = i === 0 ? '12AM' : i === 12 ? '12PM' : i < 12 ? i + 'AM' : (i - 12) + 'PM';
+        html += `
+            <div class="timeline-slot slot-${level.cls}">
+                <span class="slot-aqi">${aqi}</span>
+                <div class="slot-bar"></div>
+                <span class="slot-time">${timeLabel}</span>
+                <span class="slot-status">${level.emoji}</span>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+
+    // Find best window (longest stretch of lowest AQI)
+    let bestStart = 0, bestEnd = 0, bestAvg = Infinity;
+    for (let start = 0; start < 24; start++) {
+        for (let end = start + 1; end <= Math.min(start + 6, 24); end++) {
+            const slice = hourlyAQI.slice(start, end);
+            const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
+            if (avg < bestAvg && (end - start) >= 2) {
+                bestAvg = avg;
+                bestStart = start;
+                bestEnd = end;
+            }
+        }
+    }
+
+    const fmtHour = (h) => h === 0 ? '12:00 AM' : h === 12 ? '12:00 PM' : h < 12 ? h + ':00 AM' : (h - 12) + ':00 PM';
+
+    if (bestWindowEl) {
+        bestWindowEl.innerHTML = `
+            <span class="best-window-icon">🌤️</span>
+            <div class="best-window-text">
+                <span class="best-window-label">
+                    <span class="best-window-dot"></span>
+                    Best time to go outside
+                </span>
+                <span class="best-window-value">${fmtHour(bestStart)} – ${fmtHour(bestEnd)}</span>
+                <span class="best-window-detail">Predicted avg AQI: ~${Math.round(bestAvg)} · Ideal for outdoor activity</span>
+            </div>
+        `;
+    }
+}
+
+function getTimelineLevel(aqi) {
+    if (aqi <= 100) return { cls: 'good', emoji: '✅' };
+    if (aqi <= 140) return { cls: 'moderate', emoji: '😐' };
+    if (aqi <= 160) return { cls: 'caution', emoji: '⚠️' };
+    return { cls: 'unsafe', emoji: '❌' };
 }
 
 /* ===== Leaflet Map (Kathmandu Valley) ===== */
