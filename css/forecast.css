@@ -10,7 +10,7 @@
     min-height: calc(100vh - 64px);
 }
 
-/* ===== City Selector Section ===== */
+/*City Selector Section */
 .city-selector-section {
     margin-bottom: 1.75rem;
     animation: fadeInUp 0.5s ease-out;
@@ -132,7 +132,7 @@
     box-shadow: 0 4px 16px rgba(96, 165, 250, 0.2);
 }
 
-/* ===== Alert Banner ===== */
+/*Alert Banner*/
 .forecast-alert-banner {
     background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 50%, #fecdd3 100%);
     border: 1px solid rgba(239, 68, 68, 0.2);
@@ -218,7 +218,7 @@
     opacity: 0.85;
 }
 
-/* ===== Forecast Summary Cards ===== */
+/*Forecast Summary Cards*/
 .forecast-summary-section {
     margin-bottom: 3rem;
     animation: fadeInUp 0.6s ease-out 0.2s both;
@@ -290,7 +290,7 @@
     letter-spacing: -0.01em;
 }
 
-/* Colored dot indicators — with glow & pulse */
+/* Colored dot indicators with glow & pulse */
 .forecast-card-indicator {
     width: 32px;
     height: 32px;
@@ -397,7 +397,7 @@
 .aqi-good { color: #16a34a; }
 .aqi-hazardous { color: #7c3aed; }
 
-/* Category labels — pill style */
+/* Category labels pill style */
 .forecast-card-category {
     font-size: 0.8125rem;
     font-weight: 600;
@@ -595,6 +595,27 @@
 .slot-caution .slot-bar { background: linear-gradient(180deg, #fb923c, #f97316); }
 .slot-unsafe .slot-bar { background: linear-gradient(180deg, #f87171, #ef4444); }
 
+/* Current hour highlight */
+.slot-now {
+    background: rgba(59, 130, 246, 0.06);
+    border: 1.5px solid rgba(59, 130, 246, 0.25);
+}
+
+[data-theme="dark"] .slot-now {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: rgba(96, 165, 250, 0.3);
+}
+
+.slot-now .slot-time {
+    color: #3b82f6;
+    font-weight: 700;
+    font-size: 0.6875rem;
+}
+
+.slot-now .slot-bar {
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
 /* Best window recommendation */
 .timeline-best-window {
     margin-top: 1.25rem;
@@ -670,7 +691,7 @@
     color: var(--text-secondary);
 }
 
-/* ===== Predicted AQI Section ===== */
+/*Predicted AQI Section*/
 .predicted-aqi-section {
     margin-bottom: 3.5rem;
     animation: fadeInUp 0.6s ease-out 0.3s both;
@@ -704,7 +725,7 @@
     align-items: stretch;
 }
 
-/* Chart containers — glassmorphism */
+/* Chart containers glassmorphism */
 .prediction-charts {
     display: flex;
     flex-direction: column;
@@ -941,7 +962,7 @@
     }
 }
 
-/* ===== Animations ===== */
+/*Animations*/
 @keyframes fadeInUp {
     from {
         opacity: 0;

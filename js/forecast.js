@@ -1,6 +1,6 @@
 /*
-   Forecast Page - Charts & Map
-   Placeholder data; will be replaced with ML model output later.
+   Forecast Page Charts & Map
+   Placeholder data will be replaced with ML model output later.
 */
 
 let predictionChart = null;
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initHealthTimeline();
 });
 
-/* ===== Chart Data ===== */
+/*Chart Data*/
 const chartData = {
     '24': {
         labels: Array.from({ length: 24 }, (_, i) => {
@@ -36,7 +36,7 @@ const chartData = {
     }
 };
 
-/* ===== Unified Prediction Chart ===== */
+/*Unified Prediction Chart*/
 function initPredictionChart(range) {
     const ctx = document.getElementById('predictionChart');
     if (!ctx) return;
@@ -129,7 +129,7 @@ function initPredictionChart(range) {
     });
 }
 
-/* ===== Toggle Buttons ===== */
+/*Toggle Buttons*/
 function initToggle() {
     const btn24 = document.getElementById('btn24h');
     const btn48 = document.getElementById('btn48h');
@@ -148,36 +148,52 @@ function initToggle() {
     });
 }
 
-/* ===== Health Impact Timeline ===== */
+/*Health Impact Timeline*/
 function initHealthTimeline() {
     const container = document.getElementById('healthTimeline');
     const bestWindowEl = document.getElementById('bestWindow');
     if (!container) return;
 
-    // Hourly AQI data (placeholder — same as 24h chart data)
-    const hourlyAQI = chartData['24'].data;
+    // Get current hour
+    const now = new Date();
+    const currentHour = now.getHours();
 
-    // Build slots
+    // Hourly AQI data (placeholder — full 24h)
+    const fullAQI = chartData['24'].data;
+
+    // Slice from current hour to end of day
+    const remainingAQI = fullAQI.slice(currentHour);
+    const remainingHours = remainingAQI.length;
+
+    if (remainingHours === 0) {
+        container.innerHTML = '<p style="text-align:center; color:var(--text-secondary); font-family:Inter,sans-serif; padding:1rem;">No more forecast data for today.</p>';
+        if (bestWindowEl) bestWindowEl.style.display = 'none';
+        return;
+    }
+
+    // Build slots only from currentHour onward
     let html = '';
-    hourlyAQI.forEach((aqi, i) => {
+    remainingAQI.forEach((aqi, idx) => {
+        const hour = currentHour + idx;
         const level = getTimelineLevel(aqi);
-        const timeLabel = i === 0 ? '12AM' : i === 12 ? '12PM' : i < 12 ? i + 'AM' : (i - 12) + 'PM';
+        const timeLabel = hour === 0 ? '12AM' : hour === 12 ? '12PM' : hour < 12 ? hour + 'AM' : (hour - 12) + 'PM';
+        const isNow = idx === 0;
         html += `
-            <div class="timeline-slot slot-${level.cls}">
+            <div class="timeline-slot slot-${level.cls}${isNow ? ' slot-now' : ''}">
                 <span class="slot-aqi">${aqi}</span>
                 <div class="slot-bar"></div>
-                <span class="slot-time">${timeLabel}</span>
+                <span class="slot-time">${isNow ? 'Now' : timeLabel}</span>
                 <span class="slot-status">${level.emoji}</span>
             </div>
         `;
     });
     container.innerHTML = html;
 
-    // Find best window (longest stretch of lowest AQI)
+    // Find best window within remaining hours
     let bestStart = 0, bestEnd = 0, bestAvg = Infinity;
-    for (let start = 0; start < 24; start++) {
-        for (let end = start + 1; end <= Math.min(start + 6, 24); end++) {
-            const slice = hourlyAQI.slice(start, end);
+    for (let start = 0; start < remainingHours; start++) {
+        for (let end = start + 1; end <= Math.min(start + 6, remainingHours); end++) {
+            const slice = remainingAQI.slice(start, end);
             const avg = slice.reduce((a, b) => a + b, 0) / slice.length;
             if (avg < bestAvg && (end - start) >= 2) {
                 bestAvg = avg;
@@ -187,20 +203,37 @@ function initHealthTimeline() {
         }
     }
 
-    const fmtHour = (h) => h === 0 ? '12:00 AM' : h === 12 ? '12:00 PM' : h < 12 ? h + ':00 AM' : (h - 12) + ':00 PM';
+    const fmtHour = (h) => {
+        const actual = h % 24;
+        return actual === 0 ? '12:00 AM' : actual === 12 ? '12:00 PM' : actual < 12 ? actual + ':00 AM' : (actual - 12) + ':00 PM';
+    };
 
     if (bestWindowEl) {
-        bestWindowEl.innerHTML = `
-            <span class="best-window-icon">🌤️</span>
-            <div class="best-window-text">
-                <span class="best-window-label">
-                    <span class="best-window-dot"></span>
-                    Best time to go outside
-                </span>
-                <span class="best-window-value">${fmtHour(bestStart)} – ${fmtHour(bestEnd)}</span>
-                <span class="best-window-detail">Predicted avg AQI: ~${Math.round(bestAvg)} · Ideal for outdoor activity</span>
-            </div>
-        `;
+        if (bestAvg === Infinity || remainingHours < 2) {
+            // Not enough hours left for a window
+            bestWindowEl.innerHTML = `
+                <span class="best-window-icon">🌙</span>
+                <div class="best-window-text">
+                    <span class="best-window-label">
+                        <span class="best-window-dot"></span>
+                        Limited forecast remaining
+                    </span>
+                    <span class="best-window-value">Check back tomorrow for full forecast</span>
+                </div>
+            `;
+        } else {
+            bestWindowEl.innerHTML = `
+                <span class="best-window-icon">🌤️</span>
+                <div class="best-window-text">
+                    <span class="best-window-label">
+                        <span class="best-window-dot"></span>
+                        Best time to go outside
+                    </span>
+                    <span class="best-window-value">${fmtHour(currentHour + bestStart)} – ${fmtHour(currentHour + bestEnd)}</span>
+                    <span class="best-window-detail">Predicted avg AQI: ~${Math.round(bestAvg)} · Ideal for outdoor activity</span>
+                </div>
+            `;
+        }
     }
 }
 
