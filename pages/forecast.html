@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI Forecast - Kathmandu Valley | AirKTM</title>
+    <meta name="description" content="Predicted air quality index (AQI) forecast for Kathmandu Valley. 24-hour and 48-hour AQI predictions powered by machine learning.">
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="../css/forecast.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="../index.html" class="logo-section">
+                <img src="../assets/Untitled design.png" alt="AirKTM Logo" class="logo-image">
+            </a>
+            <div class="nav-right-section">
+                <nav class="nav-links">
+                    <a href="../index.html" class="nav-link">Home</a>
+                    <a href="realtime.html" class="nav-link">Realtime</a>
+                    <a href="forecast.html" class="nav-link active">Forecast</a>
+                    <a href="alerts.html" class="nav-link">Alerts</a>
+                    <a href="more-info.html" class="nav-link">More Info</a>
+                </nav>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                    <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="forecast-page-container">
+
+        <!-- City Selector Bar -->
+        <section class="city-selector-section">
+            <div class="city-selector-bar">
+                <div class="selector-left">
+                    <label class="selector-label">Select City for Forecast</label>
+                    <input type="text" class="city-input" id="cityInput" value="Thamel, Kathmandu" placeholder="Enter city or area...">
+                </div>
+                <button class="use-location-btn" id="useLocationBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Use Current Location
+                </button>
+            </div>
+        </section>
+
+        <!-- Alert Banner -->
+        <section class="forecast-alert-banner" id="forecastAlertBanner">
+            <div class="alert-banner-content">
+                <div class="alert-banner-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="alert-banner-text">
+                    <strong>⚠ High Pollution Expected in the Next 24 Hours</strong>
+                    <p>Sensitive groups should stay indoors and avoid outdoor activities.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Forecast Summary Cards -->
+        <section class="forecast-summary-section">
+            <div class="forecast-cards-grid">
+                <!-- 24-Hour Forecast Card -->
+                <div class="forecast-summary-card" id="forecast24Card">
+                    <div class="forecast-card-header">
+                        <h3 class="forecast-card-title">24-Hour Forecast</h3>
+                        <div class="forecast-card-indicator indicator-unhealthy" id="indicator24"></div>
+                    </div>
+                    <div class="forecast-card-body">
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Expected Average AQI</span>
+                            <span class="forecast-stat-value aqi-unhealthy" id="avg24">156</span>
+                        </div>
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Highest Predicted</span>
+                            <span class="forecast-stat-value aqi-unhealthy" id="high24">189</span>
+                        </div>
+                    </div>
+                    <div class="forecast-card-category category-unhealthy" id="category24">Unhealthy for Sensitive Groups</div>
+                </div>
+
+                <!-- 48-Hour Forecast Card -->
+                <div class="forecast-summary-card" id="forecast48Card">
+                    <div class="forecast-card-header">
+                        <h3 class="forecast-card-title">48-Hour Forecast</h3>
+                        <div class="forecast-card-indicator indicator-moderate" id="indicator48"></div>
+                    </div>
+                    <div class="forecast-card-body">
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Expected Average AQI</span>
+                            <span class="forecast-stat-value aqi-moderate" id="avg48">134</span>
+                        </div>
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Highest Predicted</span>
+                            <span class="forecast-stat-value aqi-moderate" id="high48">167</span>
+                        </div>
+                    </div>
+                    <div class="forecast-card-category category-moderate" id="category48">Moderate to Unhealthy</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Predicted AQI Section -->
+        <section class="predicted-aqi-section">
+            <h2 class="predicted-aqi-title">Predicted AQI &nbsp;- Kathmandu Valley</h2>
+            <div class="predicted-aqi-content">
+                <!-- Charts Column -->
+                <div class="prediction-charts">
+                    <div class="prediction-chart-container">
+                        <h3 class="chart-label">48-Hour AQI Prediction</h3>
+                        <canvas id="chart48Hour"></canvas>
+                    </div>
+                    <div class="prediction-chart-container">
+                        <h3 class="chart-label">24-Hour AQI Prediction</h3>
+                        <canvas id="chart24Hour"></canvas>
+                    </div>
+                </div>
+                <!-- Map Column -->
+                <div class="prediction-map-container">
+                    <div id="forecastMap" class="forecast-map"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Real vs Predicted Comparison -->
+        <section class="comparison-section">
+            <h2 class="comparison-title">Real vs Predicted AQI Comparison</h2>
+            <div class="comparison-chart-wrapper">
+                <canvas id="comparisonChart"></canvas>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <span class="footer-logo">AirKTM</span>
+            </div>
+            <div class="footer-copyright">
+                <p>&copy; 2024 Kathmandu Air Quality Monitor. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="../js/forecast.js"></script>
+    <script src="../js/theme-toggle.js"></script>
+</body>
+</html>
