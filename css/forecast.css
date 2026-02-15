@@ -292,8 +292,8 @@
 
 /* Colored dot indicators with glow & pulse */
 .forecast-card-indicator {
-    width: 32px;
-    height: 32px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     position: relative;
     animation: indicatorFloat 3s ease-in-out infinite;
@@ -302,7 +302,7 @@
 .forecast-card-indicator::after {
     content: '';
     position: absolute;
-    inset: -4px;
+    inset: -3px;
     border-radius: 50%;
     opacity: 0.3;
     animation: glowPulse 2s ease-in-out infinite;
