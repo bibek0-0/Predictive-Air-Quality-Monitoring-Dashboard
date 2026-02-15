@@ -119,15 +119,17 @@
         <section class="predicted-aqi-section">
             <h2 class="predicted-aqi-title">Predicted AQI &nbsp;- Kathmandu Valley</h2>
             <div class="predicted-aqi-content">
-                <!-- Charts Column -->
+                <!-- Chart Column -->
                 <div class="prediction-charts">
                     <div class="prediction-chart-container">
-                        <h3 class="chart-label">48-Hour AQI Prediction</h3>
-                        <canvas id="chart48Hour"></canvas>
-                    </div>
-                    <div class="prediction-chart-container">
-                        <h3 class="chart-label">24-Hour AQI Prediction</h3>
-                        <canvas id="chart24Hour"></canvas>
+                        <div class="chart-header">
+                            <h3 class="chart-label">AQI Prediction</h3>
+                            <div class="chart-toggle" id="chartToggle">
+                                <button class="toggle-btn active" data-range="24" id="btn24h">24 Hour</button>
+                                <button class="toggle-btn" data-range="48" id="btn48h">48 Hour</button>
+                            </div>
+                        </div>
+                        <canvas id="predictionChart"></canvas>
                     </div>
                 </div>
                 <!-- Map Column -->
@@ -137,13 +139,6 @@
             </div>
         </section>
 
-        <!-- Real vs Predicted Comparison -->
-        <section class="comparison-section">
-            <h2 class="comparison-title">Real vs Predicted AQI Comparison</h2>
-            <div class="comparison-chart-wrapper">
-                <canvas id="comparisonChart"></canvas>
-            </div>
-        </section>
 
     </main>
 
