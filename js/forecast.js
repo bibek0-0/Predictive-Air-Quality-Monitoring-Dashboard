@@ -9,7 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initPredictionChart('24');
     initToggle();
     initHealthTimeline();
-    initForecastMap();
 });
 
 /* ===== Chart Data ===== */
@@ -212,62 +211,4 @@ function getTimelineLevel(aqi) {
     return { cls: 'unsafe', emoji: '❌' };
 }
 
-/* ===== Leaflet Map (Kathmandu Valley) ===== */
-function initForecastMap() {
-    const mapContainer = document.getElementById('forecastMap');
-    if (!mapContainer) return;
 
-    const map = L.map('forecastMap', {
-        center: [27.7172, 85.324],
-        zoom: 12,
-        zoomControl: true,
-        scrollWheelZoom: true
-    });
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 18
-    }).addTo(map);
-
-    // Placeholder AQI markers
-    const locations = [
-        { name: 'Thamel', lat: 27.7154, lng: 85.3123, aqi: 156 },
-        { name: 'Ratnapark', lat: 27.7050, lng: 85.3145, aqi: 168 },
-        { name: 'Kirtipur', lat: 27.6788, lng: 85.2778, aqi: 142 },
-        { name: 'Lalitpur', lat: 27.6644, lng: 85.3188, aqi: 138 },
-        { name: 'Bhaktapur', lat: 27.6710, lng: 85.4298, aqi: 150 },
-        { name: 'Budhanilkantha', lat: 27.7636, lng: 85.3625, aqi: 120 }
-    ];
-
-    locations.forEach(loc => {
-        const color = getAQIColor(loc.aqi);
-        const marker = L.circleMarker([loc.lat, loc.lng], {
-            radius: 10,
-            fillColor: color,
-            color: '#fff',
-            weight: 2,
-            opacity: 1,
-            fillOpacity: 0.85
-        }).addTo(map);
-
-        marker.bindPopup(`
-            <div style="text-align:center; font-family: Inter, sans-serif; padding:4px;">
-                <strong style="font-size:14px;">${loc.name}</strong><br>
-                <span style="font-size:24px; font-weight:800; color:${color};">${loc.aqi}</span><br>
-                <span style="font-size:11px; color:#6b7280;">Predicted AQI</span>
-            </div>
-        `);
-    });
-
-    setTimeout(() => map.invalidateSize(), 300);
-}
-
-/* Helper: AQI level → color */
-function getAQIColor(aqi) {
-    if (aqi <= 50) return '#00e400';
-    if (aqi <= 100) return '#ffff00';
-    if (aqi <= 150) return '#ff7e00';
-    if (aqi <= 200) return '#ff0000';
-    if (aqi <= 300) return '#8f3f97';
-    return '#7e0023';
-}
