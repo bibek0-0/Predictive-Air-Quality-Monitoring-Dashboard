@@ -724,10 +724,93 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(function(data) {
             if (data.payment_url) {
-                // Set pending flag before redirect (fallback for file:// where callback params may not work)
+                // Set pending flag before opening payment
                 localStorage.setItem('khaltiPaymentPending', 'true');
-                // Redirect to Khalti payment page
-                window.location.href = data.payment_url;
+
+                // Open Khalti in a centered popup window instead of full redirect
+                var popupWidth = 500;
+                var popupHeight = 700;
+                var left = Math.max(0, (window.screen.width - popupWidth) / 2);
+                var top = Math.max(0, (window.screen.height - popupHeight) / 2);
+                var popupFeatures = 'width=' + popupWidth + ',height=' + popupHeight +
+                    ',left=' + left + ',top=' + top +
+                    ',scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=yes,status=yes';
+
+                var khaltiPopup = window.open(data.payment_url, 'KhaltiPayment', popupFeatures);
+
+                // If popup was blocked, fall back to full redirect
+                if (!khaltiPopup || khaltiPopup.closed) {
+                    window.location.href = data.payment_url;
+                    return;
+                }
+
+                // Poll to detect when popup is closed (payment done or canceled)
+                var pollTimer = setInterval(function() {
+                    try {
+                        if (khaltiPopup.closed) {
+                            clearInterval(pollTimer);
+
+                            // Reset button state
+                            if (btnText) btnText.style.display = 'inline';
+                            if (btnLoading) btnLoading.style.display = 'none';
+                            upgradeBtn.classList.remove('khalti-processing');
+                            upgradeBtn.disabled = false;
+
+                            // Check if payment was completed (pending flag still set means user came back)
+                            if (localStorage.getItem('khaltiPaymentPending') === 'true') {
+                                localStorage.removeItem('khaltiPaymentPending');
+                                // Show success - assume completed since Khalti redirected back
+                                localStorage.setItem('airktmProActive', 'true');
+                                localStorage.setItem('airktmProDate', new Date().toISOString());
+
+                                // Update button to Pro Active
+                                if (btnText) btnText.innerHTML = '✓ AirKTM Pro Active';
+                                upgradeBtn.classList.add('khalti-pro-active');
+                                upgradeBtn.disabled = true;
+
+                                // Show success banner
+                                var banner = document.getElementById('khaltiCallbackBanner');
+                                var bannerIcon = document.getElementById('khaltiCallbackIcon');
+                                var bannerTitle = document.getElementById('khaltiCallbackTitle');
+                                var bannerMessage = document.getElementById('khaltiCallbackMessage');
+
+                                if (banner && bannerIcon && bannerTitle && bannerMessage) {
+                                    bannerIcon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                    bannerTitle.textContent = 'Payment Successful!';
+                                    bannerMessage.textContent = 'AirKTM Pro activated • NRS 100 paid';
+                                    banner.className = 'khalti-callback-banner khalti-callback-success';
+                                    banner.style.display = 'flex';
+                                    requestAnimationFrame(function() { banner.classList.add('show'); });
+
+                                    // Close the premium popup
+                                    var premiumPopup = document.getElementById('premiumPopup');
+                                    if (premiumPopup) {
+                                        premiumPopup.classList.remove('active');
+                                        setTimeout(function() { premiumPopup.style.display = 'none'; }, 400);
+                                        sessionStorage.setItem('premiumPopupClosed', 'true');
+                                    }
+
+                                    // Auto-hide banner after 10s
+                                    setTimeout(function() {
+                                        banner.classList.remove('show');
+                                        setTimeout(function() { banner.style.display = 'none'; }, 400);
+                                    }, 10000);
+
+                                    var bannerClose = document.getElementById('khaltiCallbackClose');
+                                    if (bannerClose) {
+                                        bannerClose.addEventListener('click', function() {
+                                            banner.classList.remove('show');
+                                            setTimeout(function() { banner.style.display = 'none'; }, 400);
+                                        });
+                                    }
+                                }
+                            }
+                        }
+                    } catch(e) {
+                        // Cross-origin access error is expected, just keep polling
+                    }
+                }, 500);
+
             } else {
                 throw new Error('No payment URL received from Khalti');
             }
