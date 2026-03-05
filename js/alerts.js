@@ -381,7 +381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                             <tr>
                                                 <td align="center" style="padding-bottom: 18px;">
-                                                    <a href="#" style="display: inline-block; padding: 12px 24px; background: #ffd700; color: #1a1a1a; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px;">Upgrade Now</a>
+                                                    <a href="${window.location.href.split('?')[0]}?action=upgrade" style="display: inline-block; padding: 12px 24px; background: #ffd700; color: #1a1a1a; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px;">Upgrade Now</a>
                                                 </td>
                                             </tr>
                                         </table>
@@ -764,5 +764,37 @@ document.addEventListener('DOMContentLoaded', function() {
             popup.style.display = 'none';
             sessionStorage.setItem('premiumPopupClosed', 'true');
         }
+    }
+});
+
+// Auto-trigger Khalti payment when ?action=upgrade is in the URL (from email Upgrade Now button)
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'upgrade') {
+        // Clean URL param
+        try {
+            const cleanUrl = window.location.href.split('?')[0];
+            window.history.replaceState({}, document.title, cleanUrl);
+        } catch(e) {}
+
+        // If already Pro, skip
+        if (localStorage.getItem('airktmProActive') === 'true') return;
+
+        // Wait a moment for page to render, then trigger the upgrade button
+        setTimeout(function() {
+            const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
+            if (upgradeBtn && !upgradeBtn.disabled) {
+                // Show the popup first if it's hidden
+                const popup = document.getElementById('premiumPopup');
+                if (popup) {
+                    popup.style.display = 'flex';
+                    popup.classList.add('active');
+                }
+                // Auto-click after popup is visible
+                setTimeout(function() {
+                    upgradeBtn.click();
+                }, 800);
+            }
+        }, 500);
     }
 });
