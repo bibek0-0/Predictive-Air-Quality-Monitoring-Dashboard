@@ -105,8 +105,35 @@
                     </li>
                 </ul>
                 
-                <button class="premium-upgrade-button">Upgrade to AirKTM Pro</button>
+                <button class="premium-upgrade-button" id="khaltiUpgradeBtn">
+                    <span class="upgrade-btn-text">Upgrade to AirKTM Pro</span>
+                    <span class="upgrade-btn-loading" style="display:none;">
+                        <svg class="khalti-spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="31.4 31.4" />
+                        </svg>
+                        Processing...
+                    </span>
+                </button>
+                <div class="khalti-payment-feedback" id="khaltiPaymentFeedback" style="display:none;">
+                    <p class="khalti-feedback-text" id="khaltiFeedbackText"></p>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Khalti Payment Callback Status Banner -->
+    <div class="khalti-callback-banner" id="khaltiCallbackBanner" style="display:none;">
+        <div class="khalti-callback-content">
+            <div class="khalti-callback-icon" id="khaltiCallbackIcon"></div>
+            <div class="khalti-callback-info">
+                <h3 class="khalti-callback-title" id="khaltiCallbackTitle"></h3>
+                <p class="khalti-callback-message" id="khaltiCallbackMessage"></p>
+            </div>
+            <button class="khalti-callback-close" id="khaltiCallbackClose" aria-label="Close">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
         </div>
     </div>
 

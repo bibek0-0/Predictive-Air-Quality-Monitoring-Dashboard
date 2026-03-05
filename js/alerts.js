@@ -534,3 +534,235 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start after page load
     setTimeout(startAutoHover, 1000);
 });
+
+// ============================================
+// KHALTI PAYMENT INTEGRATION
+// ============================================
+
+// Khalti Payment Callback Handler - Runs on page load to check if user was redirected back from Khalti
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const status = urlParams.get('status');
+    const pidx = urlParams.get('pidx');
+    // Also check localStorage flag (fallback for file:// protocol where Khalti can't redirect with params)
+    const pendingPayment = localStorage.getItem('khaltiPaymentPending');
+
+    // Determine if we have a callback OR a pending payment that just completed
+    const hasCallback = status && pidx;
+    const hasPendingReturn = pendingPayment === 'true' && !hasCallback;
+
+    if (hasCallback || hasPendingReturn) {
+        const banner = document.getElementById('khaltiCallbackBanner');
+        const icon = document.getElementById('khaltiCallbackIcon');
+        const title = document.getElementById('khaltiCallbackTitle');
+        const message = document.getElementById('khaltiCallbackMessage');
+        const closeBtn = document.getElementById('khaltiCallbackClose');
+
+        if (!banner || !icon || !title || !message) return;
+
+        // Clear the pending flag
+        localStorage.removeItem('khaltiPaymentPending');
+
+        // Hide the premium popup if it's showing
+        const premiumPopup = document.getElementById('premiumPopup');
+        if (premiumPopup) {
+            premiumPopup.classList.remove('active');
+            premiumPopup.style.display = 'none';
+            sessionStorage.setItem('premiumPopupClosed', 'true');
+        }
+
+        // Determine effective status
+        const effectiveStatus = hasCallback ? status : 'Completed';
+
+        if (effectiveStatus === 'Completed') {
+            const txnId = hasCallback ? (urlParams.get('transaction_id') || urlParams.get('tidx') || '') : '';
+            const amount = hasCallback ? (urlParams.get('amount') || '') : '';
+            const amountNRS = amount ? 'NRS ' + (parseInt(amount) / 100) : 'NRS 100';
+
+            icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            title.textContent = 'Payment Successful!';
+            message.textContent = 'AirKTM Pro activated • ' + amountNRS + ' paid' + (txnId ? ' • Txn: ' + txnId.substring(0, 12) + '...' : '');
+            banner.className = 'khalti-callback-banner khalti-callback-success';
+
+            // Store Pro status
+            localStorage.setItem('airktmProActive', 'true');
+            localStorage.setItem('airktmProTxn', txnId);
+            localStorage.setItem('airktmProDate', new Date().toISOString());
+
+        } else if (effectiveStatus === 'User canceled') {
+            icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
+            title.textContent = 'Payment Canceled';
+            message.textContent = 'You canceled the payment. You can try again anytime.';
+            banner.className = 'khalti-callback-banner khalti-callback-canceled';
+
+        } else if (effectiveStatus === 'Pending') {
+            icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2"/><path d="M12 9v3l2 1" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
+            title.textContent = 'Payment Pending';
+            message.textContent = 'Your payment is being processed. Please wait a moment.';
+            banner.className = 'khalti-callback-banner khalti-callback-pending';
+        }
+
+        // Show banner with animation
+        banner.style.display = 'flex';
+        requestAnimationFrame(function() {
+            banner.classList.add('show');
+        });
+
+        // Close button logic
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                banner.classList.remove('show');
+                setTimeout(function() { banner.style.display = 'none'; }, 400);
+            });
+        }
+
+        // Auto-hide after 10 seconds
+        setTimeout(function() {
+            banner.classList.remove('show');
+            setTimeout(function() { banner.style.display = 'none'; }, 400);
+        }, 10000);
+
+        // Clean URL params without reloading the page
+        if (hasCallback) {
+            try {
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+            } catch(e) { /* file:// protocol may not support this */ }
+        }
+    }
+});
+
+// Khalti Payment Initiation - Upgrade Button Click Handler
+document.addEventListener('DOMContentLoaded', function() {
+    const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
+    if (!upgradeBtn) return;
+
+    // Check if already a Pro user
+    const isProUser = localStorage.getItem('airktmProActive') === 'true';
+    if (isProUser) {
+        const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+        if (btnText) {
+            btnText.innerHTML = '✓ AirKTM Pro Active';
+        }
+        upgradeBtn.classList.add('khalti-pro-active');
+        upgradeBtn.disabled = true;
+
+        // Also suppress popup on next visit
+        sessionStorage.setItem('premiumPopupClosed', 'true');
+    }
+
+    upgradeBtn.addEventListener('click', function() {
+        // Prevent double-clicks
+        if (upgradeBtn.disabled || upgradeBtn.classList.contains('khalti-processing')) return;
+
+        // If already pro, do nothing
+        if (localStorage.getItem('airktmProActive') === 'true') return;
+
+        const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+        const btnLoading = upgradeBtn.querySelector('.upgrade-btn-loading');
+        const feedback = document.getElementById('khaltiPaymentFeedback');
+        const feedbackText = document.getElementById('khaltiFeedbackText');
+
+        // Show loading state
+        if (btnText) btnText.style.display = 'none';
+        if (btnLoading) btnLoading.style.display = 'inline-flex';
+        upgradeBtn.classList.add('khalti-processing');
+        upgradeBtn.disabled = true;
+
+        // Hide previous feedback
+        if (feedback) feedback.style.display = 'none';
+
+        // Generate unique order ID
+        const orderId = 'AIRKTM-PRO-' + Date.now();
+
+        // Build proper return URL (handle file:// protocol)
+        const currentUrl = window.location.href.split('?')[0]; // strip any existing query params
+        const siteUrl = window.location.origin !== 'null' ? window.location.origin : currentUrl;
+
+        // Khalti Sandbox Configuration
+        const khaltiConfig = {
+            return_url: currentUrl,
+            website_url: siteUrl,
+            amount: 10000, // NRS 100 in paisa
+            purchase_order_id: orderId,
+            purchase_order_name: 'AirKTM Pro Subscription',
+            customer_info: {
+                name: 'AirKTM User',
+                email: 'user@airktm.com',
+                phone: '9800000000'
+            },
+            product_details: [
+                {
+                    identity: 'airktm-pro-monthly',
+                    name: 'AirKTM Pro Monthly Subscription',
+                    total_price: 10000,
+                    quantity: 1,
+                    unit_price: 10000
+                }
+            ]
+        };
+
+        // Initiate payment via Khalti Sandbox API (via CORS proxy for file:// compatibility)
+        const khaltiApiUrl = 'https://dev.khalti.com/api/v2/epayment/initiate/';
+        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(khaltiApiUrl);
+
+        fetch(proxyUrl, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'key 05bf95cc57244045b8df5fad06748dab',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(khaltiConfig)
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                return response.json().then(function(err) {
+                    throw new Error(err.detail || err.message || 'Payment initiation failed');
+                });
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.payment_url) {
+                // Set pending flag before redirect (fallback for file:// where callback params may not work)
+                localStorage.setItem('khaltiPaymentPending', 'true');
+                // Redirect to Khalti payment page
+                window.location.href = data.payment_url;
+            } else {
+                throw new Error('No payment URL received from Khalti');
+            }
+        })
+        .catch(function(error) {
+            console.error('Khalti payment error:', error);
+
+            // Reset button
+            if (btnText) btnText.style.display = 'inline';
+            if (btnLoading) btnLoading.style.display = 'none';
+            upgradeBtn.classList.remove('khalti-processing');
+            upgradeBtn.disabled = false;
+
+            // Show error feedback
+            if (feedback && feedbackText) {
+                feedbackText.textContent = '⚠ ' + (error.message || 'Payment initiation failed. Please try again.');
+                feedback.style.display = 'block';
+                feedback.className = 'khalti-payment-feedback khalti-feedback-error';
+
+                setTimeout(function() {
+                    feedback.style.display = 'none';
+                }, 6000);
+            }
+        });
+    });
+});
+
+// Suppress Premium Popup for Pro Users
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('airktmProActive') === 'true') {
+        const popup = document.getElementById('premiumPopup');
+        if (popup) {
+            popup.classList.remove('active');
+            popup.style.display = 'none';
+            sessionStorage.setItem('premiumPopupClosed', 'true');
+        }
+    }
+});

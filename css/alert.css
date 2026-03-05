@@ -1794,3 +1794,211 @@ Alerts Page - Two Column Layout
         padding: 0.375rem 0.75rem;
     }
 }
+
+/* ============================================
+   KHALTI PAYMENT INTEGRATION STYLES
+   ============================================ */
+
+/* Spinner Animation */
+@keyframes khaltiSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.khalti-spinner {
+    animation: khaltiSpin 1s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+/* Button Loading State */
+.upgrade-btn-loading {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.premium-upgrade-button.khalti-processing {
+    opacity: 0.85;
+    cursor: wait;
+    pointer-events: none;
+    background: linear-gradient(135deg, #d4a017 0%, #b8960f 100%);
+}
+
+/* Pro Active Button State */
+.premium-upgrade-button.khalti-pro-active {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    cursor: default;
+    pointer-events: none;
+    box-shadow:
+        0 4px 16px rgba(16, 185, 129, 0.4),
+        0 2px 6px rgba(16, 185, 129, 0.3);
+}
+
+.premium-upgrade-button.khalti-pro-active:hover {
+    transform: none;
+}
+
+/* Payment Feedback (inside popup) */
+.khalti-payment-feedback {
+    margin-top: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: 10px;
+    text-align: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.khalti-feedback-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.khalti-feedback-text {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #ef4444;
+    line-height: 1.4;
+}
+
+/* ============================================
+   KHALTI CALLBACK BANNER
+   ============================================ */
+
+.khalti-callback-banner {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120%);
+    z-index: 10000;
+    width: 92%;
+    max-width: 560px;
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+.khalti-callback-banner.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.khalti-callback-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.khalti-callback-icon {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.khalti-callback-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.khalti-callback-title {
+    margin: 0 0 0.2rem 0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.khalti-callback-message {
+    margin: 0;
+    font-size: 0.825rem;
+    font-weight: 500;
+    line-height: 1.4;
+    opacity: 0.85;
+}
+
+.khalti-callback-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    color: inherit;
+    opacity: 0.6;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.khalti-callback-close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Success Banner */
+.khalti-callback-success {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow:
+        0 12px 32px rgba(16, 185, 129, 0.35),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+}
+
+/* Canceled Banner */
+.khalti-callback-canceled {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow:
+        0 12px 32px rgba(245, 158, 11, 0.35),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+}
+
+/* Pending Banner */
+.khalti-callback-pending {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.95) 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow:
+        0 12px 32px rgba(59, 130, 246, 0.35),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .khalti-feedback-error {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+[data-theme="dark"] .khalti-feedback-text {
+    color: #fca5a5;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .khalti-callback-banner {
+        width: 95%;
+        padding: 0.875rem 1rem;
+        top: 64px;
+        border-radius: 12px;
+    }
+
+    .khalti-callback-title {
+        font-size: 0.95rem;
+    }
+
+    .khalti-callback-message {
+        font-size: 0.75rem;
+    }
+
+    .khalti-callback-icon svg {
+        width: 32px;
+        height: 32px;
+    }
+}
