@@ -544,14 +544,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const status = urlParams.get('status');
     const pidx = urlParams.get('pidx');
-    // Also check localStorage flag (fallback for file:// protocol where Khalti can't redirect with params)
-    const pendingPayment = localStorage.getItem('khaltiPaymentPending');
 
-    // Determine if we have a callback OR a pending payment that just completed
-    const hasCallback = status && pidx;
-    const hasPendingReturn = pendingPayment === 'true' && !hasCallback;
-
-    if (hasCallback || hasPendingReturn) {
+    // Only respond to actual Khalti URL callback params (popup polling handles everything else)
+    if (status && pidx) {
         const banner = document.getElementById('khaltiCallbackBanner');
         const icon = document.getElementById('khaltiCallbackIcon');
         const title = document.getElementById('khaltiCallbackTitle');
@@ -571,12 +566,9 @@ document.addEventListener('DOMContentLoaded', function() {
             sessionStorage.setItem('premiumPopupClosed', 'true');
         }
 
-        // Determine effective status
-        const effectiveStatus = hasCallback ? status : 'Completed';
-
-        if (effectiveStatus === 'Completed') {
-            const txnId = hasCallback ? (urlParams.get('transaction_id') || urlParams.get('tidx') || '') : '';
-            const amount = hasCallback ? (urlParams.get('amount') || '') : '';
+        if (status === 'Completed') {
+            const txnId = urlParams.get('transaction_id') || urlParams.get('tidx') || '';
+            const amount = urlParams.get('amount') || '';
             const amountNRS = amount ? 'NRS ' + (parseInt(amount) / 100) : 'NRS 100';
 
             icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -589,13 +581,13 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('airktmProTxn', txnId);
             localStorage.setItem('airktmProDate', new Date().toISOString());
 
-        } else if (effectiveStatus === 'User canceled') {
+        } else if (status === 'User canceled') {
             icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
             title.textContent = 'Payment Canceled';
             message.textContent = 'You canceled the payment. You can try again anytime.';
             banner.className = 'khalti-callback-banner khalti-callback-canceled';
 
-        } else if (effectiveStatus === 'Pending') {
+        } else if (status === 'Pending') {
             icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2"/><path d="M12 9v3l2 1" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
             title.textContent = 'Payment Pending';
             message.textContent = 'Your payment is being processed. Please wait a moment.';
@@ -623,12 +615,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 10000);
 
         // Clean URL params without reloading the page
-        if (hasCallback) {
-            try {
-                const cleanUrl = window.location.origin + window.location.pathname;
-                window.history.replaceState({}, document.title, cleanUrl);
-            } catch(e) { /* file:// protocol may not support this */ }
-        }
+        try {
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+        } catch(e) { /* file:// protocol may not support this */ }
     }
 });
 
