@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - AirKTM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        body.success-bg { background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 50%, #a7f3d0 100%); }
+        body.canceled-bg { background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%); }
+        body.pending-bg { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 50%, #bfdbfe 100%); }
+        body.unknown-bg { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); }
+
+        .card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1), 0 4px 16px rgba(0, 0, 0, 0.06);
+            animation: slideUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .icon { margin-bottom: 1.25rem; }
+        .icon svg { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)); }
+
+        .title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+        .success-bg .title { color: #065f46; }
+        .canceled-bg .title { color: #92400e; }
+        .pending-bg .title { color: #1e40af; }
+
+        .message {
+            font-size: 0.95rem;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .details {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        .details p {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .details p:last-child { margin-bottom: 0; }
+        .details strong { color: #334155; }
+
+        .close-note {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid #94a3b8;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="unknown-bg">
+    <div class="card">
+        <div class="icon" id="statusIcon"></div>
+        <h1 class="title" id="statusTitle">Processing...</h1>
+        <p class="message" id="statusMessage">Reading payment result...</p>
+        <div class="details" id="statusDetails" style="display:none;"></div>
+        <p class="close-note" id="closeNote"><span class="spinner"></span> This window will close automatically...</p>
+    </div>
+
+    <script>
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var status = params.get('status');
+            var pidx = params.get('pidx') || '';
+            var txnId = params.get('transaction_id') || params.get('tidx') || '';
+            var amount = params.get('amount') || '';
+            var orderId = params.get('purchase_order_id') || '';
+
+            var icon = document.getElementById('statusIcon');
+            var title = document.getElementById('statusTitle');
+            var message = document.getElementById('statusMessage');
+            var details = document.getElementById('statusDetails');
+            var closeNote = document.getElementById('closeNote');
+
+            if (status === 'Completed') {
+                document.body.className = 'success-bg';
+                icon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                title.textContent = 'Payment Successful!';
+                var amountNRS = amount ? 'NRS ' + (parseInt(amount) / 100) : 'NRS 100';
+                message.textContent = 'Your AirKTM Pro subscription is now active.';
+
+                details.style.display = 'block';
+                details.innerHTML = '<p>Amount: <strong>' + amountNRS + '</strong></p>' +
+                    (txnId ? '<p>Transaction: <strong>' + txnId + '</strong></p>' : '') +
+                    (orderId ? '<p>Order: <strong>' + orderId + '</strong></p>' : '');
+
+                // Save Pro status to localStorage (shared with parent window)
+                localStorage.setItem('airktmProActive', 'true');
+                localStorage.setItem('airktmProTxn', txnId);
+                localStorage.setItem('airktmProDate', new Date().toISOString());
+                localStorage.removeItem('khaltiPaymentPending');
+                localStorage.setItem('khaltiPaymentResult', 'success');
+
+            } else if (status === 'User canceled') {
+                document.body.className = 'canceled-bg';
+                icon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
+                title.textContent = 'Payment Canceled';
+                message.textContent = 'No worries! You can try again anytime from the Alerts page.';
+                localStorage.removeItem('khaltiPaymentPending');
+                localStorage.setItem('khaltiPaymentResult', 'canceled');
+
+            } else if (status === 'Pending') {
+                document.body.className = 'pending-bg';
+                icon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2"/><path d="M12 9v3l2 1" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
+                title.textContent = 'Payment Pending';
+                message.textContent = 'Your payment is being processed. Please wait.';
+                localStorage.setItem('khaltiPaymentResult', 'pending');
+
+            } else {
+                icon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#94a3b8"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
+                title.textContent = 'Payment Status Unknown';
+                message.textContent = 'Please check the Alerts page for your subscription status.';
+                localStorage.removeItem('khaltiPaymentPending');
+                localStorage.setItem('khaltiPaymentResult', 'unknown');
+            }
+
+            // Auto-close this popup after 4 seconds
+            setTimeout(function() {
+                closeNote.innerHTML = 'Closing window...';
+                setTimeout(function() {
+                    window.close();
+                }, 500);
+            }, 3500);
+        })();
+    </script>
+</body>
+</html>

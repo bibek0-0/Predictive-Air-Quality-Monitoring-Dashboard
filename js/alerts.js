@@ -675,13 +675,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Generate unique order ID
         const orderId = 'AIRKTM-PRO-' + Date.now();
 
-        // Build proper return URL (handle file:// protocol)
-        const currentUrl = window.location.href.split('?')[0]; // strip any existing query params
-        const siteUrl = window.location.origin !== 'null' ? window.location.origin : currentUrl;
+        // Build proper return URL pointing to the lightweight callback page
+        var currentPath = window.location.href.split('?')[0];
+        var basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+        var callbackUrl = basePath + 'payment-callback.html';
+        var siteUrl = window.location.origin !== 'null' ? window.location.origin : basePath;
 
         // Khalti Sandbox Configuration
         const khaltiConfig = {
-            return_url: currentUrl,
+            return_url: callbackUrl,
             website_url: siteUrl,
             amount: 10000, // NRS 100 in paisa
             purchase_order_id: orderId,
@@ -756,13 +758,12 @@ document.addEventListener('DOMContentLoaded', function() {
                             upgradeBtn.classList.remove('khalti-processing');
                             upgradeBtn.disabled = false;
 
-                            // Check if payment was completed (pending flag still set means user came back)
-                            if (localStorage.getItem('khaltiPaymentPending') === 'true') {
-                                localStorage.removeItem('khaltiPaymentPending');
-                                // Show success - assume completed since Khalti redirected back
-                                localStorage.setItem('airktmProActive', 'true');
-                                localStorage.setItem('airktmProDate', new Date().toISOString());
+                            // Check payment result from the callback page (stored in localStorage)
+                            var paymentResult = localStorage.getItem('khaltiPaymentResult');
+                            localStorage.removeItem('khaltiPaymentResult');
+                            localStorage.removeItem('khaltiPaymentPending');
 
+                            if (paymentResult === 'success') {
                                 // Update button to Pro Active
                                 if (btnText) btnText.innerHTML = '✓ AirKTM Pro Active';
                                 upgradeBtn.classList.add('khalti-pro-active');
@@ -803,6 +804,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                             setTimeout(function() { banner.style.display = 'none'; }, 400);
                                         });
                                     }
+                                }
+                            } else if (paymentResult === 'canceled') {
+                                // Show canceled feedback
+                                if (feedback && feedbackText) {
+                                    feedbackText.textContent = 'Payment was canceled. You can try again anytime.';
+                                    feedback.style.display = 'block';
+                                    feedback.className = 'khalti-payment-feedback khalti-feedback-canceled';
+                                    setTimeout(function() { feedback.style.display = 'none'; }, 6000);
                                 }
                             }
                         }
