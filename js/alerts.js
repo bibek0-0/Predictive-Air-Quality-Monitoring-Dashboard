@@ -881,8 +881,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 localStorage.setItem('khaltiPaymentPending', 'true');
 
                 // Open Khalti in a centered popup window instead of full redirect
-                var popupWidth = 500;
-                var popupHeight = 700;
+                var popupWidth = 620;
+                var popupHeight = 780;
                 var left = Math.max(0, (window.screen.width - popupWidth) / 2);
                 var top = Math.max(0, (window.screen.height - popupHeight) / 2);
                 var popupFeatures = 'width=' + popupWidth + ',height=' + popupHeight +
