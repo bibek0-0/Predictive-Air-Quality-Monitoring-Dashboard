@@ -713,9 +713,7 @@ function showErrorState(message) {
   }, 5000);
 }
 
-/**
- * Show last update time with refresh button
- */
+// Show last update time with refresh button
 function showLastUpdateTime() {
   const mapHeader = document.querySelector(".map-header");
   if (!mapHeader) return;
@@ -776,3 +774,15 @@ function showLastUpdateTime() {
 
   updateTimeElement.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
 }
+
+// Handle auto-continue Khalti after login (redirected here from magic link, google auth, or normal login)
+document.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('auth:success', function() {
+        if (sessionStorage.getItem('khaltiIntent') === 'true') {
+            sessionStorage.removeItem('khaltiIntent');
+            
+            // Redirect to the alerts page to show the payment popup, since the homepage doesn't have it
+            window.location.href = '/pages/alerts.html?action=upgrade';
+        }
+    });
+});

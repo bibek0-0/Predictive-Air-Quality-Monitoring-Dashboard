@@ -188,3 +188,94 @@ router.post('/pro-activate', auth, async (req, res) => {
 });
 
 module.exports = router;
+
+// @route   POST /api/auth/subscribe-alert
+// @desc    Check if user exists for alert subscription and generate magic link if not
+// @access  Public
+router.post('/subscribe-alert', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        if (!email) {
+            return res.status(400).json({ msg: 'Please provide an email' });
+        }
+
+        const user = await User.findOne({ email });
+
+        if (user) {
+            // User exists
+            return res.json({ 
+                success: false, 
+                reason: 'already_registered', 
+                message: 'You are already registered, buy pro by logging in.' 
+            });
+        }
+
+        // Generate magic link token (short-lived, e.g., 1 hour)
+        const payload = {
+            email,
+            action: 'magic-login'
+        };
+        const magicToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+        // Generate the magic link URL
+        const host = req.get('host');
+        const protocol = req.protocol;
+        const magicLink = `${protocol}://${host}/api/auth/magic-login?token=${magicToken}`;
+
+        res.json({
+            success: true,
+            magicLink
+        });
+
+    } catch (err) {
+        console.error('Subscribe alert error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// @route   GET /api/auth/magic-login
+// @desc    Handle magic link click, create/login user, redirect to home with khalti intent
+// @access  Public
+router.get('/magic-login', async (req, res) => {
+    const { token } = req.query;
+
+    if (!token) {
+        return res.status(400).send('Invalid or missing token.');
+    }
+
+    try {
+        // Verify token
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.action !== 'magic-login' || !decoded.email) {
+            return res.status(400).send('Invalid token purpose.');
+        }
+
+        const email = decoded.email;
+        const name = email.split('@')[0]; // Simple name extraction
+
+        // Find or create user
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            // Create a new passwordless user (simulate Google/magic user)
+            user = new User({
+                name,
+                email,
+                googleId: 'magic_' + Date.now() // Dummy ID to indicate passwordless
+            });
+            await user.save();
+        }
+
+        // Generate auth token
+        const authToken = generateToken(user);
+
+        // Redirect to frontend with token and khalti intent
+        res.redirect(`/?token=${authToken}&khaltiIntent=true`);
+
+    } catch (err) {
+        console.error('Magic login error:', err.message);
+        return res.status(400).send('Link has expired or is invalid. Please try subscribing again.');
+    }
+});

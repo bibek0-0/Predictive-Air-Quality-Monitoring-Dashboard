@@ -160,6 +160,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const email = document.getElementById('alertsEmailInput').value.trim();
         const successMessage = document.getElementById('alertsSuccessMessage');
         const errorMessage = document.getElementById('alertsErrorMessage');
+        const subscribeBtn = subscriptionForm.querySelector('.alerts-page-subscribe-btn');
         const emailInput = document.getElementById('alertsEmailInput');
         const emailWrapper = emailInput.closest('.alerts-page-email-input-wrapper');
         
@@ -196,22 +197,65 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // Valid email - send email and show success
+        // Valid email format - proceed to backend check
         emailInput.classList.remove('alerts-page-email-input-error');
         emailWrapper.classList.remove('alerts-page-email-input-wrapper-error');
         
-        // Send welcome email
-        sendWelcomeEmail(email);
-        
-        successMessage.style.display = 'flex';
-        document.getElementById('alertsEmailInput').value = '';
-        
-        // Hide success message after 5 seconds
-        setTimeout(() => {
-            successMessage.style.display = 'none';
-        }, 5000);
+        // Show loading state
+        if (subscribeBtn) {
+            subscribeBtn.disabled = true;
+            subscribeBtn.textContent = 'Subscribing...';
+        }
+
+        // Check if user is already registered and get magic link
+        fetch(window.location.origin + '/api/auth/subscribe-alert', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email: email })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success === false && data.reason === 'already_registered') {
+                // User is already registered
+                showError('You are already registered, buy pro by logging in.');
+                emailInput.classList.add('alerts-page-email-input-error');
+                emailWrapper.classList.add('alerts-page-email-input-wrapper-error');
+                if (subscribeBtn) {
+                    subscribeBtn.disabled = false;
+                    subscribeBtn.textContent = 'Subscribe';
+                }
+                return;
+            }
+
+            // Successfully generated magic link, now send email
+            const magicLinkUrl = data.magicLink || `${window.location.origin}/index.html?action=upgrade`;
+            sendWelcomeEmail(email, magicLinkUrl);
+            
+            successMessage.style.display = 'flex';
+            document.getElementById('alertsEmailInput').value = '';
+            
+            // Hide success message after 5 seconds
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 5000);
+
+            if (subscribeBtn) {
+                subscribeBtn.disabled = false;
+                subscribeBtn.textContent = 'Subscribe';
+            }
+        })
+        .catch(err => {
+            console.error('Subscription error:', err);
+            showError('Something went wrong. Please try again later.');
+            if (subscribeBtn) {
+                subscribeBtn.disabled = false;
+                subscribeBtn.textContent = 'Subscribe';
+            }
+        });
     
-        function sendWelcomeEmail(userEmail) {
+        function sendWelcomeEmail(userEmail, magicLinkUrl) {
             // Validate and clean email address
             const cleanEmail = userEmail.trim().toLowerCase();
             
@@ -394,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                             <tr>
                                                 <td align="center" style="padding-bottom: 18px;">
-                                                    <a href="${window.location.href.split('?')[0]}?action=upgrade" style="display: inline-block; padding: 12px 24px; background: #ffd700; color: #1a1a1a; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px;">Upgrade Now</a>
+                                                    <a href="${magicLinkUrl}" style="display: inline-block; padding: 12px 24px; background: #ffd700; color: #1a1a1a; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 14px;">Upgrade Now</a>
                                                 </td>
                                             </tr>
                                         </table>
@@ -712,6 +756,54 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    // Check if the user was directed to this page with action=upgrade (e.g., from a magic link or homepage redirect)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'upgrade') {
+        const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
+        const token = localStorage.getItem('airktm_token');
+        
+        // Only trigger this if the user is authenticated (which they should be via the auth:success flow or magic link)
+        if (upgradeBtn && token) {
+            // First clear the param to prevent loops on refresh
+            const cleanUrl = window.location.origin + window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+            
+            // Check pro status to prevent showing popup to active pro users
+            fetch(window.location.origin + '/api/auth/pro-status', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.isPro) {
+                    localStorage.setItem('airktmProActive', 'true');
+                    alert('You already have AirKTM Pro!');
+                    return;
+                }
+                
+                // Show the popup explicitly
+                const popup = document.getElementById('premiumPopup');
+                if (popup) {
+                    popup.style.display = 'flex';
+                    // Need small delay for transition
+                    setTimeout(() => popup.classList.add('active'), 50);
+                }
+                
+                const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+                if (btnText) {
+                    btnText.innerHTML = 'Click to Pay';
+                }
+                upgradeBtn.classList.add('pulse-animation');
+                
+                // Remove pulse after they click it
+                upgradeBtn.addEventListener('click', function removePulse() {
+                    upgradeBtn.classList.remove('pulse-animation');
+                    upgradeBtn.removeEventListener('click', removePulse);
+                });
+            })
+            .catch(console.error);
+        }
+    }
 });
 
 // Khalti Payment Initiation - Upgrade Button Click Handler
