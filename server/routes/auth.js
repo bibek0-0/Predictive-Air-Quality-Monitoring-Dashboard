@@ -30,10 +30,20 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ msg: 'Password must be at least 6 characters' });
         }
 
+        // Password strength: must have at least one uppercase and one special character
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+        if (!hasUppercase) {
+            return res.status(400).json({ msg: 'Password must contain at least one uppercase letter' });
+        }
+        if (!hasSpecialChar) {
+            return res.status(400).json({ msg: 'Password must contain at least one special character (!@#$%^&* etc.)' });
+        }
+
         // Check if user already exists
         let user = await User.findOne({ email });
         if (user) {
-            return res.status(400).json({ msg: 'User with this email already exists' });
+            return res.status(400).json({ msg: 'An account with this email already exists. Please log in instead.' });
         }
 
         // Create new user
@@ -73,7 +83,7 @@ router.post('/login', async (req, res) => {
         // Check if user exists
         const user = await User.findOne({ email });
         if (!user) {
-            return res.status(400).json({ msg: 'Invalid credentials' });
+            return res.status(400).json({ msg: 'No account found with this email. Please sign up first.' });
         }
 
         // If user signed up with Google and has no password
@@ -84,7 +94,7 @@ router.post('/login', async (req, res) => {
         // Compare password
         const isMatch = await user.comparePassword(password);
         if (!isMatch) {
-            return res.status(400).json({ msg: 'Invalid credentials' });
+            return res.status(400).json({ msg: 'Incorrect password. Please try again.' });
         }
 
         // Generate token

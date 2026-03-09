@@ -115,6 +115,12 @@
         if (password.length < 6) {
             return showMessage('authFormSignup', 'Password must be at least 6 characters', 'error');
         }
+        if (!/[A-Z]/.test(password)) {
+            return showMessage('authFormSignup', 'Password must contain at least one uppercase letter', 'error');
+        }
+        if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+            return showMessage('authFormSignup', 'Password must contain at least one special character (!@#$%^&* etc.)', 'error');
+        }
 
         const btn = document.querySelector('#authFormSignup .auth-submit-btn');
         btn.disabled = true;
