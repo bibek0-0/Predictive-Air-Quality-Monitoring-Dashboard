@@ -6,7 +6,8 @@ const connectDB = async () => {
         console.log(`MongoDB Connected: ${conn.connection.host}`);
     } catch (err) {
         console.error(`MongoDB Connection Error: ${err.message}`);
-        process.exit(1);
+        console.error('Auth features will not work until MongoDB is running.');
+        console.error('Start MongoDB and restart the server.');
     }
 };
 
