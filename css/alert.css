@@ -31,7 +31,7 @@ Alerts Page - Two Column Layout
 .alerts-page-banner {
     background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
     border-radius: 50px;
-    padding: 1.25rem 1.5rem;
+    padding: 1rem 1.25rem;
     box-shadow: 0 4px 16px rgba(239, 68, 68, 0.25);
     display: flex;
     align-items: center;
@@ -47,7 +47,7 @@ Alerts Page - Two Column Layout
 }
 
 .alerts-page-banner-emoji {
-    font-size: 2rem;
+    font-size: 1.75rem;
     line-height: 1;
     flex-shrink: 0;
     display: inline-block;
@@ -84,7 +84,7 @@ Alerts Page - Two Column Layout
 
 .alerts-page-banner-title {
     font-family: 'Poppins', sans-serif;
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #ffffff;
     margin: 0 0 0.25rem 0;
@@ -92,15 +92,15 @@ Alerts Page - Two Column Layout
 }
 
 .alerts-page-banner-aqi {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.95);
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
     margin: 0 0 0.25rem 0;
 }
 
 .alerts-page-banner-message {
-    font-size: 0.8125rem;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.875rem;
+    color: #ffffff;
     margin: 0;
     line-height: 1.4;
 }
@@ -211,6 +211,35 @@ Alerts Page - Two Column Layout
     color: #6b7280;
     margin: 0 0 1.5rem 0;
     line-height: 1.6;
+}
+
+.alerts-page-subscription-referral {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(37, 99, 235, 0.05) 100%);
+    border: 1px dashed rgba(59, 130, 246, 0.3);
+    border-radius: 12px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.8125rem;
+    color: #3b82f6;
+    margin: -0.5rem auto 1.25rem auto;
+    font-weight: 500;
+    line-height: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    max-width: 480px;
+    width: fit-content;
+    transition: all 0.3s ease;
+}
+
+.alerts-page-subscription-referral:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(37, 99, 235, 0.08) 100%);
+    border-color: rgba(59, 130, 246, 0.5);
+    transform: translateY(-2px);
+}
+
+.alerts-page-subscription-referral span {
+    text-align: center;
 }
 
 .alerts-page-subscription-form {
@@ -552,6 +581,12 @@ Alerts Page - Two Column Layout
     color: #cbd5e1;
 }
 
+[data-theme="dark"] .alerts-page-subscription-referral {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.1) 100%);
+    border-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
 [data-theme="dark"] .alerts-page-email-input {
     background: rgba(15, 23, 42, 0.6);
     border-color: rgba(255, 255, 255, 0.15);
@@ -624,6 +659,7 @@ Alerts Page - Two Column Layout
     flex-direction: column;
     animation: fadeInUp 0.6s ease-out 0.3s both;
     margin-left: 0.5rem;
+    margin-top: 1.5rem;
     position: relative;
     z-index: 1;
     width: 100%;
