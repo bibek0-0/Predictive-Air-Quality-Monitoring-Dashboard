@@ -237,13 +237,19 @@
                 }
             }
 
-            // Name
+            // Name + Pro badge
             const nameEl = userMenuContainer.querySelector('.user-avatar-name');
-            if (nameEl) nameEl.textContent = user.name || 'User';
+            if (nameEl) {
+                const isPro = user.isPro || localStorage.getItem('airktmProActive') === 'true';
+                nameEl.innerHTML = (user.name || 'User') + (isPro ? ' <span class="pro-name-badge">PRO</span>' : '');
+            }
 
             // Dropdown info
             const ddName = userMenuContainer.querySelector('.user-dropdown-name');
-            if (ddName) ddName.textContent = user.name || 'User';
+            if (ddName) {
+                const isPro = user.isPro || localStorage.getItem('airktmProActive') === 'true';
+                ddName.innerHTML = (user.name || 'User') + (isPro ? ' <span class="pro-name-badge">PRO</span>' : '');
+            }
             const ddEmail = userMenuContainer.querySelector('.user-dropdown-email');
             if (ddEmail) ddEmail.textContent = user.email || '';
         } else {

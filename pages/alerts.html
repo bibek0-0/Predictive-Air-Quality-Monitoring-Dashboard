@@ -147,19 +147,21 @@
         </div>
     </div>
 
-    <!-- Khalti Payment Callback Status Banner -->
-    <div class="khalti-callback-banner" id="khaltiCallbackBanner" style="display:none;">
-        <div class="khalti-callback-content">
-            <div class="khalti-callback-icon" id="khaltiCallbackIcon"></div>
-            <div class="khalti-callback-info">
-                <h3 class="khalti-callback-title" id="khaltiCallbackTitle"></h3>
-                <p class="khalti-callback-message" id="khaltiCallbackMessage"></p>
-            </div>
-            <button class="khalti-callback-close" id="khaltiCallbackClose" aria-label="Close">
+    <!-- Khalti Payment Status Overlay -->
+    <div class="khalti-status-overlay" id="khaltiCallbackBanner" style="display:none;">
+        <div class="khalti-status-card">
+            <button class="khalti-status-close" id="khaltiCallbackClose" aria-label="Close">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </button>
+            <div class="khalti-status-icon-wrap" id="khaltiCallbackIcon"></div>
+            <h3 class="khalti-status-title" id="khaltiCallbackTitle"></h3>
+            <p class="khalti-status-message" id="khaltiCallbackMessage"></p>
+            <div class="khalti-status-details" id="khaltiStatusDetails" style="display:none;"></div>
+            <div class="khalti-status-footer">
+                <p class="khalti-status-auto-close">This will close automatically...</p>
+            </div>
         </div>
     </div>
 

@@ -577,30 +577,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const amount = urlParams.get('amount') || '';
             const amountNRS = amount ? 'NRS ' + (parseInt(amount) / 100) : 'NRS 100';
 
-            icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            icon.innerHTML = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
             title.textContent = 'Payment Successful!';
-            message.textContent = 'AirKTM Pro activated • ' + amountNRS + ' paid' + (txnId ? ' • Txn: ' + txnId.substring(0, 12) + '...' : '');
-            banner.className = 'khalti-callback-banner khalti-callback-success';
+            message.textContent = 'Your AirKTM Pro subscription is now active. Enjoy premium features!';
+            banner.className = 'khalti-status-overlay khalti-callback-success';
+
+            // Show transaction details
+            var detailsEl = document.getElementById('khaltiStatusDetails');
+            if (detailsEl) {
+                detailsEl.style.display = 'block';
+                detailsEl.innerHTML = '<p>Amount <strong>' + amountNRS + '</strong></p>' +
+                    (txnId ? '<p>Transaction <strong>' + txnId.substring(0, 16) + '</strong></p>' : '');
+            }
 
             // Store Pro status
             localStorage.setItem('airktmProActive', 'true');
             localStorage.setItem('airktmProTxn', txnId);
             localStorage.setItem('airktmProDate', new Date().toISOString());
 
+
         } else if (status === 'User canceled') {
-            icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
+            icon.innerHTML = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
             title.textContent = 'Payment Canceled';
-            message.textContent = 'You canceled the payment. You can try again anytime.';
-            banner.className = 'khalti-callback-banner khalti-callback-canceled';
+            message.textContent = 'No worries! You can upgrade to Pro anytime from the Alerts page.';
+            banner.className = 'khalti-status-overlay khalti-callback-canceled';
 
         } else if (status === 'Pending') {
-            icon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2"/><path d="M12 9v3l2 1" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
+            icon.innerHTML = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#3b82f6"/><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2"/><path d="M12 9v3l2 1" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>';
             title.textContent = 'Payment Pending';
-            message.textContent = 'Your payment is being processed. Please wait a moment.';
-            banner.className = 'khalti-callback-banner khalti-callback-pending';
+            message.textContent = 'Your payment is being processed. This may take a moment.';
+            banner.className = 'khalti-status-overlay khalti-callback-pending';
         }
 
-        // Show banner with animation
+        // Show overlay with animation
         banner.style.display = 'flex';
         requestAnimationFrame(function() {
             banner.classList.add('show');
@@ -614,11 +623,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Auto-hide after 10 seconds
+        // Auto-hide after 8 seconds
         setTimeout(function() {
             banner.classList.remove('show');
             setTimeout(function() { banner.style.display = 'none'; }, 400);
-        }, 10000);
+        }, 8000);
 
         // Clean URL params without reloading the page
         try {
@@ -715,6 +724,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Also suppress popup on next visit
         sessionStorage.setItem('premiumPopupClosed', 'true');
+
     }
 
     // Also check from database if user is logged in (handles cross-device sync)
@@ -741,6 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     popup.classList.remove('active');
                     popup.style.display = 'none';
                 }
+
             }
         })
         .catch(function(err) {
@@ -948,12 +959,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                 var bannerMessage = document.getElementById('khaltiCallbackMessage');
 
                                 if (banner && bannerIcon && bannerTitle && bannerMessage) {
-                                    bannerIcon.innerHTML = '<svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                                    bannerIcon.innerHTML = '<svg width="72" height="72" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                                     bannerTitle.textContent = 'Payment Successful!';
-                                    bannerMessage.textContent = 'AirKTM Pro activated • NRS 100 paid';
-                                    banner.className = 'khalti-callback-banner khalti-callback-success';
+                                    bannerMessage.textContent = 'Your AirKTM Pro subscription is now active. Enjoy premium features!';
+                                    banner.className = 'khalti-status-overlay khalti-callback-success';
                                     banner.style.display = 'flex';
                                     requestAnimationFrame(function() { banner.classList.add('show'); });
+
 
                                     // Close the premium popup
                                     var premiumPopup = document.getElementById('premiumPopup');
@@ -963,11 +975,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                         sessionStorage.setItem('premiumPopupClosed', 'true');
                                     }
 
-                                    // Auto-hide banner after 10s
+                                    // Auto-hide overlay after 8s
                                     setTimeout(function() {
                                         banner.classList.remove('show');
                                         setTimeout(function() { banner.style.display = 'none'; }, 400);
-                                    }, 10000);
+                                    }, 8000);
 
                                     var bannerClose = document.getElementById('khaltiCallbackClose');
                                     if (bannerClose) {

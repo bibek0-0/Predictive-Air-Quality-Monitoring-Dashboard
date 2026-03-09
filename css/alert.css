@@ -1891,109 +1891,242 @@ Alerts Page - Two Column Layout
 }
 
 /* ============================================
-   KHALTI CALLBACK BANNER
+   KHALTI PAYMENT STATUS OVERLAY
    ============================================ */
 
-.khalti-callback-banner {
+.khalti-status-overlay {
     position: fixed;
-    top: 70px;
-    left: 50%;
-    transform: translateX(-50%) translateY(-120%);
-    z-index: 10000;
-    width: 92%;
-    max-width: 560px;
-    border-radius: 16px;
-    padding: 1rem 1.25rem;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 1.5rem;
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.khalti-callback-banner.show {
-    transform: translateX(-50%) translateY(0);
+.khalti-status-overlay.show {
     opacity: 1;
 }
 
-.khalti-callback-content {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.khalti-status-card {
+    background: #ffffff;
+    border-radius: 28px;
+    padding: 3rem 2.5rem 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.15),
+        0 8px 24px rgba(0, 0, 0, 0.1);
+    animation: statusCardIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-.khalti-callback-icon {
-    flex-shrink: 0;
+[data-theme="dark"] .khalti-status-card {
+    background: #1e293b;
+    box-shadow:
+        0 24px 80px rgba(0, 0, 0, 0.4),
+        0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes statusCardIn {
+    from {
+        opacity: 0;
+        transform: scale(0.85) translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.khalti-status-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f1f5f9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #64748b;
+    z-index: 2;
+}
+
+[data-theme="dark"] .khalti-status-close {
+    background: #334155;
+    color: #94a3b8;
+}
+
+.khalti-status-close:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    transform: rotate(90deg);
+}
+
+[data-theme="dark"] .khalti-status-close:hover {
+    background: #475569;
+    color: #f1f5f9;
+}
+
+.khalti-status-icon-wrap {
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.khalti-callback-info {
-    flex: 1;
-    min-width: 0;
+.khalti-status-icon-wrap svg {
+    filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.12));
 }
 
-.khalti-callback-title {
-    margin: 0 0 0.2rem 0;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    line-height: 1.3;
+.khalti-status-title {
+    margin: 0 0 0.5rem 0;
+    font-family: 'Poppins', 'Inter', sans-serif;
+    font-size: 1.625rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: #0f172a;
 }
 
-.khalti-callback-message {
-    margin: 0;
-    font-size: 0.825rem;
+[data-theme="dark"] .khalti-status-title {
+    color: #f1f5f9;
+}
+
+.khalti-status-message {
+    margin: 0 0 1.5rem 0;
+    font-size: 0.95rem;
     font-weight: 500;
-    line-height: 1.4;
-    opacity: 0.85;
+    line-height: 1.6;
+    color: #64748b;
 }
 
-.khalti-callback-close {
-    background: none;
-    border: none;
-    cursor: pointer;
-    padding: 6px;
-    border-radius: 8px;
-    color: inherit;
-    opacity: 0.6;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
+[data-theme="dark"] .khalti-status-message {
+    color: #94a3b8;
 }
 
-.khalti-callback-close:hover {
-    opacity: 1;
-    background: rgba(255, 255, 255, 0.15);
+.khalti-status-details {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e2e8f0;
+    text-align: left;
 }
 
-/* Success Banner */
-.khalti-callback-success {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
-    box-shadow:
-        0 12px 32px rgba(16, 185, 129, 0.35),
-        0 4px 12px rgba(0, 0, 0, 0.15);
-    color: #ffffff;
+[data-theme="dark"] .khalti-status-details {
+    background: #0f172a;
+    border-color: #334155;
 }
 
-/* Canceled Banner */
-.khalti-callback-canceled {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(217, 119, 6, 0.95) 100%);
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
-    box-shadow:
-        0 12px 32px rgba(245, 158, 11, 0.35),
-        0 4px 12px rgba(0, 0, 0, 0.15);
-    color: #ffffff;
+.khalti-status-details p {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
-/* Pending Banner */
-.khalti-callback-pending {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.95) 100%);
-    border: 1.5px solid rgba(255, 255, 255, 0.25);
-    box-shadow:
-        0 12px 32px rgba(59, 130, 246, 0.35),
-        0 4px 12px rgba(0, 0, 0, 0.15);
-    color: #ffffff;
+.khalti-status-details p:last-child {
+    margin-bottom: 0;
+}
+
+.khalti-status-details strong {
+    color: #334155;
+    font-weight: 700;
+}
+
+[data-theme="dark"] .khalti-status-details strong {
+    color: #e2e8f0;
+}
+
+.khalti-status-footer {
+    padding-top: 0.5rem;
+}
+
+.khalti-status-auto-close {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* Success state */
+.khalti-status-overlay.khalti-callback-success .khalti-status-card {
+    border-top: 5px solid #10b981;
+}
+
+.khalti-status-overlay.khalti-callback-success .khalti-status-title {
+    color: #065f46;
+}
+
+[data-theme="dark"] .khalti-status-overlay.khalti-callback-success .khalti-status-title {
+    color: #34d399;
+}
+
+/* Canceled state */
+.khalti-status-overlay.khalti-callback-canceled .khalti-status-card {
+    border-top: 5px solid #f59e0b;
+}
+
+.khalti-status-overlay.khalti-callback-canceled .khalti-status-title {
+    color: #92400e;
+}
+
+[data-theme="dark"] .khalti-status-overlay.khalti-callback-canceled .khalti-status-title {
+    color: #fbbf24;
+}
+
+/* Pending state */
+.khalti-status-overlay.khalti-callback-pending .khalti-status-card {
+    border-top: 5px solid #3b82f6;
+}
+
+.khalti-status-overlay.khalti-callback-pending .khalti-status-title {
+    color: #1e40af;
+}
+
+[data-theme="dark"] .khalti-status-overlay.khalti-callback-pending .khalti-status-title {
+    color: #60a5fa;
+}
+
+/* Success confetti animation */
+.khalti-status-overlay.khalti-callback-success .khalti-status-card::before {
+    content: '🎉';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.5rem;
+    animation: confettiBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    z-index: 3;
+}
+
+@keyframes confettiBounce {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) scale(0) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) scale(1) translateY(0);
+    }
 }
 
 /* Dark mode adjustments */
@@ -2008,23 +2141,48 @@ Alerts Page - Two Column Layout
 
 /* Responsive */
 @media (max-width: 600px) {
-    .khalti-callback-banner {
-        width: 95%;
-        padding: 0.875rem 1rem;
-        top: 64px;
-        border-radius: 12px;
+    .khalti-status-overlay {
+        padding: 1rem;
     }
 
-    .khalti-callback-title {
-        font-size: 0.95rem;
+    .khalti-status-card {
+        padding: 2.5rem 1.5rem 1.5rem;
+        border-radius: 20px;
     }
 
-    .khalti-callback-message {
-        font-size: 0.75rem;
+    .khalti-status-title {
+        font-size: 1.375rem;
     }
 
-    .khalti-callback-icon svg {
-        width: 32px;
-        height: 32px;
+    .khalti-status-message {
+        font-size: 0.875rem;
+    }
+
+    .khalti-status-icon-wrap svg {
+        width: 56px !important;
+        height: 56px !important;
     }
 }
+
+/* ============================================
+   PRO NAME BADGE (inline next to user name)
+   ============================================ */
+
+.pro-name-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #ffffff;
+    font-family: 'Poppins', 'Inter', sans-serif;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    padding: 0.125rem 0.4rem;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 0.375rem;
+    line-height: 1.4;
+    box-shadow: 0 1px 4px rgba(245, 158, 11, 0.4);
+}
+
+
