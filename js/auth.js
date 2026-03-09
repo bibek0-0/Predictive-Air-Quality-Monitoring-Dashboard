@@ -209,6 +209,10 @@
     function handleLogout() {
         removeToken();
         currentUser = null;
+        // Clear Pro status on logout so next user doesn't inherit it
+        localStorage.removeItem('airktmProActive');
+        localStorage.removeItem('airktmProTxn');
+        localStorage.removeItem('airktmProDate');
         updateNavbar();
         // Close dropdown
         document.querySelector('.user-menu-container')?.classList.remove('open');
@@ -240,14 +244,14 @@
             // Name + Pro badge
             const nameEl = userMenuContainer.querySelector('.user-avatar-name');
             if (nameEl) {
-                const isPro = user.isPro || localStorage.getItem('airktmProActive') === 'true';
+                const isPro = (user.isPro === true);
                 nameEl.innerHTML = (user.name || 'User') + (isPro ? ' <span class="pro-name-badge">PRO</span>' : '');
             }
 
             // Dropdown info
             const ddName = userMenuContainer.querySelector('.user-dropdown-name');
             if (ddName) {
-                const isPro = user.isPro || localStorage.getItem('airktmProActive') === 'true';
+                const isPro = (user.isPro === true);
                 ddName.innerHTML = (user.name || 'User') + (isPro ? ' <span class="pro-name-badge">PRO</span>' : '');
             }
             const ddEmail = userMenuContainer.querySelector('.user-dropdown-email');
