@@ -88,14 +88,26 @@
         clearMessages();
     }
 
+    let messageTimeout;
+
     function showMessage(formId, msg, type) {
         const el = document.querySelector(`#${formId} .auth-message`);
         if (!el) return;
+        
+        // Clear any existing timeout
+        if (messageTimeout) clearTimeout(messageTimeout);
+        
         el.textContent = msg;
-        el.className = `auth-message ${type}`;
+        el.className = `auth-message ${type} show`;
+        
+        // Auto-dismiss after 4 seconds
+        messageTimeout = setTimeout(() => {
+            el.className = 'auth-message';
+        }, 4000);
     }
 
     function clearMessages() {
+        if (messageTimeout) clearTimeout(messageTimeout);
         document.querySelectorAll('.auth-message').forEach(el => {
             el.className = 'auth-message';
             el.textContent = '';
