@@ -137,6 +137,26 @@
                 localStorage.removeItem('khaltiPaymentPending');
                 localStorage.setItem('khaltiPaymentResult', 'success');
 
+                // Persist Pro status to database
+                var authToken = localStorage.getItem('airktm_token');
+                if (authToken) {
+                    fetch(window.location.origin + '/api/auth/pro-activate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + authToken
+                        },
+                        body: JSON.stringify({ transactionId: txnId })
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        console.log('Pro status saved to DB:', data);
+                    })
+                    .catch(function(err) {
+                        console.error('Failed to save pro status to DB:', err);
+                    });
+                }
+
             } else if (status === 'User canceled') {
                 document.body.className = 'canceled-bg';
                 icon.innerHTML = '<svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';

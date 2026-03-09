@@ -633,28 +633,65 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('auth:success', function() {
         if (sessionStorage.getItem('khaltiIntent') === 'true') {
             sessionStorage.removeItem('khaltiIntent');
-            const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
-            if (upgradeBtn) {
-                // Ensure popup is shown so the user sees what's happening
-                const popup = document.getElementById('premiumPopup');
-                if (popup) {
-                    popup.style.display = 'flex';
-                    popup.classList.add('active');
-                }
-                
-                // Prompt user to click the button to bypass popup blockers
-                const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
-                if (btnText) {
-                    btnText.innerHTML = 'Logged In! Click to Pay';
-                }
-                
-                // Add a pulse animation class to draw attention
-                upgradeBtn.classList.add('pulse-animation');
-                
-                // Remove pulse after they click it
-                upgradeBtn.addEventListener('click', function removePulse() {
-                    upgradeBtn.classList.remove('pulse-animation');
-                    upgradeBtn.removeEventListener('click', removePulse);
+
+            // Check pro status from database before proceeding to payment
+            const token = localStorage.getItem('airktm_token');
+            if (token) {
+                fetch(window.location.origin + '/api/auth/pro-status', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data.isPro) {
+                        // User already has Pro — sync localStorage and redirect to home
+                        localStorage.setItem('airktmProActive', 'true');
+                        alert('You already have AirKTM Pro! Redirecting to homepage.');
+                        window.location.href = '/index.html';
+                        return;
+                    }
+
+                    // User is NOT pro — continue to Khalti payment
+                    const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
+                    if (upgradeBtn) {
+                        // Ensure popup is shown so the user sees what's happening
+                        const popup = document.getElementById('premiumPopup');
+                        if (popup) {
+                            popup.style.display = 'flex';
+                            popup.classList.add('active');
+                        }
+                        
+                        // Prompt user to click the button to bypass popup blockers
+                        const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+                        if (btnText) {
+                            btnText.innerHTML = 'Logged In! Click to Pay';
+                        }
+                        
+                        // Add a pulse animation class to draw attention
+                        upgradeBtn.classList.add('pulse-animation');
+                        
+                        // Remove pulse after they click it
+                        upgradeBtn.addEventListener('click', function removePulse() {
+                            upgradeBtn.classList.remove('pulse-animation');
+                            upgradeBtn.removeEventListener('click', removePulse);
+                        });
+                    }
+                })
+                .catch(function(err) {
+                    console.error('Error checking pro status:', err);
+                    // On error, still show payment flow as fallback
+                    const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
+                    if (upgradeBtn) {
+                        const popup = document.getElementById('premiumPopup');
+                        if (popup) {
+                            popup.style.display = 'flex';
+                            popup.classList.add('active');
+                        }
+                        const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+                        if (btnText) {
+                            btnText.innerHTML = 'Logged In! Click to Pay';
+                        }
+                        upgradeBtn.classList.add('pulse-animation');
+                    }
                 });
             }
         }
@@ -666,7 +703,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
     if (!upgradeBtn) return;
 
-    // Check if already a Pro user
+    // Check if already a Pro user (localStorage first, then verify from DB)
     const isProUser = localStorage.getItem('airktmProActive') === 'true';
     if (isProUser) {
         const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
@@ -678,6 +715,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Also suppress popup on next visit
         sessionStorage.setItem('premiumPopupClosed', 'true');
+    }
+
+    // Also check from database if user is logged in (handles cross-device sync)
+    var dbCheckToken = localStorage.getItem('airktm_token');
+    if (dbCheckToken && !isProUser) {
+        fetch(window.location.origin + '/api/auth/pro-status', {
+            headers: { 'Authorization': 'Bearer ' + dbCheckToken }
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (data.isPro) {
+                localStorage.setItem('airktmProActive', 'true');
+                var btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+                if (btnText) {
+                    btnText.innerHTML = '✓ AirKTM Pro Active';
+                }
+                upgradeBtn.classList.add('khalti-pro-active');
+                upgradeBtn.disabled = true;
+                sessionStorage.setItem('premiumPopupClosed', 'true');
+
+                // Suppress popup if showing
+                var popup = document.getElementById('premiumPopup');
+                if (popup) {
+                    popup.classList.remove('active');
+                    popup.style.display = 'none';
+                }
+            }
+        })
+        .catch(function(err) {
+            console.error('DB pro-status check failed:', err);
+        });
     }
 
     upgradeBtn.addEventListener('click', function() {
@@ -713,6 +781,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Set intent flag so we can auto-continue after login
                 sessionStorage.setItem('khaltiIntent', 'true');
+
+                // Update Google login to include khaltiIntent in returnTo
+                document.querySelectorAll('.auth-google-btn').forEach(function(btn) {
+                    btn.onclick = function(e) {
+                        e.preventDefault();
+                        const currentPath = window.location.pathname + window.location.search;
+                        const separator = currentPath.includes('?') ? '&' : '?';
+                        const returnTo = currentPath + separator + 'khaltiIntent=true';
+                        window.location.href = window.location.origin + '/api/auth/google?returnTo=' + encodeURIComponent(returnTo);
+                    };
+                });
             }
             return;
         }
@@ -840,6 +919,27 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (btnText) btnText.innerHTML = '✓ AirKTM Pro Active';
                                 upgradeBtn.classList.add('khalti-pro-active');
                                 upgradeBtn.disabled = true;
+
+                                // Persist Pro status to database
+                                var proToken = localStorage.getItem('airktm_token');
+                                var proTxnId = localStorage.getItem('airktmProTxn') || '';
+                                if (proToken) {
+                                    fetch(window.location.origin + '/api/auth/pro-activate', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': 'Bearer ' + proToken
+                                        },
+                                        body: JSON.stringify({ transactionId: proTxnId })
+                                    })
+                                    .then(function(res) { return res.json(); })
+                                    .then(function(data) {
+                                        console.log('Pro status saved to DB:', data);
+                                    })
+                                    .catch(function(err) {
+                                        console.error('Failed to save pro status to DB:', err);
+                                    });
+                                }
 
                                 // Show success banner
                                 var banner = document.getElementById('khaltiCallbackBanner');

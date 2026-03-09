@@ -142,6 +142,10 @@
             const data = await apiPost('/api/auth/register', { name, email, password });
             setToken(data.token);
             setUser(data.user);
+            // Sync pro status from DB
+            if (data.user.isPro) {
+                localStorage.setItem('airktmProActive', 'true');
+            }
             showMessage('authFormSignup', 'Account created successfully!', 'success');
             setTimeout(() => {
                 getEl('signupPassword').value = ''; // clear password
@@ -175,6 +179,10 @@
             const data = await apiPost('/api/auth/login', { email, password });
             setToken(data.token);
             setUser(data.user);
+            // Sync pro status from DB
+            if (data.user.isPro) {
+                localStorage.setItem('airktmProActive', 'true');
+            }
             showMessage('authFormLogin', 'Logged in successfully!', 'success');
             setTimeout(() => {
                 getEl('loginPassword').value = ''; // clear password
@@ -192,7 +200,9 @@
 
     // ---- Google OAuth ----
     function handleGoogleLogin() {
-        window.location.href = `${API_BASE}/api/auth/google`;
+        // Pass the current page path so Google Login knows where to return the user
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = `${API_BASE}/api/auth/google?returnTo=${encodeURIComponent(currentPath)}`;
     }
 
     // ---- Logout ----
@@ -246,14 +256,22 @@
     function checkForOAuthToken() {
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
+        const khaltiIntentFromUrl = urlParams.get('khaltiIntent');
         if (token) {
             setToken(token);
+            // If khaltiIntent was passed through Google OAuth redirect, restore it to sessionStorage
+            if (khaltiIntentFromUrl === 'true') {
+                sessionStorage.setItem('khaltiIntent', 'true');
+            }
             // Clean URL
             const url = new URL(window.location);
             url.searchParams.delete('token');
+            url.searchParams.delete('khaltiIntent');
             window.history.replaceState({}, document.title, url.pathname + url.search);
-            // Fetch user info
-            fetchCurrentUser();
+            // Fetch user info and trigger success event so that Khalti logic can continue
+            fetchCurrentUser().then(() => {
+                window.dispatchEvent(new CustomEvent('auth:success'));
+            });
         }
     }
 
