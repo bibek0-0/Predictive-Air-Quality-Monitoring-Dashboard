@@ -26,6 +26,18 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null
     },
+    isPro: {
+        type: Boolean,
+        default: false
+    },
+    proActivatedAt: {
+        type: Date,
+        default: null
+    },
+    proTransactionId: {
+        type: String,
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now

@@ -59,7 +59,8 @@ router.post('/register', async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                avatar: user.avatar
+                avatar: user.avatar,
+                isPro: user.isPro || false
             }
         });
     } catch (err) {
@@ -106,7 +107,8 @@ router.post('/login', async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                avatar: user.avatar
+                avatar: user.avatar,
+                isPro: user.isPro || false
             }
         });
     } catch (err) {
@@ -127,6 +129,60 @@ router.get('/user', auth, async (req, res) => {
         res.json(user);
     } catch (err) {
         console.error('Get user error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// @route   GET /api/auth/pro-status
+// @desc    Check if current user has Pro subscription
+// @access  Private (requires JWT)
+router.get('/pro-status', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('isPro proActivatedAt proTransactionId');
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        res.json({
+            isPro: user.isPro || false,
+            proActivatedAt: user.proActivatedAt,
+            proTransactionId: user.proTransactionId
+        });
+    } catch (err) {
+        console.error('Pro status check error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// @route   POST /api/auth/pro-activate
+// @desc    Activate Pro subscription for current user after successful payment
+// @access  Private (requires JWT)
+router.post('/pro-activate', auth, async (req, res) => {
+    try {
+        const { transactionId } = req.body;
+
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        // If already Pro, just return success
+        if (user.isPro) {
+            return res.json({ msg: 'Pro subscription already active', isPro: true });
+        }
+
+        user.isPro = true;
+        user.proActivatedAt = new Date();
+        user.proTransactionId = transactionId || null;
+        await user.save();
+
+        res.json({
+            msg: 'Pro subscription activated successfully',
+            isPro: true,
+            proActivatedAt: user.proActivatedAt,
+            proTransactionId: user.proTransactionId
+        });
+    } catch (err) {
+        console.error('Pro activate error:', err.message);
         res.status(500).json({ msg: 'Server error' });
     }
 });
