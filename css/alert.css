@@ -1828,6 +1828,23 @@ Alerts Page - Two Column Layout
     background: linear-gradient(135deg, #d4a017 0%, #b8960f 100%);
 }
 
+.pulse-animation {
+    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    box-shadow: 0 0 0 0 rgba(212, 160, 23, 0.7);
+}
+
+@keyframes pulse-ring {
+    0% {
+        box-shadow: 0 0 0 0 rgba(212, 160, 23, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(212, 160, 23, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(212, 160, 23, 0);
+    }
+}
+
 /* Pro Active Button State */
 .premium-upgrade-button.khalti-pro-active {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);

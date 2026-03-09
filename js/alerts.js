@@ -642,10 +642,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     popup.classList.add('active');
                 }
                 
-                // Wait slightly for modal closing animation, then trigger
-                setTimeout(function() {
-                    upgradeBtn.click();
-                }, 800);
+                // Prompt user to click the button to bypass popup blockers
+                const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+                if (btnText) {
+                    btnText.innerHTML = 'Logged In! Click to Pay';
+                }
+                
+                // Add a pulse animation class to draw attention
+                upgradeBtn.classList.add('pulse-animation');
+                
+                // Remove pulse after they click it
+                upgradeBtn.addEventListener('click', function removePulse() {
+                    upgradeBtn.classList.remove('pulse-animation');
+                    upgradeBtn.removeEventListener('click', removePulse);
+                });
             }
         }
     });
