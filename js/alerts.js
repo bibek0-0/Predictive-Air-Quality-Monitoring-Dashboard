@@ -11,9 +11,15 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Check if popup has been closed in this session
-  const popupClosed = sessionStorage.getItem("premiumPopupClosed");
+  let popupClosed = sessionStorage.getItem("premiumPopupClosed");
 
-  // Only show popup if it hasn't been closed before in this session
+  // Force show popup for non-logged-in users on every refresh
+  const isLoggedIn = !!localStorage.getItem("airktm_token");
+  if (!isLoggedIn) {
+    popupClosed = null; // Ignore sessionStorage if not logged in
+  }
+
+  // Only show popup if it hasn't been closed before in this session (or if forced)
   if (!popupClosed) {
     // Make sure overlay is visible
     popupOverlay.style.display = "flex";
@@ -622,6 +628,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Handle auto-continue Khalti after login
+document.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('auth:success', function() {
+        if (sessionStorage.getItem('khaltiIntent') === 'true') {
+            sessionStorage.removeItem('khaltiIntent');
+            const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
+            if (upgradeBtn) {
+                // Ensure popup is shown so the user sees what's happening
+                const popup = document.getElementById('premiumPopup');
+                if (popup) {
+                    popup.style.display = 'flex';
+                    popup.classList.add('active');
+                }
+                
+                // Wait slightly for modal closing animation, then trigger
+                setTimeout(function() {
+                    upgradeBtn.click();
+                }, 800);
+            }
+        }
+    });
+});
+
 // Khalti Payment Initiation - Upgrade Button Click Handler
 document.addEventListener('DOMContentLoaded', function() {
     const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
@@ -648,6 +677,37 @@ document.addEventListener('DOMContentLoaded', function() {
         // If already pro, do nothing
         if (localStorage.getItem('airktmProActive') === 'true') return;
 
+        // --- AUTHENTICATION CHECK ---
+        const token = localStorage.getItem('airktm_token');
+        if (!token) {
+            // Not logged in -> show login modal
+            const authModal = document.getElementById('authModalOverlay');
+            if (authModal) {
+                // First close the premium popup
+                const premiumPopup = document.getElementById('premiumPopup');
+                if (premiumPopup) {
+                    premiumPopup.classList.remove('active');
+                    setTimeout(function() { premiumPopup.style.display = 'none'; }, 400);
+                }
+
+                // Show login modal
+                authModal.classList.add('active');
+                
+                // Switch to login tab
+                const loginTab = document.getElementById('authTabLogin');
+                if (loginTab) loginTab.click();
+
+                // Update subtitle to guide the user
+                const subtitleEl = document.getElementById('authModalSubtitle');
+                if (subtitleEl) subtitleEl.textContent = 'Log in to upgrade to AirKTM Pro';
+
+                // Set intent flag so we can auto-continue after login
+                sessionStorage.setItem('khaltiIntent', 'true');
+            }
+            return;
+        }
+        // -----------------------------
+
         const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
         const btnLoading = upgradeBtn.querySelector('.upgrade-btn-loading');
         const feedback = document.getElementById('khaltiPaymentFeedback');
@@ -671,6 +731,18 @@ document.addEventListener('DOMContentLoaded', function() {
         var callbackUrl = basePath + 'payment-callback.html';
         var siteUrl = window.location.origin !== 'null' ? window.location.origin : basePath;
 
+        // Get current user details for Khalti payload
+        let userName = 'AirKTM User';
+        let userEmail = 'user@airktm.com';
+        try {
+            const userStr = localStorage.getItem('airktm_user');
+            if (userStr) {
+                const userObj = JSON.parse(userStr);
+                if (userObj.name) userName = userObj.name;
+                if (userObj.email) userEmail = userObj.email;
+            }
+        } catch(e) {}
+
         // Khalti Sandbox Configuration
         const khaltiConfig = {
             return_url: callbackUrl,
@@ -679,8 +751,8 @@ document.addEventListener('DOMContentLoaded', function() {
             purchase_order_id: orderId,
             purchase_order_name: 'AirKTM Pro Subscription',
             customer_info: {
-                name: 'AirKTM User',
-                email: 'user@airktm.com',
+                name: userName,
+                email: userEmail,
                 phone: '9800000000'
             },
             product_details: [

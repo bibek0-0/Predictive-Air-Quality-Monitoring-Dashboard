@@ -147,6 +147,7 @@
                 getEl('signupPassword').value = ''; // clear password
                 closeModal();
                 updateNavbar();
+                window.dispatchEvent(new CustomEvent('auth:success'));
             }, 700);
         } catch (err) {
             showMessage('authFormSignup', err.message, 'error');
@@ -179,6 +180,7 @@
                 getEl('loginPassword').value = ''; // clear password
                 closeModal();
                 updateNavbar();
+                window.dispatchEvent(new CustomEvent('auth:success'));
             }, 700);
         } catch (err) {
             showMessage('authFormLogin', err.message, 'error');
