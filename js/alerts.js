@@ -13,6 +13,13 @@ document.addEventListener("DOMContentLoaded", function () {
   // Check if popup has been closed in this session
   let popupClosed = sessionStorage.getItem("premiumPopupClosed");
 
+  // Skip popup entirely for Pro users
+  const isProUser = localStorage.getItem('airktmProActive') === 'true';
+  if (isProUser) {
+    popupOverlay.style.display = "none";
+    return;
+  }
+
   // Force show popup for non-logged-in users on every refresh
   const isLoggedIn = !!localStorage.getItem("airktm_token");
   if (!isLoggedIn) {
