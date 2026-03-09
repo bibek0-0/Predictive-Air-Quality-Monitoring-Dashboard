@@ -280,6 +280,16 @@
             window.history.replaceState({}, document.title, url.pathname + url.search);
             // Fetch user info and trigger success event so that Khalti logic can continue
             fetchCurrentUser().then(() => {
+                // If user is Pro, immediately hide the premium popup (it may have already shown)
+                if (currentUser && currentUser.isPro) {
+                    localStorage.setItem('airktmProActive', 'true');
+                    const premiumPopup = document.getElementById('premiumPopup');
+                    if (premiumPopup) {
+                        premiumPopup.classList.remove('active');
+                        premiumPopup.style.display = 'none';
+                        sessionStorage.setItem('premiumPopupClosed', 'true');
+                    }
+                }
                 window.dispatchEvent(new CustomEvent('auth:success'));
             });
         }
