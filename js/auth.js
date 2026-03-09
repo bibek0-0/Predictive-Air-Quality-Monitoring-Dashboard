@@ -144,6 +144,7 @@
             setUser(data.user);
             showMessage('authFormSignup', 'Account created successfully!', 'success');
             setTimeout(() => {
+                getEl('signupPassword').value = ''; // clear password
                 closeModal();
                 updateNavbar();
             }, 700);
@@ -175,6 +176,7 @@
             setUser(data.user);
             showMessage('authFormLogin', 'Logged in successfully!', 'success');
             setTimeout(() => {
+                getEl('loginPassword').value = ''; // clear password
                 closeModal();
                 updateNavbar();
             }, 700);
