@@ -690,14 +690,26 @@ document.addEventListener('DOMContentLoaded', function() {
         if (closeBtn) {
             closeBtn.addEventListener('click', function() {
                 banner.classList.remove('show');
-                setTimeout(function() { banner.style.display = 'none'; }, 400);
+                setTimeout(function() { 
+                    banner.style.display = 'none'; 
+                    // Auto reload to apply Pro status everywhere if payment was successful
+                    if (status === 'Completed') {
+                        window.location.reload();
+                    }
+                }, 400);
             });
         }
 
         // Auto-hide after 8 seconds
         setTimeout(function() {
             banner.classList.remove('show');
-            setTimeout(function() { banner.style.display = 'none'; }, 400);
+            setTimeout(function() { 
+                banner.style.display = 'none'; 
+                // Auto reload to apply Pro status everywhere if payment was successful
+                if (status === 'Completed') {
+                    window.location.reload();
+                }
+            }, 400);
         }, 8000);
 
         // Clean URL params without reloading the page
@@ -1097,14 +1109,20 @@ document.addEventListener('DOMContentLoaded', function() {
                                     // Auto-hide overlay after 8s
                                     setTimeout(function() {
                                         banner.classList.remove('show');
-                                        setTimeout(function() { banner.style.display = 'none'; }, 400);
+                                        setTimeout(function() { 
+                                            banner.style.display = 'none'; 
+                                            window.location.reload();
+                                        }, 400);
                                     }, 8000);
 
                                     var bannerClose = document.getElementById('khaltiCallbackClose');
                                     if (bannerClose) {
                                         bannerClose.addEventListener('click', function() {
                                             banner.classList.remove('show');
-                                            setTimeout(function() { banner.style.display = 'none'; }, 400);
+                                            setTimeout(function() { 
+                                                banner.style.display = 'none'; 
+                                                window.location.reload();
+                                            }, 400);
                                         });
                                     }
                                 }
