@@ -90,7 +90,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const emailInput = document.getElementById('alertsEmailInput');
     if (!emailInput) return;
     
-    const placeholderText = 'Enter your email address';
+    const isProUser = localStorage.getItem('airktmProActive') === 'true';
+    const placeholderText = isProUser ? 'You have already subscribed but you can refer others' : 'Enter your email address';
     let currentIndex = 0;
     let isDeleting = false;
     let typingSpeed = 100;
@@ -142,6 +143,25 @@ document.addEventListener('DOMContentLoaded', function() {
             currentIndex = 0;
             isDeleting = false;
             setTimeout(typePlaceholder, 500);
+        }
+    });
+
+    // Handle logout event
+    window.addEventListener('auth:logout', function() {
+        const newPlaceholderText = 'Enter your email address';
+        // Only update if it's currently different to avoid unnecessary animation resets
+        if (placeholderText !== newPlaceholderText) {
+             // We can't easily change the `placeholderText` variable used inside the closure of `typePlaceholder` from outside
+             // So we'll force a page reload on logout for this specific page
+             window.location.reload();
+        }
+    });
+
+    // Handle login event
+    window.addEventListener('auth:success', function() {
+        const isProUserNow = localStorage.getItem('airktmProActive') === 'true';
+        if (isProUserNow && placeholderText === 'Enter your email address') {
+             window.location.reload();
         }
     });
 });
