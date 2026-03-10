@@ -503,7 +503,8 @@ body {
     color: #0f172a;
 }
 
-.upgrade-crown-btn:hover::after {
+.upgrade-crown-btn:hover::after,
+.upgrade-crown-btn.show-tooltip::after {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) translateY(0);

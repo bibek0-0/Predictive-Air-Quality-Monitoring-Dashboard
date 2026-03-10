@@ -116,8 +116,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Hide crown if user is already PRO
-        if (localStorage.getItem('airktmProActive') === 'true') {
+        const isProUser = localStorage.getItem('airktmProActive') === 'true';
+        const isLoggedIn = !!localStorage.getItem('airktm_token');
+        
+        if (isProUser) {
             navUpgradeBtn.style.display = 'none';
+        } else {
+            // Only auto-show tooltip on Home and Alerts pages for non-pro users
+            const path = window.location.pathname;
+            const isHomePage = path.endsWith('index.html') || path === '/' || path.endsWith('/');
+            const isAlertsPage = path.includes('alerts.html');
+            
+            if (isHomePage || isAlertsPage) {
+                // Auto-show tooltip for non-pro users for 3 seconds on page load
+                setTimeout(() => {
+                    navUpgradeBtn.classList.add('show-tooltip');
+                    setTimeout(() => {
+                        navUpgradeBtn.classList.remove('show-tooltip');
+                    }, 3000);
+                }, 500); // 500ms delay to ensure seamless load
+            }
         }
+
+        // Dynamically handle tooltip on login
+        window.addEventListener('auth:success', function() {
+            const isProUserNow = localStorage.getItem('airktmProActive') === 'true';
+            if (isProUserNow) {
+                navUpgradeBtn.style.display = 'none';
+                navUpgradeBtn.classList.remove('show-tooltip');
+            } else {
+                navUpgradeBtn.style.display = 'flex'; // Ensure button is visible
+                const path = window.location.pathname;
+                const isHomePage = path.endsWith('index.html') || path === '/' || path.endsWith('/');
+                const isAlertsPage = path.includes('alerts.html');
+                
+                if (isHomePage || isAlertsPage) {
+                    setTimeout(() => {
+                        navUpgradeBtn.classList.add('show-tooltip');
+                        setTimeout(() => {
+                            navUpgradeBtn.classList.remove('show-tooltip');
+                        }, 3000);
+                    }, 500);
+                }
+            }
+        });
+
+        // Dynamically handle tooltip on logout
+        window.addEventListener('auth:logout', function() {
+            navUpgradeBtn.style.display = 'flex'; // Ensure button comes back if logic hid it
+            const path = window.location.pathname;
+            const isHomePage = path.endsWith('index.html') || path === '/' || path.endsWith('/');
+            const isAlertsPage = path.includes('alerts.html');
+            
+            if (isHomePage || isAlertsPage) {
+                setTimeout(() => {
+                    navUpgradeBtn.classList.add('show-tooltip');
+                    setTimeout(() => {
+                        navUpgradeBtn.classList.remove('show-tooltip');
+                    }, 3000);
+                }, 500);
+            }
+        });
     }
 });

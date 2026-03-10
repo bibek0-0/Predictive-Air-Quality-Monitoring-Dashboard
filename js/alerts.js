@@ -148,20 +148,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle logout event
     window.addEventListener('auth:logout', function() {
-        const newPlaceholderText = 'Enter your email address';
-        // Only update if it's currently different to avoid unnecessary animation resets
-        if (placeholderText !== newPlaceholderText) {
-             // We can't easily change the `placeholderText` variable used inside the closure of `typePlaceholder` from outside
-             // So we'll force a page reload on logout for this specific page
-             window.location.reload();
+        // Clear popup closed flag so it shows immediately
+        sessionStorage.removeItem('premiumPopupClosed');
+        
+        // Find and show popup immediately since user is no longer logged in
+        const popupOverlay = document.getElementById("premiumPopup");
+        if (popupOverlay) {
+            popupOverlay.style.display = "flex";
+            setTimeout(() => popupOverlay.classList.add("active"), 50);
+            
+            // Show hint after 5 seconds
+            const closeHint = document.getElementById("premiumCloseHint");
+            setTimeout(function () {
+                if (closeHint && popupOverlay.classList.contains("active")) {
+                    closeHint.classList.add("show");
+                    setTimeout(() => {
+                        if (closeHint) closeHint.classList.remove("show");
+                    }, 3000);
+                }
+            }, 5000);
+        }
+        
+        // Update subscription placeholder for non-logged-in state
+        const emailInput = document.getElementById('alertsEmailInput');
+        if (emailInput) {
+            emailInput.placeholder = 'Enter your email address';
         }
     });
 
     // Handle login event
     window.addEventListener('auth:success', function() {
         const isProUserNow = localStorage.getItem('airktmProActive') === 'true';
-        if (isProUserNow && placeholderText === 'Enter your email address') {
-             window.location.reload();
+        const popupOverlay = document.getElementById("premiumPopup");
+        
+        if (isProUserNow) {
+            // Hide popup immediately and update placeholder if pro
+            if (popupOverlay) {
+                popupOverlay.classList.remove("active");
+                setTimeout(() => { popupOverlay.style.display = "none"; }, 400);
+            }
+            const emailInput = document.getElementById('alertsEmailInput');
+            if (emailInput) {
+                emailInput.placeholder = 'You have already subscribed but you can refer others';
+            }
+        } else {
+            // If they just logged in/signed up and ARE NOT pro, show the premium popup after a delay
+            sessionStorage.removeItem('premiumPopupClosed');
+            if (popupOverlay) {
+                // Wait for auth modal to fully close before showing premium popup
+                setTimeout(() => {
+                    popupOverlay.style.display = "flex";
+                    setTimeout(() => popupOverlay.classList.add("active"), 50);
+                    
+                    // Show hint after 5 seconds
+                    const closeHint = document.getElementById("premiumCloseHint");
+                    setTimeout(function () {
+                      if (closeHint && popupOverlay.classList.contains("active")) {
+                        closeHint.classList.add("show");
+                        setTimeout(function () {
+                          if (closeHint) {
+                            closeHint.classList.remove("show");
+                          }
+                        }, 3000);
+                      }
+                    }, 5000);
+                }, 800); 
+            }
         }
     });
 });

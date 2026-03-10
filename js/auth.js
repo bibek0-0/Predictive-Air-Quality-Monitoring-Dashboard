@@ -257,9 +257,24 @@
             }
             const ddEmail = userMenuContainer.querySelector('.user-dropdown-email');
             if (ddEmail) ddEmail.textContent = user.email || '';
+
+            // Handle Nav Upgrade (Pro Crown) Button Visibility based on Pro status
+            const navUpgradeBtn = document.getElementById('navUpgradeBtn');
+            if (navUpgradeBtn) {
+                if (user.isPro === true) {
+                    navUpgradeBtn.style.display = 'none';
+                } else {
+                    navUpgradeBtn.style.display = 'flex';
+                }
+            }
         } else {
             authBtnContainer.style.display = '';
             userMenuContainer.style.display = 'none';
+            // User logged out: show crown if it exists
+            const navUpgradeBtn = document.getElementById('navUpgradeBtn');
+            if (navUpgradeBtn) {
+                navUpgradeBtn.style.display = 'flex';
+            }
         }
     }
 

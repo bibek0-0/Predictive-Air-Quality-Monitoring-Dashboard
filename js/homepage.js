@@ -780,9 +780,131 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('auth:success', function() {
         if (sessionStorage.getItem('khaltiIntent') === 'true') {
             sessionStorage.removeItem('khaltiIntent');
+            // Redirect to the alerts page to show the payment popup, since full Khalti form is on alerts
+            window.location.href = 'pages/alerts.html?action=upgrade';
+        }
+    });
+
+    // Premium Popup Modal - Auto Show and Close (Show Once Per Session)
+    const popupOverlay = document.getElementById("premiumPopup");
+    const closeBtn = document.getElementById("premiumPopupClose");
+
+    if (!popupOverlay) return;
+
+    // Check if popup has been closed in this session
+    let popupClosed = sessionStorage.getItem("premiumPopupClosed");
+
+    // Skip popup entirely for Pro users
+    const isProUser = localStorage.getItem('airktmProActive') === 'true';
+    if (isProUser) {
+        popupOverlay.style.display = "none";
+        return;
+    }
+
+    // Force show popup for non-logged-in users on every refresh
+    const isLoggedIn = !!localStorage.getItem("airktm_token");
+    if (!isLoggedIn) {
+        popupClosed = null; // Ignore sessionStorage if not logged in
+    }
+
+    // Only show popup if it hasn't been closed before in this session (or if forced)
+    if (!popupClosed) {
+        // Make sure overlay is visible
+        popupOverlay.style.display = "flex";
+        setTimeout(function () {
+            popupOverlay.classList.add("active");
+        }, 300);
+
+        // Show hint after 5 seconds, then hide after 3 more seconds
+        const closeHint = document.getElementById("premiumCloseHint");
+        setTimeout(function () {
+            if (closeHint && popupOverlay.classList.contains("active")) {
+                closeHint.classList.add("show");
+                setTimeout(function () {
+                    if (closeHint) closeHint.classList.remove("show");
+                }, 3000);
+            }
+        }, 5000);
+    } else {
+        popupOverlay.style.display = "none";
+    }
+
+    // Close popup function
+    function closePopup() {
+        const closeHint = document.getElementById("premiumCloseHint");
+        if (closeHint) closeHint.classList.remove("show");
+        
+        popupOverlay.classList.remove("active");
+        // Save to sessionStorage that popup was closed
+        sessionStorage.setItem("premiumPopupClosed", "true");
+        setTimeout(function () {
+            popupOverlay.style.display = "none";
+        }, 400);
+    }
+
+    if (closeBtn) closeBtn.addEventListener("click", closePopup);
+    popupOverlay.addEventListener("click", function (e) {
+        if (e.target === popupOverlay) closePopup();
+    });
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && popupOverlay.classList.contains("active")) closePopup();
+    });
+
+    // Hook up the Upgrade Button inside the popup on Home page to redirect to alerts logic
+    const khaltiUpgradeBtn = document.getElementById('khaltiUpgradeBtn');
+    if (khaltiUpgradeBtn) {
+         khaltiUpgradeBtn.addEventListener('click', () => {
+              window.location.href = 'pages/alerts.html?action=upgrade';
+         });
+    }
+
+    // Handle logout event
+    window.addEventListener('auth:logout', function() {
+        sessionStorage.removeItem('premiumPopupClosed');
+        
+        if (popupOverlay) {
+            popupOverlay.style.display = "flex";
+            setTimeout(() => popupOverlay.classList.add("active"), 50);
             
-            // Redirect to the alerts page to show the payment popup, since the homepage doesn't have it
-            window.location.href = '/pages/alerts.html?action=upgrade';
+            const closeHint = document.getElementById("premiumCloseHint");
+            setTimeout(function () {
+                if (closeHint && popupOverlay.classList.contains("active")) {
+                    closeHint.classList.add("show");
+                    setTimeout(() => {
+                        if (closeHint) closeHint.classList.remove("show");
+                    }, 3000);
+                }
+            }, 5000);
+        }
+    });
+
+    // Handle login event
+    window.addEventListener('auth:success', function() {
+        const isProUserNow = localStorage.getItem('airktmProActive') === 'true';
+        
+        if (isProUserNow) {
+            if (popupOverlay) {
+                popupOverlay.classList.remove("active");
+                setTimeout(() => { popupOverlay.style.display = "none"; }, 400);
+            }
+        } else {
+            sessionStorage.removeItem('premiumPopupClosed');
+            if (popupOverlay) {
+                setTimeout(() => {
+                    popupOverlay.style.display = "flex";
+                    setTimeout(() => popupOverlay.classList.add("active"), 50);
+                    
+                    const closeHint = document.getElementById("premiumCloseHint");
+                    setTimeout(function () {
+                      if (closeHint && popupOverlay.classList.contains("active")) {
+                        closeHint.classList.add("show");
+                        setTimeout(function () {
+                          if (closeHint) closeHint.classList.remove("show");
+                        }, 3000);
+                      }
+                    }, 5000);
+                }, 800); 
+            }
         }
     });
 });
