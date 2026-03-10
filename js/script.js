@@ -84,4 +84,40 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Crown Upgrade Button Logic
+    const navUpgradeBtn = document.getElementById('navUpgradeBtn');
+    if (navUpgradeBtn) {
+        navUpgradeBtn.addEventListener('click', function() {
+            const isAlertsPage = window.location.pathname.includes('alerts.html');
+            
+            if (isAlertsPage) {
+                // If we're already on alerts.html, just click the existing upgrade button or show the popup
+                const existingUpgradeBtn = document.getElementById('khaltiUpgradeBtn');
+                const premiumPopup = document.getElementById('premiumPopup');
+                
+                // If they are Pro already, just show a message or let it be
+                if (localStorage.getItem('airktmProActive') === 'true') {
+                    alert('You are already an AirKTM Pro member!');
+                    return;
+                }
+                
+                if (premiumPopup) {
+                     premiumPopup.style.display = 'flex';
+                     setTimeout(() => premiumPopup.classList.add('active'), 50);
+                }
+            } else {
+                // Redirect to alerts page with an intent to upgrade
+                // Determine the correct path to alerts.html depending on current depth
+                const isIndexPath = window.location.pathname.endsWith('index.html') || window.location.pathname === '/';
+                const alertsPath = isIndexPath ? 'pages/alerts.html?action=upgrade' : 'alerts.html?action=upgrade';
+                window.location.href = alertsPath;
+            }
+        });
+        
+        // Hide crown if user is already PRO
+        if (localStorage.getItem('airktmProActive') === 'true') {
+            navUpgradeBtn.style.display = 'none';
+        }
+    }
 });
