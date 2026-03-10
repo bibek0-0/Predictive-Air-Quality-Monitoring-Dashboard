@@ -61,7 +61,6 @@ function formatTimestamp(timestamp) {
 document.addEventListener('DOMContentLoaded', function() {
     initializeMap();
     initializeCharts();
-    setupStationSelector();
     setupNavigationArrows();
     setupCityComparison();
     loadInitialData();
@@ -106,16 +105,10 @@ async function loadInitialData() {
         const data = await fetchWAQIKathmanduValleyData();
         if (data && data.length > 0) {
             allStations = data;
-            updateStationSelector(data);
             
-            // Set default station (first one or selected)
-            const selectedStationId = document.getElementById('stationSelect').value;
-            if (selectedStationId) {
-                currentStation = data.find(s => s.name === selectedStationId);
-            }
+            // Set default station (first one)
             if (!currentStation && data.length > 0) {
                 currentStation = data[0];
-                document.getElementById('stationSelect').value = currentStation.name;
             }
             
             if (currentStation) {
@@ -134,41 +127,7 @@ async function loadInitialData() {
     }
 }
 
-// Update station selector dropdown
-function updateStationSelector(stations) {
-    const select = document.getElementById('stationSelect');
-    if (!select) return;
-    
-    // Clear existing options except the first one
-    while (select.options.length > 1) {
-        select.remove(1);
-    }
-    
-    stations.forEach(station => {
-        const option = document.createElement('option');
-        option.value = station.name;
-        option.textContent = station.name;
-        select.appendChild(option);
-    });
-}
 
-// Setup station selector event listener
-function setupStationSelector() {
-    const select = document.getElementById('stationSelect');
-    if (select) {
-        select.addEventListener('change', function() {
-            const selectedName = this.value;
-            if (selectedName) {
-                currentStation = allStations.find(s => s.name === selectedName);
-                if (currentStation) {
-                    updateCurrentAQIDisplay(currentStation);
-                    updateCharts(currentStation);
-                    updateNavigationArrows();
-                }
-            }
-        });
-    }
-}
 
 // Setup navigation arrows
 function setupNavigationArrows() {
@@ -205,7 +164,6 @@ function navigateToStation(direction) {
     }
     
     currentStation = allStations[newIndex];
-    document.getElementById('stationSelect').value = currentStation.name;
     updateCurrentAQIDisplay(currentStation);
     updateCharts(currentStation);
     updateNavigationArrows();
