@@ -1,401 +1,853 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AirKTM - Air Quality Monitoring Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/homepage.css">
-    <link rel="stylesheet" href="css/auth.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-</head>
-<body>
+    <link rel="stylesheet" href="css/styles.css" />
+    <link rel="stylesheet" href="css/homepage.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&family=Poppins:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
     <!-- Navigation Bar -->
     <header class="navbar">
-        <div class="nav-container">
-            <a href="index.html" class="logo-section">
-                <img src="assets/Untitled design.png" alt="AirKTM Logo" class="logo-image">
-            </a>
-            <div class="nav-right-section">
-                <nav class="nav-links">
-                    <a href="#" class="nav-link active">Home</a>
-                    <a href="pages/realtime.html" class="nav-link">Realtime</a>
-                    <a href="pages/forecast.html" class="nav-link">Forecast</a>
-                    <a href="pages/alerts.html" class="nav-link">Alerts</a>
-                    <a href="pages/more-info.html" class="nav-link">More Info</a>
-                </nav>
-                <!-- Pro Upgrade Button (Crown) -->
-                <button class="upgrade-crown-btn" id="navUpgradeBtn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#ffd700" stroke="#b8860b" stroke-width="1.5" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <!-- Auth Button (shown when logged out) -->
-                <div id="authBtnContainer">
-                    <button class="auth-nav-btn" id="authNavBtn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <span>Login</span>
-                    </button>
-                </div>
-                <!-- User Menu (shown when logged in) -->
-                <div class="user-menu-container" id="userMenuContainer" style="display:none;">
-                    <button class="user-avatar-btn">
-                        <span class="user-avatar-area"><span class="user-avatar-placeholder">?</span></span>
-                        <span class="user-avatar-name">User</span>
-                        <svg class="user-avatar-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                    </button>
-                    <div class="user-dropdown">
-                        <div class="user-dropdown-header">
-                            <div class="user-dropdown-name">User</div>
-                            <div class="user-dropdown-email">user@email.com</div>
-                        </div>
-                        <button class="user-dropdown-item logout-btn" id="authLogoutBtn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                            Log Out
-                        </button>
-                    </div>
-                </div>
-                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-                <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
-                    <path d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <div class="nav-container">
+        <a href="index.html" class="logo-section">
+          <img
+            src="assets/Untitled design.png"
+            alt="AirKTM Logo"
+            class="logo-image"
+          />
+        </a>
+        <div class="nav-right-section">
+          <nav class="nav-links">
+            <a href="#" class="nav-link active">Home</a>
+            <a href="pages/realtime.html" class="nav-link">Realtime</a>
+            <a href="pages/forecast.html" class="nav-link">Forecast</a>
+            <a href="pages/alerts.html" class="nav-link">Alerts</a>
+            <a href="pages/more-info.html" class="nav-link">More Info</a>
+          </nav>
+          <!-- Pro Upgrade Button (Crown) -->
+          <button class="upgrade-crown-btn" id="navUpgradeBtn">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                fill="#ffd700"
+                stroke="#b8860b"
+                stroke-width="1.5"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+          <!-- Auth Button (shown when logged out) -->
+          <div id="authBtnContainer">
+            <button class="auth-nav-btn" id="authNavBtn">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              <span>Login</span>
+            </button>
+          </div>
+          <!-- User Menu (shown when logged in) -->
+          <div
+            class="user-menu-container"
+            id="userMenuContainer"
+            style="display: none"
+          >
+            <button class="user-avatar-btn">
+              <span class="user-avatar-area"
+                ><span class="user-avatar-placeholder">?</span></span
+              >
+              <span class="user-avatar-name">User</span>
+              <svg
+                class="user-avatar-chevron"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </button>
+            <div class="user-dropdown">
+              <div class="user-dropdown-header">
+                <div class="user-dropdown-name">User</div>
+                <div class="user-dropdown-email">user@email.com</div>
+              </div>
+              <button class="user-dropdown-item logout-btn" id="authLogoutBtn">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
                 </svg>
-                <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                </button>
+                Log Out
+              </button>
             </div>
+          </div>
+          <button
+            class="theme-toggle"
+            id="themeToggle"
+            aria-label="Toggle dark mode"
+          >
+            <svg
+              class="sun-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                cx="12"
+                cy="12"
+                r="4"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M12 2V4M12 20V22M4.93 4.93L6.34 6.34M17.66 17.66L19.07 19.07M2 12H4M20 12H22M4.93 19.07L6.34 17.66M17.66 6.34L19.07 4.93"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+            <svg
+              class="moon-icon"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
         </div>
+      </div>
     </header>
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-background"></div>
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <h1 class="hero-title">Know the air you breathe</h1>
-            <p class="hero-subtitle">Watch Kathmandu's air quality shift across the valley.</p>
-            <div class="hero-buttons">
-                <button class="btn btn-primary" onclick="scrollToMap()">Explore</button>
-                <button class="btn btn-secondary">Learn More</button>
-            </div>
+      <div class="hero-background"></div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <h1 class="hero-title">Know the air you breathe</h1>
+        <p class="hero-subtitle">
+          Watch Kathmandu's air quality shift across the valley.
+        </p>
+        <div class="hero-buttons">
+          <button class="btn btn-primary" onclick="scrollToMap()">
+            Explore
+          </button>
+          <button class="btn btn-secondary">Learn More</button>
         </div>
-        <!-- Scroll Indicator -->
-        <div class="scroll-indicator" id="scrollIndicator">
-            <span class="scroll-text">Scroll</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M7 13L12 18L17 13M7 6L12 11L17 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-        </div>
+      </div>
+      <!-- Scroll Indicator -->
+      <div class="scroll-indicator" id="scrollIndicator">
+        <span class="scroll-text">Scroll</span>
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M7 13L12 18L17 13M7 6L12 11L17 6"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </div>
     </section>
 
     <!-- Live Air Quality Map Section -->
     <section id="air-quality-map" class="map-section">
-        <div class="map-container">
-            <div class="map-header">
-                <h3 class="map-title">Live Air Quality Map</h3>
-                <p class="map-subtitle">Real-time monitoring across Kathmandu Valley.</p>
-            </div>
-            <div id="map" class="leaflet-map"></div>
-            <div class="map-legend">
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #00e400;"></span>
-                    <span class="legend-text">Good (0-50)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #ffff00;"></span>
-                    <span class="legend-text">Moderate (51-100)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #ff7e00;"></span>
-                    <span class="legend-text">Unhealthy (101-150)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #ff0000;"></span>
-                    <span class="legend-text">Very Unhealthy (151-200)</span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-color" style="background-color: #8f3f97;"></span>
-                    <span class="legend-text">Hazardous (201+)</span>
-                </div>
-            </div>
+      <div class="map-container">
+        <div class="map-header">
+          <h3 class="map-title">Live Air Quality Map</h3>
+          <p class="map-subtitle">
+            Real-time monitoring across Kathmandu Valley.
+          </p>
         </div>
+        <div id="map" class="leaflet-map"></div>
+        <div class="map-legend">
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #00e400"></span>
+            <span class="legend-text">Good (0-50)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #ffff00"></span>
+            <span class="legend-text">Moderate (51-100)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #ff7e00"></span>
+            <span class="legend-text">Unhealthy (101-150)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #ff0000"></span>
+            <span class="legend-text">Very Unhealthy (151-200)</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-color" style="background-color: #8f3f97"></span>
+            <span class="legend-text">Hazardous (201+)</span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Combined Actions & Capabilities Section -->
     <section id="actions-capabilities" class="combined-section">
-        <div class="combined-container">
-            <!-- What You Get -->
-            <div class="capabilities-header-center">
-                <h2 class="capabilities-title">What you get</h2>
-            </div>
-
-            <!-- Left Side: Actions You Can Take -->
-            <div class="actions-side">
-                <div class="actions-cards">
-                    <div class="action-card">
-                        <div class="action-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                        <div class="action-content">
-                            <h3 class="action-title">Plan your day</h3>
-                            <p class="action-description">Know what to expect before you go outside.</p>
-                        </div>
-                        <div class="action-arrow">→</div>
-                    </div>
-
-                    <div class="action-card">
-                        <div class="action-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="2"/>
-                                <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <div class="action-content">
-                            <h3 class="action-title">Protect yourself</h3>
-                            <p class="action-description">Get safety instructions based on current AQI.</p>
-                        </div>
-                        <div class="action-arrow">→</div>
-                    </div>
-
-                    <div class="action-card">
-                        <div class="action-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                <circle cx="12" cy="12" r="6" stroke="currentColor" stroke-width="2"/>
-                                <circle cx="12" cy="12" r="2" fill="currentColor"/>
-                            </svg>
-                        </div>
-                        <div class="action-content">
-                            <h3 class="action-title">Stay informed</h3>
-                            <p class="action-description">Track changes as they happen across Kathmandu.</p>
-                        </div>
-                        <div class="action-arrow">→</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right Side: Capabilities -->
-            <div class="capabilities-side">
-                <div class="capabilities-grid">
-                    <div class="capability-card">
-                        <div class="capability-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                        <div class="capability-content">
-                            <h3 class="capability-title">Live readings from every station</h3>
-                            <p class="capability-description">Real-time updates from all monitoring points</p>
-                        </div>
-                    </div>
-
-                    <div class="capability-card">
-                        <div class="capability-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                        </div>
-                        <div class="capability-content">
-                            <h3 class="capability-title">Health guidance built in</h3>
-                            <p class="capability-description">Dynamic safety tips for your wellbeing</p>
-                        </div>
-                    </div>
-
-                    <div class="capability-card">
-                        <div class="capability-icon">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
-                                <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                        <div class="capability-content">
-                            <h3 class="capability-title">Color-coded for clarity</h3>
-                            <p class="capability-description">Instant visual understanding of air quality levels</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+      <div class="combined-container">
+        <!-- What You Get -->
+        <div class="capabilities-header-center">
+          <h2 class="capabilities-title">What you get</h2>
         </div>
+
+        <!-- Left Side: Actions You Can Take -->
+        <div class="actions-side">
+          <div class="actions-cards">
+            <div class="action-card">
+              <div class="action-icon">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M5 12H19M19 12L12 5M19 12L12 19"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <div class="action-content">
+                <h3 class="action-title">Plan your day</h3>
+                <p class="action-description">
+                  Know what to expect before you go outside.
+                </p>
+              </div>
+              <div class="action-arrow">→</div>
+            </div>
+
+            <div class="action-card">
+              <div class="action-icon">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="M12 8V12L15 15"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+              <div class="action-content">
+                <h3 class="action-title">Protect yourself</h3>
+                <p class="action-description">
+                  Get safety instructions based on current AQI.
+                </p>
+              </div>
+              <div class="action-arrow">→</div>
+            </div>
+
+            <div class="action-card">
+              <div class="action-icon">
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="6"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <circle cx="12" cy="12" r="2" fill="currentColor" />
+                </svg>
+              </div>
+              <div class="action-content">
+                <h3 class="action-title">Stay informed</h3>
+                <p class="action-description">
+                  Track changes as they happen across Kathmandu.
+                </p>
+              </div>
+              <div class="action-arrow">→</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Capabilities -->
+        <div class="capabilities-side">
+          <div class="capabilities-grid">
+            <div class="capability-card">
+              <div class="capability-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M12 2L2 7L12 12L22 7L12 2Z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M2 17L12 22L22 17"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                  <path
+                    d="M2 12L12 17L22 12"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <div class="capability-content">
+                <h3 class="capability-title">
+                  Live readings from every station
+                </h3>
+                <p class="capability-description">
+                  Real-time updates from all monitoring points
+                </p>
+              </div>
+            </div>
+
+            <div class="capability-card">
+              <div class="capability-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <div class="capability-content">
+                <h3 class="capability-title">Health guidance built in</h3>
+                <p class="capability-description">
+                  Dynamic safety tips for your wellbeing
+                </p>
+              </div>
+            </div>
+
+            <div class="capability-card">
+              <div class="capability-icon">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  />
+                  <path
+                    d="M12 6V12L16 14"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </div>
+              <div class="capability-content">
+                <h3 class="capability-title">Color-coded for clarity</h3>
+                <p class="capability-description">
+                  Instant visual understanding of air quality levels
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-container">
-            <div class="footer-brand">
-                <span class="footer-logo">AirKTM</span>
-            </div>
-            <div class="footer-copyright">
-                <p>© 2024 Kathmandu Air Quality Monitor. All rights reserved.</p>
-            </div>
+      <div class="footer-container">
+        <div class="footer-brand">
+          <span class="footer-logo">AirKTM</span>
         </div>
+        <div class="footer-copyright">
+          <p>© 2024 Kathmandu Air Quality Monitor. All rights reserved.</p>
+        </div>
+      </div>
     </footer>
 
     <!-- Premium Popup Modal -->
     <div class="premium-popup-overlay" id="premiumPopup">
-        <div class="premium-popup-card">
-            <button class="premium-popup-close" id="premiumPopupClose" aria-label="Close modal">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-            <div class="premium-popup-close-hint" id="premiumCloseHint">Click here to close</div>
-            
-            <div class="premium-popup-content">
-                <div class="premium-title-wrapper">
-                    <h2 class="premium-popup-title">Unlock AirKTM Pro</h2>
-                    <div class="premium-badge-top">PRO</div>
-                </div>
-                <p class="premium-popup-subtitle">Get real-time alerts, personalized health messages, and early warnings.</p>
-                
-                <div class="premium-price-display">
-                    <span class="premium-price-main">NRS 100</span>
-                    <span class="premium-price-period">/ month</span>
-                </div>
-
-                <ul class="premium-benefits-list">
-                    <li class="premium-benefit-item">
-                        <svg class="premium-checkmark-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Instant AQI push notifications</span>
-                    </li>
-                    <li class="premium-benefit-item">
-                        <svg class="premium-checkmark-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Personalized health warnings</span>
-                    </li>
-                    <li class="premium-benefit-item">
-                        <svg class="premium-checkmark-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>High/low AQI mobile alerts</span>
-                    </li>
-                    <li class="premium-benefit-item">
-                        <svg class="premium-checkmark-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Forecast-based alerts</span>
-                    </li>
-                    <li class="premium-benefit-item">
-                        <svg class="premium-checkmark-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Early pollution spike warnings</span>
-                    </li>
-                    <li class="premium-benefit-item">
-                        <svg class="premium-checkmark-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span>Real-time updates</span>
-                    </li>
-                </ul>
-                
-                <button class="premium-upgrade-button" id="khaltiUpgradeBtn">
-                    <span class="upgrade-btn-text">Upgrade to AirKTM Pro</span>
-                    <span class="upgrade-btn-loading" style="display:none;">
-                        <svg class="khalti-spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="31.4 31.4" />
-                        </svg>
-                        Processing...
-                    </span>
-                </button>
-                <div class="khalti-payment-feedback" id="khaltiPaymentFeedback" style="display:none;">
-                    <p class="khalti-feedback-text" id="khaltiFeedbackText"></p>
-                </div>
-            </div>
+      <div class="premium-popup-card">
+        <button
+          class="premium-popup-close"
+          id="premiumPopupClose"
+          aria-label="Close modal"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18M6 6l12 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <div class="premium-popup-close-hint" id="premiumCloseHint">
+          Click here to close
         </div>
+
+        <div class="premium-popup-content">
+          <div class="premium-title-wrapper">
+            <h2 class="premium-popup-title">Unlock AirKTM Pro</h2>
+            <div class="premium-badge-top">PRO</div>
+          </div>
+          <p class="premium-popup-subtitle">
+            Get real-time alerts, personalized health messages, and early
+            warnings.
+          </p>
+
+          <div class="premium-price-display">
+            <span class="premium-price-main">NRS 100</span>
+            <span class="premium-price-period">/ month</span>
+          </div>
+
+          <ul class="premium-benefits-list">
+            <li class="premium-benefit-item">
+              <svg
+                class="premium-checkmark-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>Instant AQI push notifications</span>
+            </li>
+            <li class="premium-benefit-item">
+              <svg
+                class="premium-checkmark-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>Personalized health warnings</span>
+            </li>
+            <li class="premium-benefit-item">
+              <svg
+                class="premium-checkmark-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>High/low AQI mobile alerts</span>
+            </li>
+            <li class="premium-benefit-item">
+              <svg
+                class="premium-checkmark-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>Forecast-based alerts</span>
+            </li>
+            <li class="premium-benefit-item">
+              <svg
+                class="premium-checkmark-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>Early pollution spike warnings</span>
+            </li>
+            <li class="premium-benefit-item">
+              <svg
+                class="premium-checkmark-icon"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M20 6L9 17l-5-5"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+              <span>Real-time updates</span>
+            </li>
+          </ul>
+
+          <button class="premium-upgrade-button" id="khaltiUpgradeBtn">
+            <span class="upgrade-btn-text">Upgrade to AirKTM Pro</span>
+            <span class="upgrade-btn-loading" style="display: none">
+              <svg
+                class="khalti-spinner"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="3"
+                  stroke-linecap="round"
+                  stroke-dasharray="31.4 31.4"
+                />
+              </svg>
+              Processing...
+            </span>
+          </button>
+          <div
+            class="khalti-payment-feedback"
+            id="khaltiPaymentFeedback"
+            style="display: none"
+          >
+            <p class="khalti-feedback-text" id="khaltiFeedbackText"></p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Khalti Payment Status Overlay -->
-    <div class="khalti-status-overlay" id="khaltiCallbackBanner" style="display:none;">
-        <div class="khalti-status-card">
-            <button class="khalti-status-close" id="khaltiCallbackClose" aria-label="Close">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
-            <div class="khalti-status-icon-wrap" id="khaltiCallbackIcon"></div>
-            <h3 class="khalti-status-title" id="khaltiCallbackTitle"></h3>
-            <p class="khalti-status-message" id="khaltiCallbackMessage"></p>
-            <div class="khalti-status-details" id="khaltiStatusDetails" style="display:none;"></div>
-            <div class="khalti-status-footer">
-                <p class="khalti-status-auto-close">This will close automatically...</p>
-            </div>
+    <div
+      class="khalti-status-overlay"
+      id="khaltiCallbackBanner"
+      style="display: none"
+    >
+      <div class="khalti-status-card">
+        <button
+          class="khalti-status-close"
+          id="khaltiCallbackClose"
+          aria-label="Close"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18M6 6l12 12"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </button>
+        <div class="khalti-status-icon-wrap" id="khaltiCallbackIcon"></div>
+        <h3 class="khalti-status-title" id="khaltiCallbackTitle"></h3>
+        <p class="khalti-status-message" id="khaltiCallbackMessage"></p>
+        <div
+          class="khalti-status-details"
+          id="khaltiStatusDetails"
+          style="display: none"
+        ></div>
+        <div class="khalti-status-footer">
+          <p class="khalti-status-auto-close">
+            This will close automatically...
+          </p>
         </div>
+      </div>
     </div>
 
     <!-- Auth Modal -->
     <div class="auth-modal-overlay" id="authModalOverlay">
-        <div class="auth-modal-card">
-            <button class="auth-modal-close" id="authModalClose" aria-label="Close">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-            <div class="auth-modal-content">
-                <div class="auth-modal-header">
-                    <div class="auth-modal-logo">AirKTM</div>
-                    <h2 class="auth-modal-title" id="authModalTitle">Welcome back</h2>
-                    <p class="auth-modal-subtitle" id="authModalSubtitle">Login to your account</p>
-                </div>
-                <div class="auth-tabs">
-                    <button class="auth-tab active" id="authTabLogin">Log In</button>
-                    <button class="auth-tab" id="authTabSignup">Sign Up</button>
-                </div>
-                <!-- Login Form -->
-                <form class="auth-form active" id="authFormLogin">
-                    <div class="auth-message"></div>
-                    <div class="auth-input-group">
-                        <label for="loginEmail">Email</label>
-                        <input type="email" class="auth-input" id="loginEmail" placeholder="you@example.com" required>
-                    </div>
-                    <div class="auth-input-group">
-                        <label for="loginPassword">Password</label>
-                        <div class="auth-password-wrapper">
-                            <input type="password" class="auth-input" id="loginPassword" placeholder="Enter your password" required>
-                            <button type="button" class="auth-password-toggle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-                        </div>
-                    </div>
-                    <button type="submit" class="auth-submit-btn">Log In</button>
-                    <div class="auth-divider">
-                        <span class="auth-divider-line"></span>
-                        <span class="auth-divider-text">or</span>
-                        <span class="auth-divider-line"></span>
-                    </div>
-                    <button type="button" class="auth-google-btn">
-                        <svg viewBox="0 0 24 24" width="20" height="20"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                        Continue with Google
-                    </button>
-                </form>
-                <!-- Signup Form -->
-                <form class="auth-form" id="authFormSignup">
-                    <div class="auth-message"></div>
-                    <div class="auth-input-group">
-                        <label for="signupName">Full Name</label>
-                        <input type="text" class="auth-input" id="signupName" placeholder="Your name" required>
-                    </div>
-                    <div class="auth-input-group">
-                        <label for="signupEmail">Email</label>
-                        <input type="email" class="auth-input" id="signupEmail" placeholder="you@example.com" required>
-                    </div>
-                    <div class="auth-input-group">
-                        <label for="signupPassword">Password</label>
-                        <div class="auth-password-wrapper">
-                            <input type="password" class="auth-input" id="signupPassword" placeholder="Min 6 characters" required minlength="6">
-                            <button type="button" class="auth-password-toggle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
-                        </div>
-                    </div>
-                    <button type="submit" class="auth-submit-btn">Create Account</button>
-                </form>
+      <div class="auth-modal-card">
+        <button class="auth-modal-close" id="authModalClose" aria-label="Close">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <div class="auth-modal-content">
+          <div class="auth-modal-header">
+            <div class="auth-modal-logo">AirKTM</div>
+            <h2 class="auth-modal-title" id="authModalTitle">Welcome back</h2>
+            <p class="auth-modal-subtitle" id="authModalSubtitle">
+              Login to your account
+            </p>
+          </div>
+          <div class="auth-tabs">
+            <button class="auth-tab active" id="authTabLogin">Log In</button>
+            <button class="auth-tab" id="authTabSignup">Sign Up</button>
+          </div>
+          <!-- Login Form -->
+          <form class="auth-form active" id="authFormLogin">
+            <div class="auth-message"></div>
+            <div class="auth-input-group">
+              <label for="loginEmail">Email</label>
+              <input
+                type="email"
+                class="auth-input"
+                id="loginEmail"
+                placeholder="you@example.com"
+                required
+              />
             </div>
+            <div class="auth-input-group">
+              <label for="loginPassword">Password</label>
+              <div class="auth-password-wrapper">
+                <input
+                  type="password"
+                  class="auth-input"
+                  id="loginPassword"
+                  placeholder="Enter your password"
+                  required
+                />
+                <button type="button" class="auth-password-toggle">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="auth-submit-btn">Log In</button>
+            <div class="auth-divider">
+              <span class="auth-divider-line"></span>
+              <span class="auth-divider-text">or</span>
+              <span class="auth-divider-line"></span>
+            </div>
+            <button type="button" class="auth-google-btn">
+              <svg viewBox="0 0 24 24" width="20" height="20">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+              Continue with Google
+            </button>
+          </form>
+          <!-- Signup Form -->
+          <form class="auth-form" id="authFormSignup">
+            <div class="auth-message"></div>
+            <div class="auth-input-group">
+              <label for="signupName">Full Name</label>
+              <input
+                type="text"
+                class="auth-input"
+                id="signupName"
+                placeholder="Your name"
+                required
+              />
+            </div>
+            <div class="auth-input-group">
+              <label for="signupEmail">Email</label>
+              <input
+                type="email"
+                class="auth-input"
+                id="signupEmail"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+            <div class="auth-input-group">
+              <label for="signupPassword">Password</label>
+              <div class="auth-password-wrapper">
+                <input
+                  type="password"
+                  class="auth-input"
+                  id="signupPassword"
+                  placeholder="Min 6 characters"
+                  required
+                  minlength="6"
+                />
+                <button type="button" class="auth-password-toggle">
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="auth-submit-btn">
+              Create Account
+            </button>
+          </form>
         </div>
+      </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -403,5 +855,5 @@
     <script src="js/script.js"></script>
     <script src="js/homepage.js"></script>
     <script src="js/auth.js"></script>
-</body>
+  </body>
 </html>
