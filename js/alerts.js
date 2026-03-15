@@ -1263,3 +1263,179 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 500);
     }
 });
+
+// Dynamic Recent Alerts
+document.addEventListener('DOMContentLoaded', function() {
+    loadDynamicAlerts();
+});
+
+function formatAlertTimestamp(timestamp) {
+    if (!timestamp) return 'Unknown';
+    try {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        if (diffMins < 1) return 'Just now';
+        if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+        if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        return date.toLocaleDateString();
+    } catch (e) {
+        return 'Unknown';
+    }
+}
+
+async function loadDynamicAlerts() {
+    const alertsContainer = document.getElementById('alertsRecentList');
+    if (!alertsContainer) return;
+
+    if (typeof fetchWAQIKathmanduValleyData === 'undefined') {
+        alertsContainer.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 2rem;">Failed to load alerts. API not available.</div>';
+        return;
+    }
+
+    try {
+        // Fetch real data
+        const stations = await fetchWAQIKathmanduValleyData();
+        
+        if (!stations || stations.length === 0) {
+            alertsContainer.innerHTML = '<div style="text-align: center; color: #64748b; padding: 2rem;">No recent alerts available.</div>';
+            return;
+        }
+
+        // Initialize Banner Carousel
+        initBannerCarousel(stations);
+
+        // Sort by highest AQI first (most critical alerts)
+        stations.sort((a, b) => b.aqi - a.aqi);
+
+        // Take top 3 stations for alerts
+        const topStations = stations.slice(0, 3);
+        let alertsHTML = '';
+
+        topStations.forEach(station => {
+            const aqi = station.aqi || 0;
+            
+            // Determine alert styling class based on AQI
+            let alertClass = '';
+            let styleOverride = '';
+            
+            if (aqi > 200) {
+                alertClass = 'alerts-page-alert-hazardous';
+                styleOverride = 'border-left-color: #9333ea;'; // Purple
+            } else if (aqi > 150) {
+                alertClass = 'alerts-page-alert-very-unhealthy';
+                styleOverride = 'border-left-color: #ef4444;'; // Red
+            } else if (aqi > 100) {
+                alertClass = 'alerts-page-alert-unhealthy';
+                styleOverride = 'border-left-color: #f97316;'; // Orange
+            } else if (aqi > 50) {
+                alertClass = 'alerts-page-alert-moderate';
+                styleOverride = 'border-left-color: #eab308;'; // Yellow
+            } else {
+                alertClass = 'alerts-page-alert-good';
+                styleOverride = 'border-left-color: #22c55e;'; // Green
+            }
+
+            // Using api.js helper functions for emoji and messages
+            const emoji = station.emoji || '💬';
+            
+            // Generate title and message
+            let title = `${station.category} Air Quality`;
+            if (aqi <= 50) title = 'Good Air Quality';
+            else if (aqi > 300) title = 'Hazardous Air Quality';
+            
+            // Specific health message override for alerts card format
+            let healthMsg = station.message;
+            if (aqi > 150) {
+                 healthMsg = `AQI reached ${aqi} in ${station.name}. ${station.message}`;
+            } else if (aqi > 50) {
+                 healthMsg = `AQI is ${aqi} in ${station.name}. ${station.message}`;
+            } else {
+                 healthMsg = `AQI is an excellent ${aqi} in ${station.name}. ${station.message}`;
+            }
+
+            const timeString = formatAlertTimestamp(station.timestamp);
+            const statusClass = aqi > 100 ? 'alerts-page-status-active' : 'alerts-page-status-resolved';
+
+            alertsHTML += `
+                <div class="alerts-page-alert-card ${alertClass}" style="${styleOverride}">
+                    <div class="alerts-page-alert-emoji">${emoji}</div>
+                    <div class="alerts-page-alert-content">
+                        <h4 class="alerts-page-alert-card-title">${title}</h4>
+                        <p class="alerts-page-alert-card-description">${healthMsg}</p>
+                        <div class="alerts-page-alert-meta">
+                            <span class="alerts-page-alert-time"></span>
+                            <span class="alerts-page-alert-status ${statusClass}" style="text-transform: uppercase;">${timeString}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        alertsContainer.innerHTML = alertsHTML;
+
+    } catch (error) {
+        console.error('Error loading dynamic alerts:', error);
+        alertsContainer.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 2rem;">Error loading alerts. Please try again later.</div>';
+    }
+}
+
+function initBannerCarousel(stations) {
+    const banner = document.getElementById('alertsPageBanner');
+    const emojiEl = document.getElementById('alertsPageBannerEmoji');
+    const aqiEl = document.getElementById('alertsPageBannerAqi');
+    const msgEl = document.getElementById('alertsPageBannerMessage');
+    
+    if (!banner || !emojiEl || !aqiEl || !msgEl || !stations || stations.length === 0) return;
+    
+    // Sort highest to lowest AQI, filter out invalid/0 ones
+    const sortedStations = [...stations].filter(s => s.aqi > 0).sort((a,b) => b.aqi - a.aqi);
+    if(sortedStations.length === 0) return;
+
+    let currentIndex = 0;
+    
+    function updateBanner() {
+        const currentStation = sortedStations[currentIndex];
+        
+        // Add fade out
+        banner.style.opacity = '0';
+        
+        setTimeout(() => {
+            // Update content
+            emojiEl.textContent = currentStation.emoji || '💬';
+            aqiEl.textContent = `AQI: ${currentStation.aqi} in ${currentStation.name}`;
+            msgEl.textContent = currentStation.category + ' - ' + currentStation.message;
+            
+            // Set background color based on severity (using gradient matched to the severity)
+            if (currentStation.aqi > 200) {
+                 banner.style.background = 'linear-gradient(135deg, #a855f7 0%, #7e22ce 100%)'; // Purple
+            } else if (currentStation.aqi > 150) {
+                 banner.style.background = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)'; // Red
+            } else if (currentStation.aqi > 100) {
+                 banner.style.background = 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)'; // Orange
+            } else if (currentStation.aqi > 50) {
+                 banner.style.background = 'linear-gradient(135deg, #eab308 0%, #ca8a04 100%)'; // Yellow
+            } else {
+                 banner.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)'; // Green
+            }
+
+            // Fade in
+            banner.style.opacity = '1';
+            
+            currentIndex = (currentIndex + 1) % sortedStations.length;
+        }, 300); // Wait for fade out
+    }
+    
+    // Initial setup for transitions
+    banner.style.transition = 'opacity 0.3s ease, background 0.3s ease, transform 0.3s ease';
+    updateBanner();
+    
+    // Auto slide every 5 seconds
+    setInterval(updateBanner, 5000);
+}

@@ -360,9 +360,6 @@ function updateCurrentAQIDisplay(station) {
     const pm10 = station.pm10 && station.pm10 > 0 ? station.pm10 : estimatePM10(aqi);
     document.getElementById('pm25Value').textContent = `${pm25.toFixed(1)} µg/m³`;
     document.getElementById('pm10Value').textContent = `${pm10.toFixed(1)} µg/m³`;
-    
-    // Update alerts
-    updateAlerts(station);
 }
 
 // Estimate PM2.5 from AQI (rough approximation)
@@ -605,39 +602,6 @@ function updateCharts(station) {
     }
 }
 
-// Update alerts
-function updateAlerts(station) {
-    const aqi = station.aqi || 0;
-    
-    // Health Alert
-    const healthAlert = document.getElementById('healthAlertMessage');
-    const healthTime = document.getElementById('healthAlertTime');
-    if (healthAlert && healthTime) {
-        if (aqi > 150) {
-            healthAlert.textContent = 'AQI levels are unhealthy. Consider limiting outdoor activities and wearing protective masks.';
-            healthTime.textContent = formatTimestamp(station.timestamp);
-        } else if (aqi > 100) {
-            healthAlert.textContent = 'AQI levels are moderate. Sensitive groups should take precautions.';
-            healthTime.textContent = formatTimestamp(station.timestamp);
-        } else {
-            healthAlert.textContent = 'Air quality is acceptable. Enjoy outdoor activities safely.';
-            healthTime.textContent = formatTimestamp(station.timestamp);
-        }
-    }
-    
-    // PM2.5 Alert (use real API data)
-    const pmAlert = document.getElementById('pmAlertMessage');
-    const pmTime = document.getElementById('pmAlertTime');
-    if (pmAlert && pmTime) {
-        const pm25 = station.pm25 && station.pm25 > 0 ? station.pm25 : estimatePM25(aqi);
-        if (pm25 > 80) {
-            pmAlert.textContent = `PM2.5 levels are high (${pm25.toFixed(1)} µg/m³). Consider reducing outdoor exposure.`;
-        } else {
-            pmAlert.textContent = `PM2.5 levels are within acceptable range (${pm25.toFixed(1)} µg/m³).`;
-        }
-        pmTime.textContent = formatTimestamp(station.timestamp);
-    }
-}
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', function() {

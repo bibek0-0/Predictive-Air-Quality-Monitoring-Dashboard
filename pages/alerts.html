@@ -176,13 +176,12 @@
         <div class="alerts-layout">
             <!-- Left Column -->
             <div class="alerts-left-column">
-                <!-- Alert Banner (Top-Left) -->
-                <div class="alerts-page-banner">
-                    <div class="alerts-page-banner-emoji">😷</div>
+                <div class="alerts-page-banner" id="alertsPageBanner">
+                    <div class="alerts-page-banner-emoji" id="alertsPageBannerEmoji">⏳</div>
                     <div class="alerts-page-banner-content">
                         <h2 class="alerts-page-banner-title">Air Quality Alert</h2>
-                        <p class="alerts-page-banner-aqi">AQI: 175</p>
-                        <p class="alerts-page-banner-message">Unhealthy - Limit outdoor activity</p>
+                        <p class="alerts-page-banner-aqi" id="alertsPageBannerAqi">Loading data...</p>
+                        <p class="alerts-page-banner-message" id="alertsPageBannerMessage">Fetching the latest air quality readings</p>
                     </div>
                 </div>
 
@@ -239,42 +238,9 @@
                         </svg>
                         <span>Recent Alerts</span>
                     </h3>
-                    <div class="alerts-page-recent-list">
-                        <div class="alerts-page-alert-card alerts-page-alert-unhealthy">
-                            <div class="alerts-page-alert-emoji">😷</div>
-                            <div class="alerts-page-alert-content">
-                                <h4 class="alerts-page-alert-card-title">Unhealthy Air Quality</h4>
-                                <p class="alerts-page-alert-card-description">AQI reached 175 in Thamel area. Outdoor activity is not recommended.</p>
-                                <div class="alerts-page-alert-meta">
-                                    <span class="alerts-page-alert-time">2 hours ago</span>
-                                    <span class="alerts-page-alert-status alerts-page-status-active">Active</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="alerts-page-alert-card alerts-page-alert-moderate">
-                            <div class="alerts-page-alert-emoji">😐</div>
-                            <div class="alerts-page-alert-content">
-                                <h4 class="alerts-page-alert-card-title">Moderate Air Quality</h4>
-                                <p class="alerts-page-alert-card-description">AQI improved to 95 valley-wide. Conditions are acceptable for most people.</p>
-                                <div class="alerts-page-alert-meta">
-                                    <span class="alerts-page-alert-time">Yesterday</span>
-                                    <span class="alerts-page-alert-status alerts-page-status-resolved">Resolved</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="alerts-page-alert-card alerts-page-alert-very-unhealthy">
-                            <div class="alerts-page-alert-emoji">😟</div>
-                            <div class="alerts-page-alert-content">
-                                <h4 class="alerts-page-alert-card-title">Very Unhealthy Conditions</h4>
-                                <p class="alerts-page-alert-card-description">AQI spiked to 190 near industrial areas. Everyone should avoid outdoor activities.</p>
-                                <div class="alerts-page-alert-meta">
-                                    <span class="alerts-page-alert-time">3 days ago</span>
-                                    <span class="alerts-page-alert-status alerts-page-status-resolved">Resolved</span>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="alerts-page-recent-list" id="alertsRecentList">
+                        <!-- Dynamic alerts will be inserted here -->
+                        <div style="text-align: center; color: #64748b; padding: 2rem;">Loading latest alerts...</div>
                     </div>
                 </div>
             </div>
@@ -386,6 +352,7 @@
         </div>
     </div>
 
+    <script src="../js/api.js"></script>
     <script src="../js/script.js"></script>
     <script src="../js/alerts.js"></script>
     <script src="../js/auth.js"></script>
