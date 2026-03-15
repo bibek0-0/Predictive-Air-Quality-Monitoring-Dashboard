@@ -154,6 +154,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Find and show popup immediately since user is no longer logged in
         const popupOverlay = document.getElementById("premiumPopup");
         if (popupOverlay) {
+            // Reset the upgrade button state from Pro Active
+            const upgradeBtn = document.getElementById('khaltiUpgradeBtn');
+            if (upgradeBtn) {
+                upgradeBtn.classList.remove('khalti-pro-active');
+                upgradeBtn.disabled = false;
+                const btnText = upgradeBtn.querySelector('.upgrade-btn-text');
+                if (btnText) {
+                    btnText.innerHTML = 'Upgrade to AirKTM Pro';
+                }
+            }
+
             popupOverlay.style.display = "flex";
             setTimeout(() => popupOverlay.classList.add("active"), 50);
             
