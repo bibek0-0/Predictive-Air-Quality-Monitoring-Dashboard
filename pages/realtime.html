@@ -78,7 +78,7 @@
         <section class="current-aqi-section" id="currentAQISection">
             <div class="current-aqi-header">
                 <h2 class="current-aqi-title">Current Air Quality</h2>
-                <div class="current-aqi-emoji" id="currentAQIEmoji">😷</div>
+                <div class="current-aqi-emoji" id="currentAQIEmoji">⏳</div>
             </div>
             <div class="current-aqi-content">
                 <button class="nav-arrow nav-arrow-left" id="prevStationBtn" aria-label="Previous station">
@@ -88,14 +88,14 @@
                 </button>
                 <div class="current-aqi-main">
                     <div class="current-aqi-location">
-                        <span class="location-name" id="locationName">Thamel, Kathmandu</span>
-                        <span class="last-updated" id="lastUpdated">Last updated: 2 minutes ago</span>
+                        <span class="location-name" id="locationName">Loading Station Data...</span>
+                        <span class="last-updated" id="lastUpdated">...</span>
                     </div>
                     <div class="current-aqi-value">
-                        <span class="aqi-number" id="aqiNumber">175</span>
+                        <span class="aqi-number" id="aqiNumber">--</span>
                         <span class="aqi-label">AQI</span>
                     </div>
-                    <div class="current-aqi-category" id="aqiCategory">Unhealthy</div>
+                    <div class="current-aqi-category" id="aqiCategory">Waiting for API</div>
                 </div>
                 <button class="nav-arrow nav-arrow-right" id="nextStationBtn" aria-label="Next station">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -129,11 +129,11 @@
             <div class="current-aqi-pollutants">
                 <div class="pollutant-item">
                     <div class="pollutant-label">PM2.5</div>
-                    <div class="pollutant-value" id="pm25Value">87.5 µg/m³</div>
+                    <div class="pollutant-value" id="pm25Value">-- µg/m³</div>
                 </div>
                 <div class="pollutant-item">
                     <div class="pollutant-label">PM10</div>
-                    <div class="pollutant-value" id="pm10Value">142.8 µg/m³</div>
+                    <div class="pollutant-value" id="pm10Value">-- µg/m³</div>
                 </div>
             </div>
         </section>
