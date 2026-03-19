@@ -362,9 +362,6 @@ def manual_refresh():
 
 
 #  START
-
-
-if __name__ == '__main__':
     refresh_all_forecasts()
 
     #scheduler = BackgroundScheduler()
@@ -376,6 +373,8 @@ if __name__ == '__main__':
     #)
     #scheduler.start()
 
+if __name__ == '__main__':
+   
     print(f"\n http://localhost:5050")
     print(f"   Google API: {'Configured' if GOOGLE_API_KEY else 'Not set'}")
     print(f"   Rate limit: max 1 seed update per station per 50 min = 120 calls/day")
