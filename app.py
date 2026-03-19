@@ -383,7 +383,11 @@ if __name__ == '__main__':
     print(f"   Auto-refresh: every {UPDATE_INTERVAL_MINUTES} min\n")
 
     try:
-        app.run(debug=False, port=5050, use_reloader=False)
+        port = int(os.environ.get("PORT", 5050))  
+        app.run(debug=False, host="0.0.0.0",
+                port=port, use_reloader=False)
     except (KeyboardInterrupt, SystemExit):
         #scheduler.shutdown()
         print("\n Server stopped.")
+
+
