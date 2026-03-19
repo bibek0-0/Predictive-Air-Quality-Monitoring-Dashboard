@@ -362,16 +362,16 @@ def manual_refresh():
 
 
 #  START
-    refresh_all_forecasts()
+refresh_all_forecasts()
 
-    #scheduler = BackgroundScheduler()
-    #scheduler.add_job(
-    #    refresh_all_forecasts,
-    #    trigger  = 'interval',
-    #    minutes  = UPDATE_INTERVAL_MINUTES,
-    #    id       = 'forecast_refresh'
-    #)
-    #scheduler.start()
+#scheduler = BackgroundScheduler()
+#scheduler.add_job(
+#    refresh_all_forecasts,
+#    trigger  = 'interval',
+#    minutes  = UPDATE_INTERVAL_MINUTES,
+#    id       = 'forecast_refresh'
+#)
+#scheduler.start()
 
 if __name__ == '__main__':
    
