@@ -365,7 +365,7 @@ def manual_refresh():
 
 
 if __name__ == '__main__':
-    #refresh_all_forecasts()
+    refresh_all_forecasts()
 
     #scheduler = BackgroundScheduler()
     #scheduler.add_job(
