@@ -73,77 +73,61 @@
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="forecast-page-container">
+    <!-- Loading Overlay -->
+    <div class="forecast-loading-overlay" id="forecastLoadingOverlay">
+        <div class="forecast-spinner"></div>
+        <span class="forecast-loading-text">Loading forecast data…</span>
+    </div>
 
-        <!-- City Selector Bar -->
+    <!-- Error State -->
+    <div class="forecast-error-container" id="forecastErrorContainer" style="display:none;">
+        <div class="forecast-error-card">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <h3 class="forecast-error-title">Unable to load forecast</h3>
+            <p class="forecast-error-msg" id="forecastErrorMsg">Could not connect to the forecast API.</p>
+            <button class="forecast-retry-btn" id="forecastRetryBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                Retry
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="forecast-page-container" id="forecastMainContent">
+
+        <!-- Station Selector Bar -->
         <section class="city-selector-section">
             <div class="city-selector-bar">
                 <div class="selector-left">
-                    <label class="selector-label">Select City for Forecast</label>
-                    <input type="text" class="city-input" id="cityInput" value="Thamel, Kathmandu" placeholder="Enter city or area...">
+                    <label class="selector-label">Select Station for Forecast</label>
+                    <div class="station-select-wrapper">
+                        <select class="station-select" id="stationSelect">
+                            <option value="Ratnapark">📍 Ratnapark</option>
+                            <option value="Pulchowk">📍 Pulchowk</option>
+                            <option value="Bhaisipati">📍 Bhaisipati</option>
+                            <option value="Bhaktapur">📍 Bhaktapur</option>
+                            <option value="Shankapark">📍 Shankapark</option>
+                        </select>
+                        <svg class="select-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
                 </div>
-
+                <div class="selector-right">
+                    <div class="last-updated-info" id="lastUpdatedInfo">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        <span id="lastUpdatedText">Loading…</span>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- Alert Banner -->
-        <section class="forecast-alert-banner" id="forecastAlertBanner">
-            <div class="alert-banner-content">
-                <div class="alert-banner-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                </div>
-                <div class="alert-banner-text">
-                    <strong>⚠ High Pollution Expected in the Next 24 Hours</strong>
-                    <p>Sensitive groups should stay indoors and avoid outdoor activities.</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- Forecast Summary Cards -->
-        <section class="forecast-summary-section">
-            <div class="forecast-cards-grid">
-                <!-- 24-Hour Forecast Card -->
-                <div class="forecast-summary-card" id="forecast24Card">
-                    <div class="forecast-card-header">
-                        <h3 class="forecast-card-title">24-Hour Forecast</h3>
-                        <div class="forecast-card-indicator indicator-unhealthy" id="indicator24"></div>
-                    </div>
-                    <div class="forecast-card-body">
-                        <div class="forecast-stat">
-                            <span class="forecast-stat-label">Expected Average AQI</span>
-                            <span class="forecast-stat-value aqi-unhealthy" id="avg24">156</span>
-                        </div>
-                        <div class="forecast-stat">
-                            <span class="forecast-stat-label">Highest Predicted</span>
-                            <span class="forecast-stat-value aqi-unhealthy" id="high24">189</span>
-                        </div>
-                    </div>
-                    <div class="forecast-card-category category-unhealthy" id="category24">Unhealthy for Sensitive Groups</div>
-                </div>
-
-                <!-- 48-Hour Forecast Card -->
-                <div class="forecast-summary-card" id="forecast48Card">
-                    <div class="forecast-card-header">
-                        <h3 class="forecast-card-title">48-Hour Forecast</h3>
-                        <div class="forecast-card-indicator indicator-moderate" id="indicator48"></div>
-                    </div>
-                    <div class="forecast-card-body">
-                        <div class="forecast-stat">
-                            <span class="forecast-stat-label">Expected Average AQI</span>
-                            <span class="forecast-stat-value aqi-moderate" id="avg48">134</span>
-                        </div>
-                        <div class="forecast-stat">
-                            <span class="forecast-stat-label">Highest Predicted</span>
-                            <span class="forecast-stat-value aqi-moderate" id="high48">167</span>
-                        </div>
-                    </div>
-                    <div class="forecast-card-category category-moderate" id="category48">Moderate to Unhealthy</div>
-                </div>
+        <!-- All Stations Overview -->
+        <section class="all-stations-section">
+            <h2 class="all-stations-title">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                All Stations Overview
+            </h2>
+            <div class="all-stations-grid" id="allStationsGrid">
+                <!-- Populated by JS -->
             </div>
         </section>
 
@@ -174,9 +158,70 @@
             </div>
         </section>
 
-        <!-- Predicted AQI Section -->
+        <!-- Alert Banner -->
+        <section class="forecast-alert-banner" id="forecastAlertBanner" style="display:none;">
+            <div class="alert-banner-content">
+                <div class="alert-banner-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <line x1="12" y1="9" x2="12" y2="13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="alert-banner-text">
+                    <strong id="alertBannerTitle">⚠ High Pollution Expected</strong>
+                    <p id="alertBannerMsg">Sensitive groups should stay indoors and avoid outdoor activities.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Forecast Summary Cards -->
+        <section class="forecast-summary-section">
+            <div class="forecast-cards-grid">
+                <!-- 24-Hour Forecast Card -->
+                <div class="forecast-summary-card" id="forecast24Card">
+                    <div class="forecast-card-header">
+                        <h3 class="forecast-card-title">24-Hour Forecast</h3>
+                        <div class="forecast-card-indicator" id="indicator24"></div>
+                    </div>
+                    <div class="forecast-card-body">
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Expected Average AQI</span>
+                            <span class="forecast-stat-value" id="avg24">—</span>
+                        </div>
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Highest Predicted</span>
+                            <span class="forecast-stat-value" id="high24">—</span>
+                        </div>
+                    </div>
+                    <div class="forecast-card-category" id="category24">Loading…</div>
+                </div>
+
+                <!-- 48-Hour Forecast Card -->
+                <div class="forecast-summary-card" id="forecast48Card">
+                    <div class="forecast-card-header">
+                        <h3 class="forecast-card-title">48-Hour Forecast</h3>
+                        <div class="forecast-card-indicator" id="indicator48"></div>
+                    </div>
+                    <div class="forecast-card-body">
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Expected Average AQI</span>
+                            <span class="forecast-stat-value" id="avg48">—</span>
+                        </div>
+                        <div class="forecast-stat">
+                            <span class="forecast-stat-label">Highest Predicted</span>
+                            <span class="forecast-stat-value" id="high48">—</span>
+                        </div>
+                    </div>
+                    <div class="forecast-card-category" id="category48">Loading…</div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Predicted AQI Chart Section -->
         <section class="predicted-aqi-section">
-            <h2 class="predicted-aqi-title">Predicted AQI &nbsp;- Kathmandu Valley</h2>
+            <h2 class="predicted-aqi-title">Predicted AQI &nbsp;— <span id="chartStationName">Ratnapark</span></h2>
             <div class="prediction-chart-container">
                 <div class="chart-header">
                     <h3 class="chart-label">AQI Prediction</h3>
@@ -244,5 +289,6 @@
     <script src="../js/script.js"></script>
     <script src="../js/forecast.js"></script>
     <script src="../js/auth.js"></script>
+
 </body>
 </html>
