@@ -9,3 +9,9 @@ node_modules/
 
 # Environment Variables
 .env
+
+#Temporary files
+forecasts/
+plots/
+
+__pycache__/
