@@ -14,4 +14,7 @@ node_modules/
 forecasts/
 plots/
 
+#python cache
 __pycache__/
+*.pyc
+*.pyo
