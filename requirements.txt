@@ -1,10 +1,11 @@
 flask
-apscheduler
-python-dotenv
-requests
+flask-cors
+gunicorn
 xgboost
 scikit-learn
-joblib
 pandas
 numpy
-gunicorn
+joblib
+requests
+apscheduler
+python-dotenv
