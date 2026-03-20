@@ -11,7 +11,6 @@ node_modules/
 .env
 
 #Temporary files
-forecasts/
 plots/
 
 #python cache
