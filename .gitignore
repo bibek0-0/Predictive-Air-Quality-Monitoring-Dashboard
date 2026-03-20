@@ -12,7 +12,7 @@ node_modules/
 
 #Temporary files
 plots/
-
+forecasts/
 #python cache
 __pycache__/
 *.pyc

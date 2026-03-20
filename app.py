@@ -382,7 +382,8 @@ if __name__ == '__main__':
     print(f"   Auto-refresh: every {UPDATE_INTERVAL_MINUTES} min\n")
 
     try:
-        port = int(os.environ.get("PORT", 5050))  
+        # Use FLASK_PORT or default to 5050
+        port = int(os.environ.get("FLASK_PORT", 5050))  
         app.run(debug=False, host="0.0.0.0",
                 port=port, use_reloader=False)
     except (KeyboardInterrupt, SystemExit):
