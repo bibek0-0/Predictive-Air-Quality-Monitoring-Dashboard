@@ -411,9 +411,9 @@ function initHealthTimeline(forecast) {
 }
 
 function getTimelineLevel(aqi) {
-    if (aqi <= 100) return { cls: 'good', emoji: '✅' };
-    if (aqi <= 140) return { cls: 'moderate', emoji: '😐' };
-    if (aqi <= 160) return { cls: 'caution', emoji: '⚠️' };
+    if (aqi <= 50) return { cls: 'good', emoji: '✅' };
+    if (aqi <= 100) return { cls: 'moderate', emoji: '😐' };
+    if (aqi <= 150) return { cls: 'caution', emoji: '⚠️' };
     return { cls: 'unsafe', emoji: '❌' };
 }
 
