@@ -12,7 +12,6 @@ warnings.filterwarnings("ignore")
 app = Flask(__name__)
 CORS(app)
 
-# CONFIG
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 STATIONS = {
     "Ratnapark":  {"lat": 27.706597826440785, "lon": 85.31535151033474},
@@ -21,9 +20,9 @@ STATIONS = {
     "Bhaktapur":  {"lat": 27.67357783708027,  "lon": 85.42737758679067},
     "Shankapark": {"lat": 27.679954767188494, "lon": 85.33040590299137},
 }
-MODEL_DIR             = "models"
-FORECAST_DIR          = "forecasts"
-FORECAST_HOURS        = 48
+MODEL_DIR               = "models"
+FORECAST_DIR            = "forecasts"
+FORECAST_HOURS          = 48
 UPDATE_INTERVAL_MINUTES = 60
 
 os.makedirs(FORECAST_DIR, exist_ok=True)
@@ -31,14 +30,13 @@ os.makedirs(FORECAST_DIR, exist_ok=True)
 LAST_GOOGLE_CALL = {}
 
 LAG_FEATURES = [
-    "PM10","hour","dayofweek","month","isweekend",
+    "PM10","hour","dayofweek","month","is_weekend",
     "pm25_lag1","pm25_lag2","pm25_lag3","pm25_lag6","pm25_lag12","pm25_lag24","pm25_lag48",
     "pm10_lag1","pm10_lag6","pm10_lag24",
     "pm25_roll6_mean","pm25_roll24_mean","pm25_roll24_std","pm25_roll24_max",
     "pm25_diff1","pm25_diff24",
 ]
 
-# AQI HELPERS
 def pm25_to_aqi(pm25):
     bp = [(0,12,0,50),(12.1,35.4,51,100),(35.5,55.4,101,150),
           (55.5,150.4,151,200),(150.5,250.4,201,300),(250.5,500.4,301,500)]
@@ -49,14 +47,13 @@ def pm25_to_aqi(pm25):
     return 500
 
 def aqi_category(aqi):
-    if aqi <= 50:  return "Good",                          "#00e400"
-    if aqi <= 100: return "Moderate",                      "#ffff00"
-    if aqi <= 150: return "Unhealthy for Sensitive Groups","#ff7e00"
-    if aqi <= 200: return "Unhealthy",                     "#ff0000"
-    if aqi <= 300: return "Very Unhealthy",                "#8f3f97"
-    return "Hazardous",                                    "#7e0023"
+    if aqi <= 50:  return "Good",                           "#00e400"
+    if aqi <= 100: return "Moderate",                       "#ffff00"
+    if aqi <= 150: return "Unhealthy for Sensitive Groups", "#ff7e00"
+    if aqi <= 200: return "Unhealthy",                      "#ff0000"
+    if aqi <= 300: return "Very Unhealthy",                 "#8f3f97"
+    return "Hazardous",                                     "#7e0023"
 
-# GOOGLE HISTORY API 
 def seed_from_google_history(lat, lon, station, hours=72):
     if not GOOGLE_API_KEY:
         print(f"  SKIP {station}: GOOGLE_API_KEY not set")
@@ -99,9 +96,12 @@ def seed_from_google_history(lat, lon, station, hours=72):
         df = pd.DataFrame(all_rows).set_index("time")
         df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
         df = df.sort_index()
-        df = df.resample("1h").mean()           # clean hourly intervals
-        df = df.dropna(subset=["PM2.5"])        # remove hours with no PM2.5
-        df["PM10"] = df["PM10"].fillna(df["PM2.5"] * 1.5)  # fill missing PM10
+        df = df.resample("1h").mean()
+        df["PM2.5"] = df["PM2.5"].interpolate(limit=3)
+        df["PM10"]  = df["PM10"].interpolate(limit=3)
+        df["PM10"] = df["PM10"].fillna(df["PM2.5"] * 1.5)
+        df.loc[df["PM10"] == df["PM2.5"], "PM10"] = df["PM2.5"] * 1.5
+        df = df.dropna(subset=["PM2.5"])
         seed_path = os.path.join(MODEL_DIR, f"{station}_seed.csv")
         df.to_csv(seed_path)
         print(f"  History seeded {station}: {len(df)} real hourly rows")
@@ -110,7 +110,6 @@ def seed_from_google_history(lat, lon, station, hours=72):
         print(f"  History API exception {station}: {e}")
         return False
 
-# INITIALIZE SEEDS
 def initialize_seeds():
     print("Checking seed freshness...")
     for station, coords in STATIONS.items():
@@ -120,17 +119,21 @@ def initialize_seeds():
             try:
                 df = pd.read_csv(seed_path, index_col=0, parse_dates=True)
                 if len(df) > 0:
-                    last_ts = df.index[-1]
-                    if pd.Timestamp.now() - last_ts < pd.Timedelta(days=2):
-                        print(f"  {station} seed is fresh ({last_ts.date()}) — skipping")
+                    last_ts  = df.index[-1]
+                    first_ts = df.index[0]
+                    is_recent = pd.Timestamp.now() - last_ts  < pd.Timedelta(days=2)
+                    is_clean  = pd.Timestamp.now() - first_ts < pd.Timedelta(days=5)
+                    if is_recent and is_clean:
+                        print(f"  {station} seed is fresh — skipping")
                         needs_reseed = False
+                    else:
+                        print(f"  {station} seed has old data — force re-seeding")
             except Exception:
                 pass
         if needs_reseed:
-            print(f"  {station} seed is stale — fetching 72h history from Google...")
+            print(f"  {station} fetching 72h history from Google...")
             seed_from_google_history(coords["lat"], coords["lon"], station, hours=72)
 
-# GOOGLE CURRENT CONDITIONS 
 def update_seed_from_google(lat, lon, station):
     now = datetime.now()
     if station in LAST_GOOGLE_CALL:
@@ -187,7 +190,6 @@ def update_seed_with_live(station, live_pm25, live_pm10):
     seed = seed.tail(72)
     seed.to_csv(seed_path)
 
-# XGBOOST FORECAST ENGINE 
 def run_forecast_for_station(station):
     model_path = os.path.join(MODEL_DIR, f"{station}_xgb.joblib")
     seed_path  = os.path.join(MODEL_DIR, f"{station}_seed.csv")
@@ -208,7 +210,7 @@ def run_forecast_for_station(station):
             "hour":             ts.hour,
             "dayofweek":        ts.dayofweek,
             "month":            ts.month,
-            "isweekend":        int(ts.dayofweek >= 5),
+            "is_weekend":       int(ts.dayofweek >= 5),
             "pm25_lag1":        pm25_buf[-1],
             "pm25_lag2":        pm25_buf[-2]  if len(pm25_buf) >= 2  else pm25_buf[-1],
             "pm25_lag3":        pm25_buf[-3]  if len(pm25_buf) >= 3  else pm25_buf[-1],
@@ -244,7 +246,6 @@ def run_forecast_for_station(station):
         })
     return output
 
-# SCHEDULED JOB 
 def refresh_all_forecasts():
     print(f"{datetime.now().strftime('%H:%M:%S')} Refreshing forecasts...")
     for station, coords in STATIONS.items():
@@ -262,7 +263,6 @@ def refresh_all_forecasts():
             print(f"  {station}: {e}")
     print(f"Done. Next refresh in {UPDATE_INTERVAL_MINUTES} min.")
 
-# STATIC FILE SERVING
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
@@ -283,7 +283,6 @@ def css_files(filename):
 def assets(filename):
     return send_from_directory("assets", filename)
 
-# API ROUTES 
 @app.route("/api/forecast/<station>")
 def get_forecast(station):
     if station not in STATIONS:
@@ -353,18 +352,18 @@ def manual_refresh():
     refresh_all_forecasts()
     return jsonify({"status": "ok", "refreshed_at": datetime.now().strftime("%H:%M:%S")})
 
-# START
+# START 
 initialize_seeds()
 refresh_all_forecasts()
 
-#scheduler = BackgroundScheduler()
-#scheduler.add_job(
- #   refresh_all_forecasts,
-#    trigger="interval",
-#    minutes=UPDATE_INTERVAL_MINUTES,
-#    id="forecast_refresh"
-#)
-#scheduler.start()
+# scheduler = BackgroundScheduler()
+# scheduler.add_job(
+#     refresh_all_forecasts,
+#     trigger="interval",
+#     minutes=UPDATE_INTERVAL_MINUTES,
+#     id="forecast_refresh"
+# )
+# scheduler.start()
 
 if __name__ == "__main__":
     print(f"\n  http://localhost:5050")
@@ -374,5 +373,4 @@ if __name__ == "__main__":
         port = int(os.environ.get("PORT", 5050))
         app.run(debug=False, host="0.0.0.0", port=port, use_reloader=False)
     except (KeyboardInterrupt, SystemExit):
-        #scheduler.shutdown()
         print("\n  Server stopped.")
