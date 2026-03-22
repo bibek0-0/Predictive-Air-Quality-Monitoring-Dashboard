@@ -12,6 +12,8 @@ warnings.filterwarnings("ignore")
 app = Flask(__name__)
 CORS(app)
 
+# config 
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 STATIONS = {
     "Ratnapark":  {"lat": 27.706597826440785, "lon": 85.31535151033474},
@@ -27,6 +29,8 @@ UPDATE_INTERVAL_MINUTES = 60
 
 os.makedirs(FORECAST_DIR, exist_ok=True)
 
+# Rate limit guard: tracks last successful API call per station 
+
 LAST_GOOGLE_CALL = {}
 
 LAG_FEATURES = [
@@ -37,6 +41,8 @@ LAG_FEATURES = [
     "pm25_diff1","pm25_diff24",
 ]
 
+# AQI helpers
+
 def pm25_to_aqi(pm25):
     bp = [(0,12,0,50),(12.1,35.4,51,100),(35.5,55.4,101,150),
           (55.5,150.4,151,200),(150.5,250.4,201,300),(250.5,500.4,301,500)]
@@ -45,6 +51,7 @@ def pm25_to_aqi(pm25):
         if cl <= pm25 <= ch:
             return int(round((ih-il)/(ch-cl)*(pm25-cl)+il))
     return 500
+# GOOGLE AIR QUALITY API 
 
 def aqi_category(aqi):
     if aqi <= 50:  return "Good",                           "#00e400"
@@ -53,6 +60,8 @@ def aqi_category(aqi):
     if aqi <= 200: return "Unhealthy",                      "#ff0000"
     if aqi <= 300: return "Very Unhealthy",                 "#8f3f97"
     return "Hazardous",                                     "#7e0023"
+
+# GOOGLE HISTORY API 
 
 def seed_from_google_history(lat, lon, station, hours=72):
     if not GOOGLE_API_KEY:
@@ -69,9 +78,11 @@ def seed_from_google_history(lat, lon, station, hours=72):
     page_token = None
     try:
         while True:
+            request_payload = payload.copy()
             if page_token:
-                payload["pageToken"] = page_token
-            res = requests.post(url, json=payload, params={"key": GOOGLE_API_KEY}, timeout=15)
+                request_payload["pageToken"] = page_token
+            res = requests.post(url, json=request_payload, params={"key": GOOGLE_API_KEY}, timeout=15)
+                
             if res.status_code != 200:
                 print(f"  History API error {station}: {res.status_code} {res.text[:120]}")
                 return False
@@ -85,7 +96,7 @@ def seed_from_google_history(lat, lon, station, hours=72):
                     if code == "pm25" and val is not None: pm25 = float(val)
                     if code == "pm10" and val is not None: pm10 = float(val)
                 if pm25 is not None:
-                    pm10 = pm10 if pm10 else round(pm25 * 1.5, 2)
+                    pm10 = pm10 if pm10 is not None else round(pm25 * 1.5, 2)
                     all_rows.append({"time": dt, "PM2.5": pm25, "PM10": pm10})
             page_token = data.get("nextPageToken")
             if not page_token:
@@ -94,21 +105,29 @@ def seed_from_google_history(lat, lon, station, hours=72):
             print(f"  No history rows returned for {station}")
             return False
         df = pd.DataFrame(all_rows).set_index("time")
-        df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
+        df.index = pd.to_datetime(df.index, utc=True).tz_convert("Asia/Kathmandu").tz_localize(None)
         df = df.sort_index()
-        df = df.resample("1h").mean()
-        df["PM2.5"] = df["PM2.5"].interpolate(limit=3)
-        df["PM10"]  = df["PM10"].interpolate(limit=3)
+        df = df.resample("1H").mean()
+        df["PM2.5"] = df["PM2.5"].interpolate(method="time", limit=6)
+        df["PM10"]  = df["PM10"].interpolate(method="time", limit=6)
         df["PM10"] = df["PM10"].fillna(df["PM2.5"] * 1.5)
         df.loc[df["PM10"] == df["PM2.5"], "PM10"] = df["PM2.5"] * 1.5
         df = df.dropna(subset=["PM2.5"])
+        df = df.tail(72)
         seed_path = os.path.join(MODEL_DIR, f"{station}_seed.csv")
         df.to_csv(seed_path)
-        print(f"  History seeded {station}: {len(df)} real hourly rows")
+            
+        if len(df) < 72:                                              
+            print(f"Warning: only {len(df)}/72 rows for {station}")
+        else:
+            print(f"History seeded {station}: {len(df)} rows → {df.index[0]} to {df.index[-1]}")
         return True
+
     except Exception as e:
         print(f"  History API exception {station}: {e}")
         return False
+
+# INITIALIZE SEEDS
 
 def initialize_seeds():
     print("Checking seed freshness...")
@@ -167,7 +186,7 @@ def update_seed_from_google(lat, lon, station):
         if pm25 is None:
             print(f"  Google {station}: PM2.5 not in response")
             return None
-        pm10 = pm10 if pm10 else round(pm25 * 1.5, 2)
+        pm10 = pm10 if pm10 is not None else round(pm25 * 1.5, 2)
         update_seed_with_live(station, pm25, pm10)
         print(f"  Seed {station}: PM2.5={round(pm25,2)} PM10={round(pm10,2)}")
         return True
@@ -183,12 +202,14 @@ def update_seed_with_live(station, live_pm25, live_pm10):
     seed = pd.read_csv(seed_path, index_col=0, parse_dates=True)
     new_row = pd.DataFrame(
         {"PM2.5": live_pm25, "PM10": live_pm10},
-        index=[pd.Timestamp.now().floor("h")]
+        index=[pd.Timestamp.now(tz="Asia/Kathmandu").replace(tzinfo=None).floor("h")]
     )
     seed = pd.concat([seed, new_row])
     seed = seed[~seed.index.duplicated(keep="last")]
     seed = seed.tail(72)
     seed.to_csv(seed_path)
+    
+# XGBOOST FORECAST ENGINE
 
 def run_forecast_for_station(station):
     model_path = os.path.join(MODEL_DIR, f"{station}_xgb.joblib")
@@ -229,7 +250,8 @@ def run_forecast_for_station(station):
             "pm25_diff24":      pm25_buf[-1] - pm25_buf[-25] if len(pm25_buf) >= 25 else 0.0,
         }
         pm25_pred = float(max(0.0, model.predict(pd.DataFrame([row])[LAG_FEATURES])[0]))
-        pm25_pred = 0.8 * pm25_pred + 0.2 * pm25_buf[-1]
+        pm25_pred = 0.7 * pm25_pred + 0.3 * pm25_buf[-1]  
+        pm25_pred = float(np.clip(pm25_pred, 0, 250))        
         aqi_val   = pm25_to_aqi(pm25_pred)
         cat, col  = aqi_category(aqi_val)
         pm25_buf.append(pm25_pred)
@@ -245,6 +267,8 @@ def run_forecast_for_station(station):
             "color":      col,
         })
     return output
+
+# SCHEDULED JOB 
 
 def refresh_all_forecasts():
     print(f"{datetime.now().strftime('%H:%M:%S')} Refreshing forecasts...")
@@ -262,6 +286,8 @@ def refresh_all_forecasts():
         except Exception as e:
             print(f"  {station}: {e}")
     print(f"Done. Next refresh in {UPDATE_INTERVAL_MINUTES} min.")
+
+# STATIC FILE SERVING
 
 @app.route("/")
 def home():
@@ -282,6 +308,7 @@ def css_files(filename):
 @app.route("/assets/<path:filename>")
 def assets(filename):
     return send_from_directory("assets", filename)
+#  API ROUTES
 
 @app.route("/api/forecast/<station>")
 def get_forecast(station):
@@ -319,14 +346,6 @@ def forecast_summary():
                 "color":    first["color"],
             })
     return jsonify(result)
-
-@app.route("/api/metrics")
-def get_metrics():
-    path = os.path.join(MODEL_DIR, "xgb_metrics.csv")
-    if not os.path.exists(path):
-        return jsonify({"error": "Metrics file not found"}), 404
-    df = pd.read_csv(path, index_col=0)
-    return jsonify(df.reset_index().to_dict(orient="records"))
 
 @app.route("/api/status")
 def status():
@@ -370,7 +389,7 @@ if __name__ == "__main__":
     print(f"  Google API: {'Configured' if GOOGLE_API_KEY else 'Not set'}")
     print(f"  Auto-refresh: every {UPDATE_INTERVAL_MINUTES} min\n")
     try:
-        port = int(os.environ.get("PORT", 5050))
+        port = int(os.environ.get("FLASK_PORT", 5050))
         app.run(debug=False, host="0.0.0.0", port=port, use_reloader=False)
     except (KeyboardInterrupt, SystemExit):
         print("\n  Server stopped.")
