@@ -297,6 +297,28 @@
       const ddEmail = userMenuContainer.querySelector(".user-dropdown-email");
       if (ddEmail) ddEmail.textContent = user.email || "";
 
+      // Inject "Change Alert Location" button for Pro users
+      const dropdown = userMenuContainer.querySelector(".user-dropdown");
+      const existingLocBtn = dropdown ? dropdown.querySelector(".change-location-btn") : null;
+      if (dropdown && user.isPro === true) {
+        if (!existingLocBtn) {
+          const logoutBtn = dropdown.querySelector(".logout-btn");
+          const locBtn = document.createElement("button");
+          locBtn.className = "user-dropdown-item change-location-btn";
+          locBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Alert Locations';
+          locBtn.addEventListener("click", function() {
+            showLocationChangeModal(user);
+          });
+          if (logoutBtn) {
+            dropdown.insertBefore(locBtn, logoutBtn);
+          } else {
+            dropdown.appendChild(locBtn);
+          }
+        }
+      } else if (existingLocBtn) {
+        existingLocBtn.remove();
+      }
+
       // Handle Nav Upgrade (Pro Crown) Button Visibility based on Pro status
       const navUpgradeBtn = document.getElementById("navUpgradeBtn");
       if (navUpgradeBtn) {
@@ -456,6 +478,225 @@
     } else {
       updateNavbar();
     }
+  }
+
+  // ---- Change Alert Location Modal (Pro Users) ----
+  function showLocationChangeModal(user) {
+    // Remove existing modal if any
+    var existing = document.getElementById("changeLocationModal");
+    if (existing) existing.remove();
+
+    var stations = ["Ratnapark", "Pulchowk", "Bhaisipati", "Shankapark", "Bhaktapur"];
+    var currentLoc = user.alertLocation || localStorage.getItem("airktmAlertLocation") || "";
+
+    var overlay = document.createElement("div");
+    overlay.id = "changeLocationModal";
+    overlay.className = "change-loc-overlay";
+
+    var card = document.createElement("div");
+    card.className = "change-loc-card";
+
+    // Header
+    card.innerHTML = '<div class="change-loc-header">' +
+      '<h3 class="change-loc-title">Alert Locations</h3>' +
+      '<button class="change-loc-close" id="changeLocClose">&times;</button>' +
+      '</div>' +
+      '<p class="change-loc-subtitle">Select a station to change your alerts' +
+      (currentLoc ? '<br><span class="change-loc-current">Current: ' + currentLoc + '</span>' : '') +
+      '</p>' +
+      '<div class="change-loc-stations"></div>';
+
+    var stationsDiv = card.querySelector(".change-loc-stations");
+
+    stations.forEach(function(station) {
+      var btn = document.createElement("button");
+      btn.className = "change-loc-station-btn" + (station === currentLoc ? " active" : "");
+      btn.textContent = station;
+      btn.addEventListener("click", function() {
+        // Store the selected location as pending
+        localStorage.setItem('airktmPendingAlertLocation', station);
+
+        // Show loading state on the button
+        btn.textContent = "Processing...";
+        btn.disabled = true;
+
+        // --- Initiate Khalti Payment ---
+        var orderId = 'AIRKTM-LOC-' + Date.now();
+
+        // Build callback URL
+        var currentPath = window.location.href.split('?')[0];
+        var basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+        // Try pages/ subfolder for subpages, root for index
+        var callbackUrl;
+        if (currentPath.indexOf('/pages/') !== -1) {
+          callbackUrl = basePath + 'payment-callback.html';
+        } else {
+          callbackUrl = basePath + 'pages/payment-callback.html';
+        }
+        var siteUrl = window.location.origin !== 'null' ? window.location.origin : basePath;
+
+        // User details
+        var userName = user.name || 'AirKTM User';
+        var userEmail = user.email || 'user@airktm.com';
+
+        var khaltiConfig = {
+          return_url: callbackUrl,
+          website_url: siteUrl,
+          amount: 10000, // NRS 100 in paisa
+          purchase_order_id: orderId,
+          purchase_order_name: 'AirKTM Location Change - ' + station,
+          customer_info: {
+            name: userName,
+            email: userEmail,
+            phone: '9800000000'
+          },
+          product_details: [
+            {
+              identity: 'airktm-loc-change',
+              name: 'AirKTM Alert Location Change to ' + station,
+              total_price: 10000,
+              quantity: 1,
+              unit_price: 10000
+            }
+          ]
+        };
+
+        var khaltiApiUrl = 'https://dev.khalti.com/api/v2/epayment/initiate/';
+        var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(khaltiApiUrl);
+
+        fetch(proxyUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': 'key 05bf95cc57244045b8df5fad06748dab',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(khaltiConfig)
+        })
+        .then(function(response) {
+          if (!response.ok) {
+            return response.json().then(function(err) {
+              throw new Error(err.detail || err.message || 'Payment initiation failed');
+            });
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          if (data.payment_url) {
+            localStorage.setItem('khaltiPaymentPending', 'true');
+
+            // Open Khalti popup (compact)
+            var popupWidth = 420;
+            var popupHeight = 550;
+            var left = Math.max(0, (window.screen.width - popupWidth) / 2);
+            var top = Math.max(0, (window.screen.height - popupHeight) / 2);
+            var popupFeatures = 'width=' + popupWidth + ',height=' + popupHeight +
+              ',left=' + left + ',top=' + top +
+              ',scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=yes,status=yes';
+
+            var khaltiPopup = window.open(data.payment_url, 'KhaltiPayment', popupFeatures);
+
+            if (!khaltiPopup || khaltiPopup.closed) {
+              window.location.href = data.payment_url;
+              return;
+            }
+
+            // Poll to detect popup close
+            var pollTimer = setInterval(function() {
+              try {
+                if (khaltiPopup.closed) {
+                  clearInterval(pollTimer);
+                  localStorage.removeItem('khaltiPaymentPending');
+
+                  var paymentResult = localStorage.getItem('khaltiPaymentResult');
+                  localStorage.removeItem('khaltiPaymentResult');
+
+                  if (paymentResult === 'success') {
+                    // Payment successful — now update location
+                    var pendingLoc = localStorage.getItem('airktmPendingAlertLocation') || station;
+                    localStorage.removeItem('airktmPendingAlertLocation');
+                    localStorage.setItem('airktmAlertLocation', pendingLoc);
+
+                    // Update MongoDB
+                    var token = getToken();
+                    if (token) {
+                      fetch(window.location.origin + "/api/auth/alert-location", {
+                        method: "PUT",
+                        headers: {
+                          "Content-Type": "application/json",
+                          "Authorization": "Bearer " + token
+                        },
+                        body: JSON.stringify({ alertLocation: pendingLoc })
+                      })
+                      .then(function(res) { return res.json(); })
+                      .then(function(d) {
+                        console.log("Alert location updated:", d);
+                        if (currentUser) {
+                          currentUser.alertLocation = pendingLoc;
+                          localStorage.setItem("airktm_user", JSON.stringify(currentUser));
+                        }
+                      })
+                      .catch(function(err) {
+                        console.error("Failed to update location:", err);
+                      });
+                    }
+
+                    // Update Flask subscriber
+                    if (userEmail) {
+                      var flaskBase = window.location.protocol + "//" + window.location.hostname + ":5050";
+                      fetch(flaskBase + "/api/subscribe", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: userEmail, station: pendingLoc })
+                      }).catch(function(err) {
+                        console.error("Flask subscribe update failed:", err);
+                      });
+                    }
+
+                    // Show success in the modal
+                    card.innerHTML = '<div class="change-loc-success">' +
+                      '<svg width="48" height="48" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                      '<h3 class="change-loc-title">Location Updated</h3>' +
+                      '<p class="change-loc-subtitle">You will now receive alerts for <strong>' + pendingLoc + '</strong></p>' +
+                      '</div>';
+
+                    setTimeout(function() { overlay.remove(); }, 2500);
+                  } else {
+                    // Payment canceled or failed — reset button
+                    btn.textContent = station;
+                    btn.disabled = false;
+                  }
+                }
+              } catch(e) {
+                // Cross-origin — popup still open, keep polling
+              }
+            }, 500);
+          }
+        })
+        .catch(function(err) {
+          console.error("Khalti payment error:", err);
+          btn.textContent = station;
+          btn.disabled = false;
+          alert("Payment initiation failed: " + err.message);
+        });
+      });
+      stationsDiv.appendChild(btn);
+    });
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    // Animate in
+    requestAnimationFrame(function() {
+      overlay.classList.add("active");
+    });
+
+    // Close handlers
+    overlay.addEventListener("click", function(e) {
+      if (e.target === overlay) overlay.remove();
+    });
+    card.querySelector("#changeLocClose").addEventListener("click", function() {
+      overlay.remove();
+    });
   }
 
   // Wait for DOM

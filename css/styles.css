@@ -1156,9 +1156,11 @@ body::-webkit-scrollbar {
     -webkit-backdrop-filter: blur(20px);
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 1.5rem;
-    max-width: 450px;
+    padding: 1.25rem;
+    max-width: 600px;
     width: 100%;
+    max-height: 90vh;
+    overflow-y: hidden;
     box-shadow: 
         0 20px 60px rgba(0, 0, 0, 0.4),
         0 8px 24px rgba(0, 0, 0, 0.3),
@@ -1166,8 +1168,9 @@ body::-webkit-scrollbar {
         0 0 0 1px rgba(255, 255, 255, 0.1);
     transform: scale(0.9) translateY(30px);
     transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
 }
+
+/* No scrollbar on popup */
 
 .premium-popup-overlay.active .premium-popup-card {
     transform: scale(1) translateY(0);
@@ -1295,7 +1298,7 @@ body::-webkit-scrollbar {
     font-family: 'Inter', sans-serif;
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.85);
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1rem 0;
     line-height: 1.5;
     font-weight: 400;
 }
@@ -1305,8 +1308,8 @@ body::-webkit-scrollbar {
     align-items: baseline;
     justify-content: center;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    padding: 1.5rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
     background: linear-gradient(135deg, #ffcc33 0%, #ffb400 50%, #ff9f00 100%);
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1351,7 +1354,7 @@ body::-webkit-scrollbar {
 .premium-benefits-list {
     list-style: none;
     padding: 0;
-    margin: 0 0 1.5rem 0;
+    margin: 0 0 1rem 0;
     text-align: left;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1365,7 +1368,7 @@ body::-webkit-scrollbar {
     font-family: 'Inter', sans-serif;
     font-size: 0.9375rem;
     color: rgba(255, 255, 255, 0.9);
-    padding: 0.875rem;
+    padding: 0.65rem;
     background: rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1384,6 +1387,163 @@ body::-webkit-scrollbar {
     flex-shrink: 0;
     color: #f59e0b;
     filter: drop-shadow(0 2px 4px rgba(245, 158, 11, 0.4));
+}
+
+/*PREMIUM LOCATION SELECTOR */
+
+.premium-location-selector {
+    margin: 0 0 1.25rem 0;
+    text-align: center;
+}
+
+.premium-location-title {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0 0 0.25rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.premium-location-title svg {
+    color: #ffd700;
+    flex-shrink: 0;
+}
+
+.premium-location-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 0 0 0.75rem 0;
+    font-weight: 400;
+}
+
+.premium-location-dropdown {
+    max-width: 280px;
+    margin: 0 auto;
+    padding: 0.7rem 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1.5px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    transition: all 0.25s ease;
+}
+
+.premium-location-dropdown:focus {
+    border-color: #ffd700;
+    background-color: rgba(255, 215, 0, 0.08);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.15);
+}
+
+.premium-location-dropdown option {
+    background: #1f2937;
+    color: #fff;
+    padding: 0.5rem;
+}
+
+/* PRO SUBSCRIPTION FORM STYLES */
+
+.premium-subscribe-form {
+    text-align: center;
+}
+
+.premium-email-group {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.premium-email-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-bottom: 0.4rem;
+}
+
+.premium-email-label svg {
+    color: #ffd700;
+}
+
+.premium-email-input {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    outline: none;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+.premium-email-input::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.premium-email-input:focus {
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.06);
+    box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
+}
+
+.premium-location-note {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0.5rem 0 0 0;
+    font-style: italic;
+}
+
+.pro-subscribe-feedback {
+    margin-top: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: 10px;
+    text-align: center;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.pro-subscribe-feedback.feedback-success {
+    background: rgba(34, 197, 94, 0.15);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.pro-subscribe-feedback.feedback-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.pro-subscribe-feedback-text {
+    margin: 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.pro-subscribe-feedback.feedback-success .pro-subscribe-feedback-text {
+    color: #4ade80;
+}
+
+.pro-subscribe-feedback.feedback-error .pro-subscribe-feedback-text {
+    color: #ef4444;
 }
 
 .premium-upgrade-button {
@@ -1494,9 +1654,7 @@ body::-webkit-scrollbar {
     }
 }
 
-/* ============================================
-   KHALTI PAYMENT INTEGRATION STYLES
-   ============================================ */
+/* KHALTI PAYMENT INTEGRATION STYLE /
 
 /* Spinner Animation */
 @keyframes khaltiSpin {
@@ -1589,9 +1747,7 @@ body::-webkit-scrollbar {
     line-height: 1.4;
 }
 
-/* ============================================
-   KHALTI PAYMENT STATUS OVERLAY
-   ============================================ */
+/*KHALTI PAYMENT STATUS OVERLAY */
 
 .khalti-status-overlay {
     position: fixed;
@@ -1863,6 +2019,143 @@ body::-webkit-scrollbar {
     }
 }
 
+/* HANGE ALERT LOCATION MODAL*/
 
+.change-location-btn {
+    color: #f59e0b !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: left;
+    white-space: nowrap;
+}
 
+.change-location-btn svg {
+    color: #f59e0b;
+}
 
+.change-loc-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.change-loc-overlay.active {
+    opacity: 1;
+}
+
+.change-loc-card {
+    background: #1f2937;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    padding: 1.5rem;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: scale(0.95);
+    transition: transform 0.3s ease;
+}
+
+.change-loc-overlay.active .change-loc-card {
+    transform: scale(1);
+}
+
+.change-loc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.change-loc-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.change-loc-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.change-loc-close:hover {
+    color: #fff;
+}
+
+.change-loc-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
+}
+
+.change-loc-current {
+    color: #fbbf24;
+    font-weight: 600;
+}
+
+.change-loc-stations {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.change-loc-station-btn {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+}
+
+.change-loc-station-btn:hover {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: rgba(255, 215, 0, 0.3);
+    color: #fff;
+    transform: translateX(4px);
+}
+
+.change-loc-station-btn.active {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: #ffd700;
+    color: #ffd700;
+}
+
+.change-loc-success {
+    text-align: center;
+    padding: 1rem 0;
+}
+
+.change-loc-success svg {
+    margin-bottom: 0.75rem;
+}
+
+.change-loc-success .change-loc-title {
+    color: #4ade80;
+    margin-bottom: 0.5rem;
+}
