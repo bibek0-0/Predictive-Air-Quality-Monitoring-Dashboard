@@ -218,6 +218,18 @@
       if (data.user.isPro) {
         localStorage.setItem("airktmProActive", "true");
       }
+
+      // Check if admin — redirect to admin panel
+      if (data.user.isAdmin) {
+        localStorage.setItem("airktmIsAdmin", "true");
+        showMessage("authFormLogin", "Admin login successful!", "success");
+        setTimeout(() => {
+          const isInPages = window.location.pathname.includes('/pages/');
+          window.location.href = isInPages ? 'admin.html' : 'pages/admin.html';
+        }, 500);
+        return;
+      }
+
       showMessage("authFormLogin", "Logged in successfully!", "success");
       setTimeout(() => {
         getEl("loginPassword").value = ""; // clear password

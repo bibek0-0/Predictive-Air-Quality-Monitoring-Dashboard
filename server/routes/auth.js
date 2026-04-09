@@ -1,8 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
+const path = require('path');
+const fs = require('fs');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+
+// Admin-only middleware
+const adminAuth = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user || !user.isAdmin) {
+            return res.status(403).json({ msg: 'Admin access required' });
+        }
+        next();
+    } catch (err) {
+        res.status(500).json({ msg: 'Server error' });
+    }
+};
 
 // Helper: generate JWT token
 function generateToken(user) {
@@ -81,6 +96,37 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ msg: 'Please provide email and password' });
         }
 
+        // Check for admin login via .env credentials
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminPassword = process.env.ADMIN_PASSWORD;
+        if (adminEmail && adminPassword && email === adminEmail && password === adminPassword) {
+            // Find or create admin user in DB
+            let adminUser = await User.findOne({ email: adminEmail });
+            if (!adminUser) {
+                adminUser = new User({
+                    name: 'Admin',
+                    email: adminEmail,
+                    isAdmin: true
+                });
+                await adminUser.save();
+            } else if (!adminUser.isAdmin) {
+                adminUser.isAdmin = true;
+                await adminUser.save();
+            }
+            const token = generateToken(adminUser);
+            return res.json({
+                token,
+                user: {
+                    id: adminUser.id,
+                    name: adminUser.name,
+                    email: adminUser.email,
+                    avatar: adminUser.avatar,
+                    isPro: adminUser.isPro || false,
+                    isAdmin: true
+                }
+            });
+        }
+
         // Check if user exists
         const user = await User.findOne({ email });
         if (!user) {
@@ -108,7 +154,8 @@ router.post('/login', async (req, res) => {
                 name: user.name,
                 email: user.email,
                 avatar: user.avatar,
-                isPro: user.isPro || false
+                isPro: user.isPro || false,
+                isAdmin: user.isAdmin || false
             }
         });
     } catch (err) {
@@ -245,6 +292,95 @@ router.put('/alert-location', auth, async (req, res) => {
         });
     } catch (err) {
         console.error('Alert location update error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// =============================================
+// ADMIN API ROUTES
+// =============================================
+
+// @route   GET /api/auth/admin/users
+// @desc    Get all users for admin panel
+// @access  Private (Admin only)
+router.get('/admin/users', auth, adminAuth, async (req, res) => {
+    try {
+        const users = await User.find({ isAdmin: { $ne: true } })
+            .select('-password -googleId -__v')
+            .sort({ createdAt: -1 });
+        res.json(users);
+    } catch (err) {
+        console.error('Admin users error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// @route   GET /api/auth/admin/stats
+// @desc    Get dashboard statistics for admin panel
+// @access  Private (Admin only)
+router.get('/admin/stats', auth, adminAuth, async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments({ isAdmin: { $ne: true } });
+        const proUsers = await User.countDocuments({ isPro: true, isAdmin: { $ne: true } });
+
+        // Calculate revenue: count total alertLocations across all pro users
+        const proUsersData = await User.find({ isPro: true, isAdmin: { $ne: true } })
+            .select('alertLocations proActivatedAt createdAt');
+
+        let totalLocations = 0;
+        const monthlyRevenue = {};
+
+        proUsersData.forEach(u => {
+            const locs = (u.alertLocations || []).length;
+            totalLocations += locs;
+
+            // Group revenue by month
+            const date = u.proActivatedAt || u.createdAt;
+            if (date) {
+                const key = new Date(date).toISOString().slice(0, 7); // YYYY-MM
+                monthlyRevenue[key] = (monthlyRevenue[key] || 0) + (locs * 100);
+            }
+        });
+
+        const totalRevenue = totalLocations * 100; // NRS 100 per location
+
+        // Read Flask subscribers
+        let subscriberCount = 0;
+        const subscribersPath = path.join(__dirname, '..', '..', 'data', 'subscribers.json');
+        try {
+            if (fs.existsSync(subscribersPath)) {
+                const subData = JSON.parse(fs.readFileSync(subscribersPath, 'utf-8'));
+                subscriberCount = (subData.subscribers || []).length;
+            }
+        } catch (e) { /* ignore */ }
+
+        res.json({
+            totalUsers,
+            proUsers,
+            totalRevenue,
+            totalLocations,
+            subscriberCount,
+            monthlyRevenue
+        });
+    } catch (err) {
+        console.error('Admin stats error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// @route   GET /api/auth/admin/subscribers
+// @desc    Get Flask email subscribers for admin panel
+// @access  Private (Admin only)
+router.get('/admin/subscribers', auth, adminAuth, async (req, res) => {
+    try {
+        const subscribersPath = path.join(__dirname, '..', '..', 'data', 'subscribers.json');
+        if (!fs.existsSync(subscribersPath)) {
+            return res.json({ subscribers: [] });
+        }
+        const data = JSON.parse(fs.readFileSync(subscribersPath, 'utf-8'));
+        res.json(data);
+    } catch (err) {
+        console.error('Admin subscribers error:', err.message);
         res.status(500).json({ msg: 'Server error' });
     }
 });
