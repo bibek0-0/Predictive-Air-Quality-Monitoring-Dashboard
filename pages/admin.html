@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AirKTM Admin Panel</title>
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <!-- Loading State -->
+    <div id="adminLoading" class="admin-loading">
+        <div class="admin-spinner"></div>
+        <p class="admin-loading-text">Verifying admin access...</p>
+    </div>
+
+    <!-- Access Denied (hidden by default) -->
+    <div id="adminDenied" class="admin-access-denied" style="display:none;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#ef4444" stroke-width="2"/><path d="M15 9l-6 6M9 9l6 6" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/></svg>
+        <h2>Access Denied</h2>
+        <p>You do not have admin privileges.</p>
+        <a href="/">Back to Home</a>
+    </div>
+
+    <!-- Main Admin Content (hidden until verified) -->
+    <div id="adminContent" style="display:none;">
+
+        <!-- Navbar -->
+        <header class="admin-navbar">
+            <a href="/" class="admin-navbar-brand">
+                <img src="../assets/Untitled design.png" alt="AirKTM Logo">
+                <span class="admin-navbar-title">AirKTM <span>Admin</span></span>
+            </a>
+            <div class="admin-navbar-actions">
+                <span class="admin-badge">Admin</span>
+                <button class="admin-logout-btn" id="adminLogoutBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Logout
+                </button>
+            </div>
+        </header>
+
+        <main class="admin-container">
+
+            <!-- Page Header -->
+            <div class="admin-page-header">
+                <h1>Dashboard Overview</h1>
+                <p id="adminGreeting">Welcome back, Admin</p>
+            </div>
+
+            <!-- Stat Cards -->
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Total Users</span>
+                        <div class="stat-card-icon blue">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" id="statTotalUsers">-</div>
+                    <div class="stat-card-sub">Registered accounts</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Pro Subscribers</span>
+                        <div class="stat-card-icon purple">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" id="statProUsers">-</div>
+                    <div class="stat-card-sub">Active Pro members</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Total Revenue</span>
+                        <div class="stat-card-icon green">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" id="statRevenue">-</div>
+                    <div class="stat-card-sub">NRS from Pro subscriptions</div>
+                </div>
+                <div class="admin-stat-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-label">Active Locations</span>
+                        <div class="stat-card-icon yellow">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                    </div>
+                    <div class="stat-card-value" id="statLocations">-</div>
+                    <div class="stat-card-sub">Monitored stations</div>
+                </div>
+            </div>
+
+            <!-- Revenue Chart + Subscriber Stats -->
+            <div class="admin-grid-2col">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                            Revenue Overview
+                        </div>
+                    </div>
+                    <div class="admin-chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <div class="admin-panel-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            Email Alert Subscribers
+                        </div>
+                    </div>
+                    <div class="admin-table-wrap">
+                        <table class="admin-table" id="subscribersTable">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Station</th>
+                                    <th>Subscribed</th>
+                                    <th>Last Alert</th>
+                                </tr>
+                            </thead>
+                            <tbody id="subscribersBody">
+                                <tr><td colspan="4" class="admin-empty">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Table -->
+            <div class="admin-panel">
+                <div class="admin-panel-header">
+                    <div class="admin-panel-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        All Users
+                    </div>
+                    <input type="text" class="admin-search-input" id="userSearchInput" placeholder="Search by name or email...">
+                </div>
+                <div class="admin-table-wrap">
+                    <table class="admin-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Pro Since</th>
+                                <th>Alert Locations</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersBody">
+                            <tr><td colspan="6" class="admin-empty">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+<script>
+(function() {
+    const API_BASE = window.location.origin;
+    const token = localStorage.getItem('airktm_token');
+
+    // ---- Auth Check ----
+    async function verifyAdmin() {
+        if (!token) return denyAccess();
+        try {
+            const res = await fetch(API_BASE + '/api/auth/admin/stats', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (res.status === 403 || res.status === 401) return denyAccess();
+            if (!res.ok) return denyAccess();
+            // Admin verified
+            document.getElementById('adminLoading').style.display = 'none';
+            document.getElementById('adminContent').style.display = 'block';
+            loadDashboard();
+        } catch (e) {
+            denyAccess();
+        }
+    }
+
+    function denyAccess() {
+        document.getElementById('adminLoading').style.display = 'none';
+        document.getElementById('adminDenied').style.display = 'flex';
+    }
+
+    // ---- Load All Data ----
+    async function loadDashboard() {
+        await Promise.all([loadStats(), loadUsers(), loadSubscribers()]);
+    }
+
+    // ---- Stats ----
+    async function loadStats() {
+        try {
+            const res = await fetch(API_BASE + '/api/auth/admin/stats', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+
+            document.getElementById('statTotalUsers').textContent = data.totalUsers || 0;
+            document.getElementById('statProUsers').textContent = data.proUsers || 0;
+            document.getElementById('statRevenue').textContent = 'NRS ' + (data.totalRevenue || 0);
+            document.getElementById('statLocations').textContent = data.totalLocations || 0;
+
+            renderRevenueChart(data.monthlyRevenue || {});
+        } catch (e) {
+            console.error('Failed to load stats:', e);
+        }
+    }
+
+    // ---- Revenue Chart ----
+    function renderRevenueChart(monthlyData) {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+
+        // Generate last 6 months if no data
+        const labels = [];
+        const values = [];
+        const now = new Date();
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const key = d.toISOString().slice(0, 7);
+            const monthName = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+            labels.push(monthName);
+            values.push(monthlyData[key] || 0);
+        }
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Revenue (NRS)',
+                    data: values,
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: 'rgba(59, 130, 246, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleColor: '#f1f5f9',
+                        bodyColor: '#94a3b8',
+                        borderColor: '#334155',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                        ticks: { color: '#94a3b8', font: { size: 11 } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // ---- Users Table ----
+    var allUsers = [];
+
+    async function loadUsers() {
+        try {
+            const res = await fetch(API_BASE + '/api/auth/admin/users', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            allUsers = await res.json();
+            renderUsers(allUsers);
+        } catch (e) {
+            console.error('Failed to load users:', e);
+            document.getElementById('usersBody').innerHTML = '<tr><td colspan="6" class="admin-empty">Failed to load users</td></tr>';
+        }
+    }
+
+    function renderUsers(users) {
+        const tbody = document.getElementById('usersBody');
+        if (!users.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="admin-empty">No users found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = users.map(function(u) {
+            var statusBadge = u.isPro
+                ? '<span class="badge badge-pro">PRO</span>'
+                : '<span class="badge badge-free">Free</span>';
+
+            var proSince = u.proActivatedAt
+                ? new Date(u.proActivatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : '<span class="no-data">-</span>';
+
+            var locations = (u.alertLocations && u.alertLocations.length)
+                ? u.alertLocations.map(function(loc) { return '<span class="location-tag">' + loc + '</span>'; }).join('')
+                : '<span class="no-data">None</span>';
+
+            var joined = new Date(u.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            return '<tr>' +
+                '<td class="user-name">' + escapeHtml(u.name) + '</td>' +
+                '<td class="user-email">' + escapeHtml(u.email) + '</td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td>' + proSince + '</td>' +
+                '<td>' + locations + '</td>' +
+                '<td>' + joined + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    // ---- Search ----
+    document.getElementById('userSearchInput').addEventListener('input', function() {
+        var query = this.value.toLowerCase().trim();
+        if (!query) return renderUsers(allUsers);
+        var filtered = allUsers.filter(function(u) {
+            return (u.name && u.name.toLowerCase().includes(query)) ||
+                   (u.email && u.email.toLowerCase().includes(query));
+        });
+        renderUsers(filtered);
+    });
+
+    // ---- Subscribers Table ----
+    async function loadSubscribers() {
+        try {
+            const res = await fetch(API_BASE + '/api/auth/admin/subscribers', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            renderSubscribers(data.subscribers || []);
+        } catch (e) {
+            console.error('Failed to load subscribers:', e);
+            document.getElementById('subscribersBody').innerHTML = '<tr><td colspan="4" class="admin-empty">Failed to load</td></tr>';
+        }
+    }
+
+    function renderSubscribers(subs) {
+        var tbody = document.getElementById('subscribersBody');
+        if (!subs.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="admin-empty">No subscribers yet</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = subs.map(function(s) {
+            var subscribedAt = s.subscribed_at
+                ? new Date(s.subscribed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                : '-';
+            var lastAlert = s.last_alert_sent_at
+                ? new Date(s.last_alert_sent_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : '<span class="no-data">Never</span>';
+
+            return '<tr>' +
+                '<td class="user-email">' + escapeHtml(s.email) + '</td>' +
+                '<td><span class="location-tag">' + escapeHtml(s.station) + '</span></td>' +
+                '<td>' + subscribedAt + '</td>' +
+                '<td>' + lastAlert + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    // ---- Logout ----
+    document.getElementById('adminLogoutBtn').addEventListener('click', function() {
+        localStorage.removeItem('airktm_token');
+        localStorage.removeItem('airktm_user');
+        localStorage.removeItem('airktmProActive');
+        localStorage.removeItem('airktmProTxn');
+        localStorage.removeItem('airktmProDate');
+        localStorage.removeItem('airktmIsAdmin');
+        window.location.href = '/';
+    });
+
+    // ---- Helpers ----
+    function escapeHtml(str) {
+        if (!str) return '';
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ---- Init ----
+    verifyAdmin();
+})();
+</script>
+
+</body>
+</html>
