@@ -1,5 +1,5 @@
 # AirKTM — Predictive Air Quality Monitoring Dashboard
-
+##Note: Run my project in brave broswer 
 ## 1. Introduction
 
 **AirKTM** is a web dashboard focused on air quality in the Kathmandu Valley. It combines **live and historical air-quality data** with **machine-learning forecasts** (XGBoost) for several fixed stations, and adds **user accounts**, **alerts** and **Pro** features. The goal is to make short-term prediction and optional notifications accessible in one place.
