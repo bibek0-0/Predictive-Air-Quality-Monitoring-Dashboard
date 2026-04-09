@@ -1,0 +1,21 @@
+FROM python:3.11-slim-bookworm
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py .
+COPY utils/ utils/
+COPY models/ models/
+
+RUN mkdir -p forecasts data && printf '%s\n' '{"subscribers":[]}' > data/subscribers.json
+
+ENV FLASK_PORT=5050
+EXPOSE 5050
+
+CMD ["python", "app.py"]

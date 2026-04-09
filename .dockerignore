@@ -1,0 +1,13 @@
+node_modules
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+.env
+.vscode
+plots
+forecasts
+*.md
+Thumbs.db
+models/.ipynb_checkpoints

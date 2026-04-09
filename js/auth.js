@@ -7,15 +7,15 @@
   const TOKEN_KEY = "airktm_token";
   const USER_KEY = "airktm_user";
 
-  // ---- State ----
+  // State
   let currentUser = null;
 
-  // ---- DOM References (lazy) ----
+  // DOM References
   function getEl(id) {
     return document.getElementById(id);
   }
 
-  // ---- Token helpers ----
+  // Token helpers
   function getToken() {
     return localStorage.getItem(TOKEN_KEY);
   }
@@ -41,7 +41,7 @@
     }
   }
 
-  // ---- API Helpers ----
+  // API Helpers
   async function apiPost(path, body) {
     const res = await fetch(`${API_BASE}${path}`, {
       method: "POST",
@@ -63,7 +63,7 @@
     return data;
   }
 
-  // ---- Modal logic ----
+  // Modal logic
   function openModal() {
     const overlay = getEl("authModalOverlay");
     if (overlay) overlay.classList.add("active");
@@ -129,7 +129,7 @@
     });
   }
 
-  // ---- Registration ----
+  // Registration
   async function handleSignup(e) {
     e.preventDefault();
     const name = getEl("signupName")?.value.trim();
@@ -196,7 +196,7 @@
     }
   }
 
-  // ---- Login ----
+  // Login
   async function handleLogin(e) {
     e.preventDefault();
     const email = getEl("loginEmail")?.value.trim();
@@ -224,8 +224,8 @@
         localStorage.setItem("airktmIsAdmin", "true");
         showMessage("authFormLogin", "Admin login successful!", "success");
         setTimeout(() => {
-          const isInPages = window.location.pathname.includes('/pages/');
-          window.location.href = isInPages ? 'admin.html' : 'pages/admin.html';
+          const isInPages = window.location.pathname.includes("/pages/");
+          window.location.href = isInPages ? "admin.html" : "pages/admin.html";
         }, 500);
         return;
       }
@@ -245,14 +245,14 @@
     }
   }
 
-  // ---- Google OAuth ----
+  // Google OAuth
   function handleGoogleLogin() {
     // Pass the current page path so Google Login knows where to return the user
     const currentPath = window.location.pathname + window.location.search;
     window.location.href = `${API_BASE}/api/auth/google?returnTo=${encodeURIComponent(currentPath)}`;
   }
 
-  // ---- Logout ----
+  // Logout
   function handleLogout() {
     removeToken();
     currentUser = null;
@@ -264,12 +264,12 @@
     // Close dropdown
     document.querySelector(".user-menu-container")?.classList.remove("open");
     window.dispatchEvent(new CustomEvent("auth:logout"));
-    
+
     // Redirect to home page
     window.location.href = "/";
   }
 
-  // ---- Navbar update ----
+  // Navbar update
   function updateNavbar() {
     const authBtnContainer = getEl("authBtnContainer");
     const userMenuContainer = getEl("userMenuContainer");
@@ -314,14 +314,17 @@
 
       // Inject "Change Alert Location" button for Pro users
       const dropdown = userMenuContainer.querySelector(".user-dropdown");
-      const existingLocBtn = dropdown ? dropdown.querySelector(".change-location-btn") : null;
+      const existingLocBtn = dropdown
+        ? dropdown.querySelector(".change-location-btn")
+        : null;
       if (dropdown && user.isPro === true) {
         if (!existingLocBtn) {
           const logoutBtn = dropdown.querySelector(".logout-btn");
           const locBtn = document.createElement("button");
           locBtn.className = "user-dropdown-item change-location-btn";
-          locBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Alert Locations';
-          locBtn.addEventListener("click", function() {
+          locBtn.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg> Alert Locations';
+          locBtn.addEventListener("click", function () {
             showLocationChangeModal(user);
           });
           if (logoutBtn) {
@@ -354,7 +357,7 @@
     }
   }
 
-  // ---- Check for token from Google OAuth redirect ----
+  // Check for token from Google OAuth redirect
   function checkForOAuthToken() {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get("token");
@@ -391,7 +394,7 @@
     }
   }
 
-  // ---- Fetch current user from API ----
+  // Fetch current user from API
   async function fetchCurrentUser() {
     const token = getToken();
     if (!token) return;
@@ -407,7 +410,7 @@
     }
   }
 
-  // ---- Password visibility toggle ----
+  // Password visibility toggle
   function setupPasswordToggles() {
     document.querySelectorAll(".auth-password-toggle").forEach((btn) => {
       btn.addEventListener("click", function () {
@@ -423,7 +426,7 @@
     });
   }
 
-  // ---- Init ----
+  // Init
   function init() {
     // Tab switching
     getEl("authTabLogin")?.addEventListener("click", () => switchTab("login"));
@@ -495,17 +498,23 @@
     }
   }
 
-  // ---- Change Alert Location Modal (Pro Users) ----
+  // Change Alert Location Modal (Pro Users)
   function showLocationChangeModal(user) {
     // Remove existing modal if any
     var existing = document.getElementById("changeLocationModal");
     if (existing) existing.remove();
 
-    var stations = ["Ratnapark", "Pulchowk", "Bhaisipati", "Shankapark", "Bhaktapur"];
+    var stations = [
+      "Ratnapark",
+      "Pulchowk",
+      "Bhaisipati",
+      "Shankapark",
+      "Bhaktapur",
+    ];
     var currentLocs = user.alertLocations || [];
-    // Backwards compatibility for users with scalar alertLocation 
+    // Backwards compatibility for users with scalar alertLocation
     if (user.alertLocation && !currentLocs.includes(user.alertLocation)) {
-        currentLocs.push(user.alertLocation);
+      currentLocs.push(user.alertLocation);
     }
 
     var overlay = document.createElement("div");
@@ -516,194 +525,240 @@
     card.className = "change-loc-card";
 
     // Header
-    card.innerHTML = '<div class="change-loc-header">' +
+    card.innerHTML =
+      '<div class="change-loc-header">' +
       '<h3 class="change-loc-title">Alert Locations</h3>' +
       '<button class="change-loc-close" id="changeLocClose">&times;</button>' +
-      '</div>' +
+      "</div>" +
       '<p class="change-loc-subtitle">Select a station to change your alerts' +
-      (currentLocs.length > 0 ? '<br><span class="change-loc-current">Subscribed: ' + currentLocs.join(", ") + '</span>' : '') +
-      '</p>' +
+      (currentLocs.length > 0
+        ? '<br><span class="change-loc-current">Subscribed: ' +
+          currentLocs.join(", ") +
+          "</span>"
+        : "") +
+      "</p>" +
       '<div class="change-loc-stations"></div>';
 
     var stationsDiv = card.querySelector(".change-loc-stations");
 
-    stations.forEach(function(station) {
+    stations.forEach(function (station) {
       var isSubscribed = currentLocs.includes(station);
       var btn = document.createElement("button");
-      btn.className = "change-loc-station-btn" + (isSubscribed ? " active" : "");
+      btn.className =
+        "change-loc-station-btn" + (isSubscribed ? " active" : "");
       btn.textContent = station + (isSubscribed ? " (Active)" : "");
       if (isSubscribed) {
-          btn.disabled = true;
-          stationsDiv.appendChild(btn);
-          return;
+        btn.disabled = true;
+        stationsDiv.appendChild(btn);
+        return;
       }
-      
-      btn.addEventListener("click", function() {
+
+      btn.addEventListener("click", function () {
         // Store the selected location as pending
-        localStorage.setItem('airktmPendingAlertLocation', station);
+        localStorage.setItem("airktmPendingAlertLocation", station);
 
         // Show loading state on the button
         btn.textContent = "Processing...";
         btn.disabled = true;
 
-        // --- Initiate Khalti Payment ---
-        var orderId = 'AIRKTM-LOC-' + Date.now();
+        // Initiate Khalti Payment
+        var orderId = "AIRKTM-LOC-" + Date.now();
 
         // Build callback URL
-        var currentPath = window.location.href.split('?')[0];
-        var basePath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+        var currentPath = window.location.href.split("?")[0];
+        var basePath = currentPath.substring(
+          0,
+          currentPath.lastIndexOf("/") + 1,
+        );
         // Try pages/ subfolder for subpages, root for index
         var callbackUrl;
-        if (currentPath.indexOf('/pages/') !== -1) {
-          callbackUrl = basePath + 'payment-callback.html';
+        if (currentPath.indexOf("/pages/") !== -1) {
+          callbackUrl = basePath + "payment-callback.html";
         } else {
-          callbackUrl = basePath + 'pages/payment-callback.html';
+          callbackUrl = basePath + "pages/payment-callback.html";
         }
-        var siteUrl = window.location.origin !== 'null' ? window.location.origin : basePath;
+        var siteUrl =
+          window.location.origin !== "null" ? window.location.origin : basePath;
 
         // User details
-        var userName = user.name || 'AirKTM User';
-        var userEmail = user.email || 'user@airktm.com';
+        var userName = user.name || "AirKTM User";
+        var userEmail = user.email || "user@airktm.com";
 
         var khaltiConfig = {
           return_url: callbackUrl,
           website_url: siteUrl,
           amount: 10000, // NRS 100 in paisa
           purchase_order_id: orderId,
-          purchase_order_name: 'AirKTM Location Change - ' + station,
+          purchase_order_name: "AirKTM Location Change - " + station,
           customer_info: {
             name: userName,
             email: userEmail,
-            phone: '9800000000'
+            phone: "9800000000",
           },
           product_details: [
             {
-              identity: 'airktm-loc-change',
-              name: 'AirKTM Alert Location Change to ' + station,
+              identity: "airktm-loc-change",
+              name: "AirKTM Alert Location Change to " + station,
               total_price: 10000,
               quantity: 1,
-              unit_price: 10000
-            }
-          ]
+              unit_price: 10000,
+            },
+          ],
         };
 
-        var khaltiApiUrl = 'https://dev.khalti.com/api/v2/epayment/initiate/';
-        var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(khaltiApiUrl);
+        var khaltiApiUrl = "https://dev.khalti.com/api/v2/epayment/initiate/";
+        var proxyUrl =
+          "https://corsproxy.io/?" + encodeURIComponent(khaltiApiUrl);
 
         fetch(proxyUrl, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Authorization': 'key 05bf95cc57244045b8df5fad06748dab',
-            'Content-Type': 'application/json'
+            Authorization: "key 05bf95cc57244045b8df5fad06748dab",
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(khaltiConfig)
+          body: JSON.stringify(khaltiConfig),
         })
-        .then(function(response) {
-          if (!response.ok) {
-            return response.json().then(function(err) {
-              throw new Error(err.detail || err.message || 'Payment initiation failed');
-            });
-          }
-          return response.json();
-        })
-        .then(function(data) {
-          if (data.payment_url) {
-            localStorage.setItem('khaltiPaymentPending', 'true');
-
-            // Open Khalti popup (compact)
-            var popupWidth = 420;
-            var popupHeight = 550;
-            var left = Math.max(0, (window.screen.width - popupWidth) / 2);
-            var top = Math.max(0, (window.screen.height - popupHeight) / 2);
-            var popupFeatures = 'width=' + popupWidth + ',height=' + popupHeight +
-              ',left=' + left + ',top=' + top +
-              ',scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=yes,status=yes';
-
-            var khaltiPopup = window.open(data.payment_url, 'KhaltiPayment', popupFeatures);
-
-            if (!khaltiPopup || khaltiPopup.closed) {
-              window.location.href = data.payment_url;
-              return;
+          .then(function (response) {
+            if (!response.ok) {
+              return response.json().then(function (err) {
+                throw new Error(
+                  err.detail || err.message || "Payment initiation failed",
+                );
+              });
             }
+            return response.json();
+          })
+          .then(function (data) {
+            if (data.payment_url) {
+              localStorage.setItem("khaltiPaymentPending", "true");
 
-            // Poll to detect popup close
-            var pollTimer = setInterval(function() {
-              try {
-                if (khaltiPopup.closed) {
-                  clearInterval(pollTimer);
-                  localStorage.removeItem('khaltiPaymentPending');
+              // Open Khalti popup
+              var popupWidth = 420;
+              var popupHeight = 550;
+              var left = Math.max(0, (window.screen.width - popupWidth) / 2);
+              var top = Math.max(0, (window.screen.height - popupHeight) / 2);
+              var popupFeatures =
+                "width=" +
+                popupWidth +
+                ",height=" +
+                popupHeight +
+                ",left=" +
+                left +
+                ",top=" +
+                top +
+                ",scrollbars=yes,resizable=yes,toolbar=no,menubar=no,location=yes,status=yes";
 
-                  var paymentResult = localStorage.getItem('khaltiPaymentResult');
-                  localStorage.removeItem('khaltiPaymentResult');
+              var khaltiPopup = window.open(
+                data.payment_url,
+                "KhaltiPayment",
+                popupFeatures,
+              );
 
-                  if (paymentResult === 'success') {
-                    // Payment successful — now update location
-                    var pendingLoc = localStorage.getItem('airktmPendingAlertLocation') || station;
-                    localStorage.removeItem('airktmPendingAlertLocation');
-                    localStorage.setItem('airktmAlertLocation', pendingLoc);
-
-                    // Update MongoDB
-                    var token = getToken();
-                    if (token) {
-                      fetch(window.location.origin + "/api/auth/alert-location", {
-                        method: "PUT",
-                        headers: {
-                          "Content-Type": "application/json",
-                          "Authorization": "Bearer " + token
-                        },
-                        body: JSON.stringify({ alertLocation: pendingLoc })
-                      })
-                      .then(function(res) { return res.json(); })
-                      .then(function(d) {
-                        console.log("Alert locations updated:", d);
-                        if (currentUser) {
-                          currentUser.alertLocations = d.alertLocations;
-                          localStorage.setItem("airktm_user", JSON.stringify(currentUser));
-                        }
-                      })
-                      .catch(function(err) {
-                        console.error("Failed to update location:", err);
-                      });
-                    }
-
-                    // Update Flask subscriber
-                    if (userEmail) {
-                      var flaskBase = window.location.protocol + "//" + window.location.hostname + ":5050";
-                      fetch(flaskBase + "/api/subscribe", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email: userEmail, station: pendingLoc })
-                      }).catch(function(err) {
-                        console.error("Flask subscribe update failed:", err);
-                      });
-                    }
-
-                    // Show success in the modal
-                    card.innerHTML = '<div class="change-loc-success">' +
-                      '<svg width="48" height="48" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-                      '<h3 class="change-loc-title">Location Added</h3>' +
-                      '<p class="change-loc-subtitle">You will now receive alerts for <strong>' + pendingLoc + '</strong></p>' +
-                      '</div>';
-
-                    setTimeout(function() { overlay.remove(); }, 2500);
-                  } else {
-                    // Payment canceled or failed — reset button
-                    btn.textContent = station;
-                    btn.disabled = false;
-                  }
-                }
-              } catch(e) {
-                // Cross-origin — popup still open, keep polling
+              if (!khaltiPopup || khaltiPopup.closed) {
+                window.location.href = data.payment_url;
+                return;
               }
-            }, 500);
-          }
-        })
-        .catch(function(err) {
-          console.error("Khalti payment error:", err);
-          btn.textContent = station;
-          btn.disabled = false;
-          alert("Payment initiation failed: " + err.message);
-        });
+
+              // Poll to detect popup close
+              var pollTimer = setInterval(function () {
+                try {
+                  if (khaltiPopup.closed) {
+                    clearInterval(pollTimer);
+                    localStorage.removeItem("khaltiPaymentPending");
+
+                    var paymentResult = localStorage.getItem(
+                      "khaltiPaymentResult",
+                    );
+                    localStorage.removeItem("khaltiPaymentResult");
+
+                    if (paymentResult === "success") {
+                      // Payment successful — now update location
+                      var pendingLoc =
+                        localStorage.getItem("airktmPendingAlertLocation") ||
+                        station;
+                      localStorage.removeItem("airktmPendingAlertLocation");
+                      localStorage.setItem("airktmAlertLocation", pendingLoc);
+
+                      // Update MongoDB
+                      var token = getToken();
+                      if (token) {
+                        fetch(
+                          window.location.origin + "/api/auth/alert-location",
+                          {
+                            method: "PUT",
+                            headers: {
+                              "Content-Type": "application/json",
+                              Authorization: "Bearer " + token,
+                            },
+                            body: JSON.stringify({ alertLocation: pendingLoc }),
+                          },
+                        )
+                          .then(function (res) {
+                            return res.json();
+                          })
+                          .then(function (d) {
+                            console.log("Alert locations updated:", d);
+                            if (currentUser) {
+                              currentUser.alertLocations = d.alertLocations;
+                              localStorage.setItem(
+                                "airktm_user",
+                                JSON.stringify(currentUser),
+                              );
+                            }
+                          })
+                          .catch(function (err) {
+                            console.error("Failed to update location:", err);
+                          });
+                      }
+
+                      // Update Flask subscriber
+                      if (userEmail) {
+                        var flaskBase =
+                          window.location.protocol +
+                          "//" +
+                          window.location.hostname +
+                          ":5050";
+                        fetch(flaskBase + "/api/subscribe", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            email: userEmail,
+                            station: pendingLoc,
+                          }),
+                        }).catch(function (err) {
+                          console.error("Flask subscribe update failed:", err);
+                        });
+                      }
+
+                      // Show success in the modal
+                      card.innerHTML =
+                        '<div class="change-loc-success">' +
+                        '<svg width="48" height="48" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
+                        '<h3 class="change-loc-title">Location Added</h3>' +
+                        '<p class="change-loc-subtitle">You will now receive alerts for <strong>' +
+                        pendingLoc +
+                        "</strong></p>" +
+                        "</div>";
+
+                      setTimeout(function () {
+                        overlay.remove();
+                      }, 2500);
+                    } else {
+                      // Payment canceled or failed — reset button
+                      btn.textContent = station;
+                      btn.disabled = false;
+                    }
+                  }
+                } catch (e) {}
+              }, 500);
+            }
+          })
+          .catch(function (err) {
+            console.error("Khalti payment error:", err);
+            btn.textContent = station;
+            btn.disabled = false;
+            alert("Payment initiation failed: " + err.message);
+          });
       });
       stationsDiv.appendChild(btn);
     });
@@ -712,17 +767,19 @@
     document.body.appendChild(overlay);
 
     // Animate in
-    requestAnimationFrame(function() {
+    requestAnimationFrame(function () {
       overlay.classList.add("active");
     });
 
     // Close handlers
-    overlay.addEventListener("click", function(e) {
+    overlay.addEventListener("click", function (e) {
       if (e.target === overlay) overlay.remove();
     });
-    card.querySelector("#changeLocClose").addEventListener("click", function() {
-      overlay.remove();
-    });
+    card
+      .querySelector("#changeLocClose")
+      .addEventListener("click", function () {
+        overlay.remove();
+      });
   }
 
   // Wait for DOM
