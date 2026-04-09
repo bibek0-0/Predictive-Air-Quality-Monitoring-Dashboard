@@ -487,7 +487,11 @@
     if (existing) existing.remove();
 
     var stations = ["Ratnapark", "Pulchowk", "Bhaisipati", "Shankapark", "Bhaktapur"];
-    var currentLoc = user.alertLocation || localStorage.getItem("airktmAlertLocation") || "";
+    var currentLocs = user.alertLocations || [];
+    // Backwards compatibility for users with scalar alertLocation 
+    if (user.alertLocation && !currentLocs.includes(user.alertLocation)) {
+        currentLocs.push(user.alertLocation);
+    }
 
     var overlay = document.createElement("div");
     overlay.id = "changeLocationModal";
@@ -502,16 +506,23 @@
       '<button class="change-loc-close" id="changeLocClose">&times;</button>' +
       '</div>' +
       '<p class="change-loc-subtitle">Select a station to change your alerts' +
-      (currentLoc ? '<br><span class="change-loc-current">Current: ' + currentLoc + '</span>' : '') +
+      (currentLocs.length > 0 ? '<br><span class="change-loc-current">Subscribed: ' + currentLocs.join(", ") + '</span>' : '') +
       '</p>' +
       '<div class="change-loc-stations"></div>';
 
     var stationsDiv = card.querySelector(".change-loc-stations");
 
     stations.forEach(function(station) {
+      var isSubscribed = currentLocs.includes(station);
       var btn = document.createElement("button");
-      btn.className = "change-loc-station-btn" + (station === currentLoc ? " active" : "");
-      btn.textContent = station;
+      btn.className = "change-loc-station-btn" + (isSubscribed ? " active" : "");
+      btn.textContent = station + (isSubscribed ? " (Active)" : "");
+      if (isSubscribed) {
+          btn.disabled = true;
+          stationsDiv.appendChild(btn);
+          return;
+      }
+      
       btn.addEventListener("click", function() {
         // Store the selected location as pending
         localStorage.setItem('airktmPendingAlertLocation', station);
@@ -629,9 +640,9 @@
                       })
                       .then(function(res) { return res.json(); })
                       .then(function(d) {
-                        console.log("Alert location updated:", d);
+                        console.log("Alert locations updated:", d);
                         if (currentUser) {
-                          currentUser.alertLocation = pendingLoc;
+                          currentUser.alertLocations = d.alertLocations;
                           localStorage.setItem("airktm_user", JSON.stringify(currentUser));
                         }
                       })
@@ -655,7 +666,7 @@
                     // Show success in the modal
                     card.innerHTML = '<div class="change-loc-success">' +
                       '<svg width="48" height="48" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#10b981"/><path d="M8 12l3 3 5-5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>' +
-                      '<h3 class="change-loc-title">Location Updated</h3>' +
+                      '<h3 class="change-loc-title">Location Added</h3>' +
                       '<p class="change-loc-subtitle">You will now receive alerts for <strong>' + pendingLoc + '</strong></p>' +
                       '</div>';
 

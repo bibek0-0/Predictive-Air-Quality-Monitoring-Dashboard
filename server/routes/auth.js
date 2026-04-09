@@ -117,15 +117,29 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// Helper: check Pro expiry (1 month duration)
+const checkProExpiry = async (user) => {
+    if (user.isPro && user.proActivatedAt) {
+        const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+        if (Date.now() - new Date(user.proActivatedAt).getTime() > thirtyDaysMs) {
+            user.isPro = false;
+            user.alertLocations = [];
+            await user.save();
+        }
+    }
+    return user;
+};
+
 // @route   GET /api/auth/user
 // @desc    Get current user info
 // @access  Private (requires JWT)
 router.get('/user', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
+        let user = await User.findById(req.user.id).select('-password');
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
         }
+        user = await checkProExpiry(user);
         res.json(user);
     } catch (err) {
         console.error('Get user error:', err.message);
@@ -138,14 +152,16 @@ router.get('/user', auth, async (req, res) => {
 // @access  Private (requires JWT)
 router.get('/pro-status', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('isPro proActivatedAt proTransactionId');
+        let user = await User.findById(req.user.id).select('isPro proActivatedAt proTransactionId alertLocations');
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
         }
+        user = await checkProExpiry(user);
         res.json({
             isPro: user.isPro || false,
             proActivatedAt: user.proActivatedAt,
-            proTransactionId: user.proTransactionId
+            proTransactionId: user.proTransactionId,
+            alertLocations: user.alertLocations || []
         });
     } catch (err) {
         console.error('Pro status check error:', err.message);
@@ -158,31 +174,77 @@ router.get('/pro-status', auth, async (req, res) => {
 // @access  Private (requires JWT)
 router.post('/pro-activate', auth, async (req, res) => {
     try {
-        const { transactionId } = req.body;
+        const { transactionId, alertLocation } = req.body;
 
-        const user = await User.findById(req.user.id);
+        let user = await User.findById(req.user.id);
         if (!user) {
             return res.status(404).json({ msg: 'User not found' });
         }
 
-        // If already Pro, just return success
-        if (user.isPro) {
-            return res.json({ msg: 'Pro subscription already active', isPro: true });
+        user = await checkProExpiry(user);
+
+        // If activating for the first time or re-activating after expiry
+        if (!user.isPro) {
+            user.isPro = true;
+            user.proActivatedAt = new Date();
+            user.alertLocations = []; // Reset on fresh activation
         }
 
-        user.isPro = true;
-        user.proActivatedAt = new Date();
         user.proTransactionId = transactionId || null;
+        if (alertLocation && (!user.alertLocations || !user.alertLocations.includes(alertLocation))) {
+            user.alertLocations.push(alertLocation);
+        }
         await user.save();
 
         res.json({
             msg: 'Pro subscription activated successfully',
             isPro: true,
             proActivatedAt: user.proActivatedAt,
-            proTransactionId: user.proTransactionId
+            proTransactionId: user.proTransactionId,
+            alertLocations: user.alertLocations
         });
     } catch (err) {
         console.error('Pro activate error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
+// @route   PUT /api/auth/alert-location
+// @desc    Update alert location for Pro users
+// @access  Private (requires JWT)
+router.put('/alert-location', auth, async (req, res) => {
+    try {
+        const { alertLocation } = req.body;
+        const validLocations = ['Ratnapark', 'Bhaisipati', 'Pulchowk', 'Shankapark', 'Bhaktapur'];
+
+        if (!alertLocation || !validLocations.includes(alertLocation)) {
+            return res.status(400).json({ msg: 'Invalid location' });
+        }
+
+        let user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        
+        user = await checkProExpiry(user);
+
+        if (!user.isPro) {
+            return res.status(403).json({ msg: 'Pro subscription required or expired' });
+        }
+
+        if (!user.alertLocations) user.alertLocations = [];
+        
+        if (!user.alertLocations.includes(alertLocation)) {
+            user.alertLocations.push(alertLocation);
+            await user.save();
+        }
+
+        res.json({
+            msg: 'Alert location added successfully',
+            alertLocations: user.alertLocations
+        });
+    } catch (err) {
+        console.error('Alert location update error:', err.message);
         res.status(500).json({ msg: 'Server error' });
     }
 });
