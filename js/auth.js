@@ -252,6 +252,9 @@
     // Close dropdown
     document.querySelector(".user-menu-container")?.classList.remove("open");
     window.dispatchEvent(new CustomEvent("auth:logout"));
+    
+    // Redirect to home page
+    window.location.href = "/";
   }
 
   // ---- Navbar update ----
