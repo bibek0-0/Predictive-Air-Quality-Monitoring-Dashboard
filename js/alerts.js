@@ -1016,6 +1016,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Hide previous feedback
         if (feedback) feedback.style.display = 'none';
 
+        // Capture selected alert location before payment
+        var selectedLocationDropdown = document.getElementById('alertLocationSelect');
+        var selectedAlertLocation = selectedLocationDropdown ? selectedLocationDropdown.value : 'Ratnapark';
+        localStorage.setItem('airktmPendingAlertLocation', selectedAlertLocation);
+
         // Generate unique order ID
         const orderId = 'AIRKTM-PRO-' + Date.now();
 
@@ -1125,9 +1130,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 upgradeBtn.classList.add('khalti-pro-active');
                                 upgradeBtn.disabled = true;
 
-                                // Persist Pro status to database
+                                // Persist Pro status to database (including alert location)
                                 var proToken = localStorage.getItem('airktm_token');
                                 var proTxnId = localStorage.getItem('airktmProTxn') || '';
+                                var pendingAlertLocation = localStorage.getItem('airktmPendingAlertLocation') || 'Ratnapark';
+                                localStorage.removeItem('airktmPendingAlertLocation');
+                                localStorage.setItem('airktmAlertLocation', pendingAlertLocation);
                                 if (proToken) {
                                     fetch(window.location.origin + '/api/auth/pro-activate', {
                                         method: 'POST',
@@ -1135,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                             'Content-Type': 'application/json',
                                             'Authorization': 'Bearer ' + proToken
                                         },
-                                        body: JSON.stringify({ transactionId: proTxnId })
+                                        body: JSON.stringify({ transactionId: proTxnId, alertLocation: pendingAlertLocation })
                                     })
                                     .then(function(res) { return res.json(); })
                                     .then(function(data) {
@@ -1143,6 +1151,28 @@ document.addEventListener('DOMContentLoaded', function() {
                                     })
                                     .catch(function(err) {
                                         console.error('Failed to save pro status to DB:', err);
+                                    });
+                                }
+
+                                // Also subscribe to Flask email alert system
+                                var storedUserData = localStorage.getItem('airktm_user');
+                                var userEmail = '';
+                                if (storedUserData) {
+                                    try { userEmail = JSON.parse(storedUserData).email || ''; } catch(e) {}
+                                }
+                                if (userEmail && pendingAlertLocation) {
+                                    var flaskBase = window.location.protocol + '//' + window.location.hostname + ':5050';
+                                    fetch(flaskBase + '/api/subscribe', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ email: userEmail, station: pendingAlertLocation })
+                                    })
+                                    .then(function(res) { return res.json(); })
+                                    .then(function(data) {
+                                        console.log('Flask alert subscription:', data);
+                                    })
+                                    .catch(function(err) {
+                                        console.error('Flask subscribe failed (non-critical):', err);
                                     });
                                 }
 
@@ -1450,3 +1480,4 @@ function initBannerCarousel(stations) {
     // Auto slide every 5 seconds
     setInterval(updateBanner, 5000);
 }
+

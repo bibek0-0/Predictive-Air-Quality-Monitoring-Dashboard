@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, send_from_directory, request
+from flask import Flask, jsonify, send_from_directory, request, redirect
 from flask_cors import CORS
 from apscheduler.schedulers.background import BackgroundScheduler
 from datetime import datetime, timedelta
@@ -8,6 +8,11 @@ load_dotenv()
 import pandas as pd
 import numpy as np
 warnings.filterwarnings("ignore")
+
+from utils.alert_engine import (
+    add_subscriber, remove_subscriber, get_subscriber_status,
+    get_subscriptions_for_email, check_and_send_alerts, aqi_category as alert_aqi_category
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -283,6 +288,16 @@ def refresh_all_forecasts():
                 with open(out, "w") as f:
                     json.dump(fc, f, indent=2)
                 print(f"  Forecast {station}: 48h saved")
+
+                # Pro Alert Integration
+                current_aqi = fc[0]["aqi"]
+                current_cat = fc[0]["category"]
+                current_col = fc[0]["color"]
+                try:
+                    check_and_send_alerts(station, current_aqi, current_cat, current_col, fc)
+                except Exception as alert_err:
+                    print(f" Alert check error for {station}: {alert_err}")
+
         except Exception as e:
             print(f"  {station}: {e}")
     print(f"Done. Next refresh in {UPDATE_INTERVAL_MINUTES} min.")
@@ -371,18 +386,90 @@ def manual_refresh():
     refresh_all_forecasts()
     return jsonify({"status": "ok", "refreshed_at": datetime.now().strftime("%H:%M:%S")})
 
+
+# RO SUBSCRIPTION API ROUTES
+
+@app.route("/api/subscribe", methods=["POST"])
+def subscribe():
+    body = request.get_json(force=True, silent=True) or {}
+    email   = body.get("email", "").strip()
+    station = body.get("station", "").strip()
+
+    if not email or not station:
+        return jsonify({"success": False, "message": "Email and station are required."}), 400
+
+    success, message = add_subscriber(email, station)
+    status_code = 200 if success else 409
+    return jsonify({"success": success, "message": message}), status_code
+
+
+@app.route("/api/subscribe/status")
+def subscribe_status():
+    email   = request.args.get("email", "").strip()
+    station = request.args.get("station", "").strip()
+
+    if not email:
+        return jsonify({"subscribed": False, "subscriptions": []})
+
+    if station:
+        sub = get_subscriber_status(email, station)
+        return jsonify({
+            "subscribed": sub is not None,
+            "subscription": sub,
+        })
+    else:
+        subs = get_subscriptions_for_email(email)
+        return jsonify({
+            "subscribed": len(subs) > 0,
+            "subscriptions": subs,
+        })
+
+
+@app.route("/api/unsubscribe", methods=["POST", "GET"])
+def unsubscribe():
+    if request.method == "GET":
+        email   = request.args.get("email", "").strip()
+        station = request.args.get("station", "").strip()
+    else:
+        body = request.get_json(force=True, silent=True) or {}
+        email   = body.get("email", "").strip()
+        station = body.get("station", "").strip()
+
+    if not email or not station:
+        return jsonify({"success": False, "message": "Email and station are required."}), 400
+
+    success, message = remove_subscriber(email, station)
+
+    # For GET requests 
+    if request.method == "GET":
+        if success:
+            return f'''<html><body style="font-family:Arial;text-align:center;padding:60px;">
+                <h2>Unsubscribed</h2>
+                <p>You have been unsubscribed from <strong>{station}</strong> AQI alerts.</p>
+                <a href="/" style="color:#1e40af;">← Back to AirKTM</a>
+            </body></html>'''
+        else:
+            return f'''<html><body style="font-family:Arial;text-align:center;padding:60px;">
+                <h2>Not Found</h2>
+                <p>No active subscription found for this email and station.</p>
+                <a href="/" style="color:#1e40af;">← Back to AirKTM</a>
+            </body></html>'''
+
+    status_code = 200 if success else 404
+    return jsonify({"success": success, "message": message}), status_code
+
 # START 
 initialize_seeds()
 refresh_all_forecasts()
 
-# scheduler = BackgroundScheduler()
-# scheduler.add_job(
-#     refresh_all_forecasts,
-#     trigger="interval",
-#     minutes=UPDATE_INTERVAL_MINUTES,
-#     id="forecast_refresh"
-# )
-# scheduler.start()
+#scheduler = BackgroundScheduler()
+#scheduler.add_job(
+#    refresh_all_forecasts,
+#    trigger="interval",
+#    minutes=UPDATE_INTERVAL_MINUTES,
+#    id="forecast_refresh"
+#)
+#scheduler.start()
 
 if __name__ == "__main__":
     print(f"\n  http://localhost:5050")

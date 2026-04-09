@@ -20,3 +20,6 @@ models/xgb_metrics.csv
 __pycache__/
 *.pyc
 *.pyo
+
+# User Data
+data/
