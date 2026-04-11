@@ -57,13 +57,34 @@ LAG_FEATURES = [
 # AQI helpers
 
 def pm25_to_aqi(pm25):
+    """
+    US EPA PM2.5 → AQI piecewise linear. Breakpoint table has intentional
+    microgaps (e.g. 35.4–35.5 µg/m³), values there must not fall through to
+    a bogus max AQI. NaN/inf from the model also must not become 500.
+    """
+    try:
+        pm25 = float(pm25)
+    except (TypeError, ValueError):
+        return 0
+    if not np.isfinite(pm25):
+        return 0
+    pm25 = float(max(0.0, min(pm25, 500.0)))
     bp = [(0,12,0,50),(12.1,35.4,51,100),(35.5,55.4,101,150),
           (55.5,150.4,151,200),(150.5,250.4,201,300),(250.5,500.4,301,500)]
-    pm25 = float(max(0, min(pm25, 500)))
-    for cl,ch,il,ih in bp:
-        if cl <= pm25 <= ch:
-            return int(round((ih-il)/(ch-cl)*(pm25-cl)+il))
-    return 500
+    # Map EPA gaps to the start of the next bracket 
+    gap_pairs = [(12.0, 12.1), (35.4, 35.5), (55.4, 55.5), (150.4, 150.5), (250.4, 250.5)]
+    for lo, hi in gap_pairs:
+        if lo < pm25 < hi:
+            pm25 = hi
+            break
+    eps = 1e-9
+    for cl, ch, il, ih in bp:
+        if cl - eps <= pm25 <= ch + eps:
+            return int(round((ih - il) / (ch - cl) * (pm25 - cl) + il))
+    # Should not happen after gap snap last-bin clamp as safety net
+    cl, ch, il, ih = bp[-1]
+    pc = min(max(pm25, cl), ch)
+    return int(round((ih - il) / (ch - cl) * (pc - cl) + il))
 # GOOGLE AIR QUALITY API 
 
 def aqi_category(aqi):
@@ -77,7 +98,7 @@ def aqi_category(aqi):
 def live_from_seed(station):
     """
     Last row of the station seed CSV: raw PM2.5 → EPA AQI.
-    Same source as map-nodes and alert realtime AQI (not model-blended forecast[0]).
+    Same source as map-nodes and alert realtime AQI 
     """
     seed_path = os.path.join(MODEL_DIR, f"{station}_seed.csv")
     if not os.path.exists(seed_path):
@@ -300,8 +321,10 @@ def run_forecast_for_station(station):
             "pm25_diff24":      pm25_buf[-1] - pm25_buf[-25] if len(pm25_buf) >= 25 else 0.0,
         }
         pm25_pred = float(max(0.0, model.predict(pd.DataFrame([row])[LAG_FEATURES])[0]))
-        pm25_pred = 0.7 * pm25_pred + 0.3 * pm25_buf[-1]  
-        pm25_pred = float(np.clip(pm25_pred, 0, 250))        
+        pm25_pred = 0.7 * pm25_pred + 0.3 * pm25_buf[-1]
+        pm25_pred = float(np.clip(pm25_pred, 0, 250))
+        if not np.isfinite(pm25_pred):
+            pm25_pred = float(pm25_buf[-1])
         aqi_val   = pm25_to_aqi(pm25_pred)
         cat, col  = aqi_category(aqi_val)
         pm25_buf.append(pm25_pred)
