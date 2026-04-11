@@ -3,57 +3,70 @@ AirKTM Pro — Alert Engine
 
 """
 
-import json, os, re, threading
+import os
+import re
 from datetime import datetime, timedelta
 
-DATA_DIR        = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data")
-SUBSCRIBERS_FILE = os.path.join(DATA_DIR, "subscribers.json")
-COOLDOWN_HOURS  = 2
-VALID_STATIONS  = ["Ratnapark", "Pulchowk", "Bhaisipati", "Bhaktapur", "Shankapark"]
-EMAIL_REGEX     = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
+from pymongo import MongoClient
+from pymongo.errors import DuplicateKeyError
 
-_file_lock = threading.Lock()
+COOLDOWN_HOURS = 2
+VALID_STATIONS = ["Ratnapark", "Pulchowk", "Bhaisipati", "Bhaktapur", "Shankapark"]
+EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$")
 
-os.makedirs(DATA_DIR, exist_ok=True)
+SUBSCRIBERS_COLLECTION = "subscribers"
+
+_mongo_client = None
+_indexes_ensured = False
 
 
-# AQI Category 
+def _get_collection():
+    global _mongo_client, _indexes_ensured
+    uri = (os.environ.get("MONGO_URI") or "").strip()
+    if not uri:
+        return None
+    if _mongo_client is None:
+        _mongo_client = MongoClient(uri)
+    db = _mongo_client.get_default_database()
+    if db is None:
+        db_name = os.environ.get("MONGO_DB_NAME", "test")
+        db = _mongo_client[db_name]
+    coll = db[SUBSCRIBERS_COLLECTION]
+    if not _indexes_ensured:
+        try:
+            coll.create_index([("email", 1), ("station", 1)], unique=True)
+        except Exception:
+            pass
+        _indexes_ensured = True
+    return coll
+
+
+def _serialize_doc(doc):
+    if doc is None:
+        return None
+    out = dict(doc)
+    if "_id" in out:
+        out["_id"] = str(out["_id"])
+    return out
+
+
+# AQI Category
 
 def aqi_category(aqi):
-    if aqi <= 50:  return "Good",                           "#00e400"
-    if aqi <= 100: return "Moderate",                       "#ffff00"
-    if aqi <= 150: return "Unhealthy for Sensitive Groups", "#ff7e00"
-    if aqi <= 200: return "Unhealthy",                      "#ff0000"
-    if aqi <= 300: return "Very Unhealthy",                 "#8f3f97"
-    return "Hazardous",                                     "#7e0023"
+    if aqi <= 50:
+        return "Good", "#00e400"
+    if aqi <= 100:
+        return "Moderate", "#ffff00"
+    if aqi <= 150:
+        return "Unhealthy for Sensitive Groups", "#ff7e00"
+    if aqi <= 200:
+        return "Unhealthy", "#ff0000"
+    if aqi <= 300:
+        return "Very Unhealthy", "#8f3f97"
+    return "Hazardous", "#7e0023"
 
 
-# Subscriber File I/O 
-
-def load_subscribers():
-    with _file_lock:
-        if not os.path.exists(SUBSCRIBERS_FILE):
-            return {"subscribers": []}
-        try:
-            with open(SUBSCRIBERS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError):
-            return {"subscribers": []}
-
-
-def save_subscribers(data):
-    with _file_lock:
-        tmp_path = SUBSCRIBERS_FILE + ".tmp"
-        with open(tmp_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        # Atomic replace
-        if os.path.exists(SUBSCRIBERS_FILE):
-            os.replace(tmp_path, SUBSCRIBERS_FILE)
-        else:
-            os.rename(tmp_path, SUBSCRIBERS_FILE)
-
-
-# Subscriber CRUD 
+# Subscriber CRUD (MongoDB)
 
 def add_subscriber(email, station):
     """Add a new subscriber. Returns (success: bool, message: str)."""
@@ -65,59 +78,57 @@ def add_subscriber(email, station):
     if station not in VALID_STATIONS:
         return False, f"Invalid station. Must be one of: {', '.join(VALID_STATIONS)}"
 
-    data = load_subscribers()
+    coll = _get_collection()
+    if coll is None:
+        return False, "Alert database is not configured (set MONGO_URI)."
 
-    # Check for duplicate
-    for sub in data["subscribers"]:
-        if sub["email"] == email and sub["station"] == station:
-            return False, f"Already subscribed to {station} alerts."
-
-    data["subscribers"].append({
-        "email":                 email,
-        "station":               station,
-        "subscribed_at":         datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-        "last_alerted_aqi":      None,
+    doc = {
+        "email": email,
+        "station": station,
+        "subscribed_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "last_alerted_aqi": None,
         "last_alerted_category": None,
-        "last_alert_sent_at":    None,
-    })
-    save_subscribers(data)
+        "last_alert_sent_at": None,
+    }
+    try:
+        coll.insert_one(doc)
+    except DuplicateKeyError:
+        return False, f"Already subscribed to {station} alerts."
     return True, f"Successfully subscribed to {station} alerts!"
 
 
 def remove_subscriber(email, station):
     """Remove a subscriber. Returns (success, message)."""
     email = email.strip().lower()
-    data = load_subscribers()
+    coll = _get_collection()
+    if coll is None:
+        return False, "Alert database is not configured (set MONGO_URI)."
 
-    original_count = len(data["subscribers"])
-    data["subscribers"] = [
-        s for s in data["subscribers"]
-        if not (s["email"] == email and s["station"] == station)
-    ]
-
-    if len(data["subscribers"]) == original_count:
+    result = coll.delete_one({"email": email, "station": station})
+    if result.deleted_count == 0:
         return False, "Subscription not found."
-
-    save_subscribers(data)
     return True, f"Unsubscribed from {station} alerts."
 
 
 def get_subscriber_status(email, station):
-    """Check if a subscriber exists. Returns dict or None."""
+    """Check if a subscriber exists. Returns dict or None (JSON-safe)."""
     email = email.strip().lower()
-    data = load_subscribers()
+    coll = _get_collection()
+    if coll is None:
+        return None
 
-    for sub in data["subscribers"]:
-        if sub["email"] == email and sub["station"] == station:
-            return sub
-    return None
+    doc = coll.find_one({"email": email, "station": station})
+    return _serialize_doc(doc)
 
 
 def get_subscriptions_for_email(email):
     """Get all station subscriptions for a given email."""
     email = email.strip().lower()
-    data = load_subscribers()
-    return [s for s in data["subscribers"] if s["email"] == email]
+    coll = _get_collection()
+    if coll is None:
+        return []
+
+    return [_serialize_doc(d) for d in coll.find({"email": email})]
 
 
 # Alert Logic
@@ -137,7 +148,7 @@ def _is_in_cooldown(subscriber):
 def _category_changed(old_category, new_category):
     """Check if AQI has crossed a category boundary."""
     if old_category is None:
-        return True  # First alert ever
+        return True
     return old_category != new_category
 
 
@@ -152,30 +163,35 @@ def check_and_send_alerts(station, current_aqi, current_category, current_color,
     """
     from utils.email_sender import send_realtime_alert, send_forecast_alert
 
-    data = load_subscribers()
-    station_subs = [s for s in data["subscribers"] if s["station"] == station]
+    coll = _get_collection()
+    if coll is None:
+        return
 
+    station_subs = list(coll.find({"station": station}))
     if not station_subs:
         return
 
     print(f" Checking alerts for {station}: {len(station_subs)} subscriber(s)")
 
-    changed = False
+    changed_ids = set()
 
     for sub in station_subs:
-        # Cooldown check 
         if _is_in_cooldown(sub):
             print(f"   {sub['email']}: in cooldown, skipping")
             continue
 
-        # CASE A: Real-time category change
         old_cat = sub.get("last_alerted_category")
         if _category_changed(old_cat, current_category):
-            # Determine if AQI improved or worsened
             improved = False
             if old_cat is not None:
-                cat_order = ["Good", "Moderate", "Unhealthy for Sensitive Groups",
-                             "Unhealthy", "Very Unhealthy", "Hazardous"]
+                cat_order = [
+                    "Good",
+                    "Moderate",
+                    "Unhealthy for Sensitive Groups",
+                    "Unhealthy",
+                    "Very Unhealthy",
+                    "Hazardous",
+                ]
                 try:
                     old_idx = cat_order.index(old_cat)
                     new_idx = cat_order.index(current_category)
@@ -189,21 +205,18 @@ def check_and_send_alerts(station, current_aqi, current_category, current_color,
             )
 
             if success:
-                sub["last_alerted_aqi"]      = current_aqi
+                sub["last_alerted_aqi"] = current_aqi
                 sub["last_alerted_category"] = current_category
-                sub["last_alert_sent_at"]    = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-                changed = True
-            # Removed 'continue' so forecast alerts can trigger
+                sub["last_alert_sent_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                changed_ids.add(sub["_id"])
 
-        # CASE B: Forecast threshold crossing
         if forecast_data:
-            # Look ahead 24 hours in forecast for first category crossing
             forecast_24h = [f for f in forecast_data if f.get("hour_ahead", 99) <= 24]
 
             for fc_point in forecast_24h:
                 fc_cat = fc_point.get("category")
                 if fc_cat and fc_cat != current_category:
-                    fc_aqi   = fc_point.get("aqi", 0)
+                    fc_aqi = fc_point.get("aqi", 0)
                     fc_color = fc_point.get("color", "#666")
                     fc_hours = fc_point.get("hour_ahead", 0)
 
@@ -214,8 +227,19 @@ def check_and_send_alerts(station, current_aqi, current_category, current_color,
 
                     if success:
                         sub["last_alert_sent_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-                        changed = True
-                    break  # Only one forecast alert per cycle
+                        changed_ids.add(sub["_id"])
+                    break
 
-    if changed:
-        save_subscribers(data)
+    if changed_ids:
+        for sub in station_subs:
+            if sub["_id"] in changed_ids:
+                coll.update_one(
+                    {"_id": sub["_id"]},
+                    {
+                        "$set": {
+                            "last_alerted_aqi": sub.get("last_alerted_aqi"),
+                            "last_alerted_category": sub.get("last_alerted_category"),
+                            "last_alert_sent_at": sub.get("last_alert_sent_at"),
+                        }
+                    },
+                )

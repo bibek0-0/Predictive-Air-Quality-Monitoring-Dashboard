@@ -15,6 +15,8 @@ services:
       - "5050:5050"
     environment:
       FLASK_PORT: "5050"
+      # Use MONGO from .env for Atlas, fallback = Compose Mongo service
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/airktm}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
     volumes:
       - flask_data:/app/data
@@ -29,7 +31,7 @@ services:
       - "5000:5000"
     environment:
       PORT: "5000"
-      MONGO_URI: mongodb://mongo:27017/airktm
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/airktm}
       JWT_SECRET: ${JWT_SECRET:-docker-local-change-for-production}
       SESSION_SECRET: ${SESSION_SECRET:-docker-session-change-me}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}

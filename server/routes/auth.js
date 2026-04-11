@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const path = require('path');
-const fs = require('fs');
 const User = require('../models/User');
+const Subscriber = require('../models/Subscriber');
 const auth = require('../middleware/auth');
 
 // Admin-only middleware
@@ -344,15 +343,7 @@ router.get('/admin/stats', auth, adminAuth, async (req, res) => {
 
         const totalRevenue = totalLocations * 100; // NRS 100 per location
 
-        // Read Flask subscribers
-        let subscriberCount = 0;
-        const subscribersPath = path.join(__dirname, '..', '..', 'data', 'subscribers.json');
-        try {
-            if (fs.existsSync(subscribersPath)) {
-                const subData = JSON.parse(fs.readFileSync(subscribersPath, 'utf-8'));
-                subscriberCount = (subData.subscribers || []).length;
-            }
-        } catch (e) { /* ignore */ }
+        const subscriberCount = await Subscriber.countDocuments();
 
         res.json({
             totalUsers,
@@ -373,19 +364,16 @@ router.get('/admin/stats', auth, adminAuth, async (req, res) => {
 // @access  Private (Admin only)
 router.get('/admin/subscribers', auth, adminAuth, async (req, res) => {
     try {
-        const subscribersPath = path.join(__dirname, '..', '..', 'data', 'subscribers.json');
-        if (!fs.existsSync(subscribersPath)) {
-            return res.json({ subscribers: [] });
-        }
-        const data = JSON.parse(fs.readFileSync(subscribersPath, 'utf-8'));
-        res.json(data);
+        const subscribers = await Subscriber.find({})
+            .select('-__v')
+            .sort({ subscribed_at: -1 })
+            .lean();
+        res.json({ subscribers });
     } catch (err) {
         console.error('Admin subscribers error:', err.message);
         res.status(500).json({ msg: 'Server error' });
     }
 });
-
-module.exports = router;
 
 // @route   POST /api/auth/subscribe-alert
 // @desc    Check if user exists for alert subscription and generate magic link if not
@@ -477,3 +465,5 @@ router.get('/magic-login', async (req, res) => {
         return res.status(400).send('Link has expired or is invalid. Please try subscribing again.');
     }
 });
+
+module.exports = router;

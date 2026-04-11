@@ -40,7 +40,7 @@ The UI talks to:
 | **Web + auth API** | **Node.js**, **Express**, **Mongoose**, **MongoDB** | Serves the frontend, **REST auth** (`/api/auth/...`), JWT, sessions, **Passport** + **Google OAuth** (optional). |
 | **Forecast + alerts API** | **Python**, **Flask**, **Flask-CORS** | Loads **joblib** XGBoost models from `models/`, uses **Google Air Quality API** when `GOOGLE_API_KEY` is set, exposes `/api/forecast/...`, `/api/subscribe`, `/api/unsubscribe`, refresh hooks. |
 | **Data / ML** | **pandas**, **numpy**, **scikit-learn**, **xgboost**, **joblib** | Feature engineering, inference, forecast files under `forecasts/` (or volumes in Docker). |
-| **Alert pipeline** | Python modules under `utils/` | Subscriber storage (`data/subscribers.json`), alert checks, optional email sending (`utils/email_sender.py`) when SMTP/env is configured. |
+| **Alert pipeline** | Python modules under `utils/` | Alert subscribers stored in **MongoDB** (`subscribers` collection, same `MONGO_URI` as Node), alert checks, optional email sending (`utils/email_sender.py`) when SMTP/env is configured. |
 
 
 ## 4. How to run
@@ -54,7 +54,7 @@ Create a **`.env`** file in the project root (do **not** commit it). Typical var
 
 | Variable | Purpose |
 |----------|---------|
-| `MONGO_URI` | MongoDB connection string (required for local Node; Compose sets this for Docker). |
+| `MONGO_URI` | MongoDB connection string (required for **Node** auth/admin and **Flask** alert subscribers; use the same DB name in the URI for both). Compose sets this for the `web` and `flask` services. |
 | `JWT_SECRET` | Signs auth tokens. |
 | `SESSION_SECRET` | Express session secret. |
 | `GOOGLE_API_KEY` | Google Air Quality API (forecasts / seeding). |
