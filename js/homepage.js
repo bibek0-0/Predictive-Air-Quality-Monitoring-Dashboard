@@ -471,8 +471,8 @@ function updateMapMarkers(data) {
     // Add popup
     marker.bindPopup(popupContent, {
       className: "aqi-popup-wrapper aqi-popup-bottom",
-      maxWidth: 180,
-      minWidth: 160,
+      maxWidth: 260,
+      minWidth: 200,
       autoPan: true, // Enable map pan to show full popup
       autoPanPadding: [50, 50], // 50px padding from edges
       offset: [0, 20], // Position popup below the marker

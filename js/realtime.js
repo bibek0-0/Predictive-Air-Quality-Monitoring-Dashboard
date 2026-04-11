@@ -429,8 +429,8 @@ function updateMapMarkers(stations) {
             </div>
         `, {
             className: "aqi-popup-wrapper aqi-popup-bottom",
-            maxWidth: 180,
-            minWidth: 160,
+            maxWidth: 260,
+            minWidth: 200,
             autoPan: true,
             autoPanPadding: [50, 50],
             offset: [0, 20]

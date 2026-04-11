@@ -569,8 +569,8 @@
 .leaflet-popup-content {
     margin: 0;
     padding: 0.625rem;
-    min-width: 100px;
-    max-width: 140px;
+    min-width: 160px;
+    max-width: 260px;
 }
 
 .leaflet-popup-tip {

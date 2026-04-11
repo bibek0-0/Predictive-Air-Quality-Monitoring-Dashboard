@@ -1,9 +1,5 @@
 /**
- * API Service Module for Air Quality Data
- *
- * This module handles fetching and transforming air quality data from the WAQI (World Air Quality Index) API.
- * It provides functions to fetch data by city, coordinates, bounding box, and station IDs.
- * All data is transformed into a consistent format for use in the application.
+ API Service Module for Air Quality Data
  */
 
 // API Configuration
