@@ -97,12 +97,12 @@ function initializeMap() {
 // Load initial data from API
 async function loadInitialData() {
     try {
-        if (typeof fetchWAQIKathmanduValleyData === 'undefined') {
+        if (typeof fetchAirQualityData === 'undefined') {
             console.error('API functions not loaded');
             return;
         }
         
-        const data = await fetchWAQIKathmanduValleyData();
+        const data = await fetchAirQualityData();
         if (data && data.length > 0) {
             allStations = data;
             
@@ -432,91 +432,6 @@ function updateMapMarkers(stations) {
 
 // Initialize charts
 function initializeCharts() {
-    // Pollutant Levels Chart
-    const pollutantCtx = document.getElementById('pollutantChart');
-    if (pollutantCtx) {
-        pollutantChart = new Chart(pollutantCtx, {
-            type: 'line',
-            data: {
-                labels: generateTimeLabels(24),
-                datasets: [
-                    {
-                        label: 'PM2.5',
-                        data: generateSampleData(24, 50, 100),
-                        borderColor: '#ef4444',
-                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'PM10',
-                        data: generateSampleData(24, 80, 150),
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'µg/m³'
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
-    // AQI Last 24 Hours Chart
-    const aqiCtx = document.getElementById('aqiChart');
-    if (aqiCtx) {
-        aqiChart = new Chart(aqiCtx, {
-            type: 'line',
-            data: {
-                labels: generateTimeLabels(24),
-                datasets: [{
-                    label: 'AQI',
-                    data: generateSampleData(24, 100, 200),
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'AQI'
-                        }
-                    }
-                }
-            }
-        });
-    }
-    
     // City Comparison Chart
     const comparisonCtx = document.getElementById('comparisonChart');
     if (comparisonCtx) {
@@ -555,51 +470,12 @@ function initializeCharts() {
         });
     }
 }
-
-// Generate time labels for charts
-function generateTimeLabels(hours) {
-    const labels = [];
-    const now = new Date();
-    for (let i = hours - 1; i >= 0; i--) {
-        const time = new Date(now.getTime() - i * 60 * 60 * 1000);
-        labels.push(time.getHours() + ':00');
-    }
-    return labels;
-}
-
-// Generate sample data for charts
-function generateSampleData(count, min, max) {
-    const data = [];
-    for (let i = 0; i < count; i++) {
-        data.push(Math.random() * (max - min) + min);
-    }
-    return data;
-}
-
 // Update charts with current station data
 function updateCharts(station) {
     if (!station) return;
     
-    const aqi = station.aqi || 0;
-    // Use real PM values from API, fallback to estimated if not available
-    const pm25 = station.pm25 && station.pm25 > 0 ? station.pm25 : estimatePM25(aqi);
-    const pm10 = station.pm10 && station.pm10 > 0 ? station.pm10 : estimatePM10(aqi);
-    
-    // Update pollutant chart with real data (centered around current values)
-    if (pollutantChart) {
-        const newData = generateSampleData(24, pm25 * 0.7, pm25 * 1.3);
-        const newDataPM10 = generateSampleData(24, pm10 * 0.7, pm10 * 1.3);
-        pollutantChart.data.datasets[0].data = newData;
-        pollutantChart.data.datasets[1].data = newDataPM10;
-        pollutantChart.update();
-    }
-    
-    // Update AQI chart with real data (centered around current AQI)
-    if (aqiChart) {
-        const newData = generateSampleData(24, aqi * 0.7, aqi * 1.3);
-        aqiChart.data.datasets[0].data = newData;
-        aqiChart.update();
-    }
+    // The previous history charts have been removed. 
+    // This function can be used to update other chart elements in the future.
 }
 
 
