@@ -193,7 +193,7 @@ def check_and_send_alerts(station, current_aqi, current_category, current_color,
                 sub["last_alerted_category"] = current_category
                 sub["last_alert_sent_at"]    = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
                 changed = True
-            continue  # Don't stack forecast alert on top of real-time
+            # Removed 'continue' so forecast alerts can trigger
 
         # CASE B: Forecast threshold crossing
         if forecast_data:
