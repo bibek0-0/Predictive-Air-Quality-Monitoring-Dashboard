@@ -114,6 +114,7 @@ async function loadInitialData() {
             if (currentStation) {
                 updateCurrentAQIDisplay(currentStation);
                 updateMapMarkers(data);
+                renderRankings(data);
                 updateCharts(currentStation);
                 updateNavigationArrows();
                 updateCityComparisonDropdowns(data);
@@ -412,21 +413,118 @@ function updateMapMarkers(stations) {
             icon: customIcon
         }).addTo(realtimeMap);
         
+        const aqiDisplay = aqi > 0 ? `AQI ${aqi}` : "AQI N/A";
+        const textColor = (color === '#ffff00' || color === '#00e400') ? '#000000' : '#ffffff';
+        const emojiVal = getAQIEmoji(aqi);
+        const categoryVal = getAQICategory(aqi);
+        const messageVal = station.message || "No recent data available.";
+
         marker.bindPopup(`
-            <div style="min-width: 200px;">
-                <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 700;">${station.name}</h3>
-                <p style="margin: 0.25rem 0; font-size: 0.875rem;"><strong>AQI:</strong> ${aqi > 0 ? aqi : 'N/A'}</p>
-                <p style="margin: 0.25rem 0; font-size: 0.875rem;"><strong>Category:</strong> ${getAQICategory(aqi)}</p>
-                <p style="margin: 0.25rem 0; font-size: 0.75rem; color: #666;">Updated: ${formatTimestamp(station.timestamp)}</p>
+            <div class="aqi-popup" style="color: ${textColor};">
+                    <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid currentColor; padding-bottom: 4px; padding-top: 2px;">${station.name}</div>
+                    <span class="aqi-emoji">${emojiVal}</span>
+                    <span class="aqi-value">${aqiDisplay}</span>
+                    <div class="aqi-category">${categoryVal}</div>
+                    <div class="aqi-message" style="margin-top: 5px; font-size: 0.85em;">${messageVal}</div>
             </div>
-        `);
+        `, {
+            className: "aqi-popup-wrapper aqi-popup-bottom",
+            maxWidth: 180,
+            minWidth: 160,
+            autoPan: true,
+            autoPanPadding: [50, 50],
+            offset: [0, 20]
+        });
         
         mapMarkers.push(marker);
+
+        // Style the popup based on AQI color when it opens
+        marker.on("popupopen", function () {
+            const popup = marker.getPopup();
+            const popupElement = popup.getElement();
+            if (popupElement) {
+                const contentWrapper = popupElement.querySelector(".leaflet-popup-content-wrapper");
+                if (contentWrapper) {
+                    contentWrapper.style.backgroundColor = color;
+                    contentWrapper.style.border = "none";
+                    contentWrapper.style.boxShadow = `0 8px 32px ${color}40`;
+                }
+                const tip = popupElement.querySelector(".leaflet-popup-tip");
+                if (tip) {
+                    tip.style.backgroundColor = color;
+                }
+            }
+        });
         
         // Center on selected station
         if (currentStation && station.name === currentStation.name) {
             realtimeMap.setView([station.lat, station.lng], 13);
         }
+    });
+}
+
+// Render Live Station Rankings
+function renderRankings(stations) {
+    const listContainer = document.getElementById('rankingList');
+    if (!listContainer) return;
+    
+    // Sort stations by AQI descending (highest pollution first)
+    // Filter out stations with exactly 0 AQI (no data for them yet)
+    const validStations = stations.filter(s => s.aqi > 0);
+    const sorted = validStations.sort((a, b) => b.aqi - a.aqi);
+    
+    if (sorted.length === 0) {
+        listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">No live data available right now.</div>';
+        return;
+    }
+
+    listContainer.innerHTML = '';
+    
+    const getTextColor = (hex) => {
+        if (hex === '#ffff00' || hex === '#00e400') return '#000000';
+        return '#ffffff';
+    };
+    
+    sorted.forEach((station, index) => {
+        const aqi = station.aqi;
+        const color = getAQIColor(aqi);
+        const category = getAQICategory(aqi);
+        
+        const itemDom = document.createElement('div');
+        itemDom.className = 'ranking-item';
+        
+        itemDom.innerHTML = `
+            <div class="ranking-number">#${index + 1}</div>
+            <div class="ranking-details">
+                <div class="ranking-name">${station.name}</div>
+                <div class="ranking-badge" style="background-color: ${color}; color: ${getTextColor(color)};">${category}</div>
+            </div>
+            <div class="ranking-aqi" style="color: ${color};">${aqi}</div>
+        `;
+        
+        // Add click integration to interactive map
+        itemDom.addEventListener('click', () => {
+             currentStation = station;
+             updateCurrentAQIDisplay(currentStation);
+             updateCharts(currentStation);
+             updateNavigationArrows();
+             
+             stopAutoRotation();
+             setTimeout(() => { startAutoRotation(); }, 5000);
+             
+             if (realtimeMap && station.lat && station.lng) {
+                 realtimeMap.setView([station.lat, station.lng], 14);
+                 
+                 // Open corresponding popup
+                 const mkr = mapMarkers.find(m => m.getLatLng().lat === station.lat && m.getLatLng().lng === station.lng);
+                 if (mkr) mkr.openPopup();
+                 
+                 // Scroll map into view on mobile
+                 document.getElementById('realtimeMap').scrollIntoView({ behavior: 'smooth', block: 'center' });
+             }
+        });
+        
+        listContainer.appendChild(itemDom);
     });
 }
 
