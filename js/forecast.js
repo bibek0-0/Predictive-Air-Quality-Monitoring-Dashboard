@@ -61,7 +61,7 @@ async function loadStationForecast(station) {
 
     updateSummaryCards(currentForecast);
     updateAlertBanner(currentForecast);
-    initHealthTimeline(currentForecast);
+    initHealthTimeline(currentForecast, data.live);
     initPredictionChart(currentRange);
     hideLoading();
   } catch (err) {
@@ -362,7 +362,8 @@ function initToggle() {
 }
 
 // Health Impact Timeline
-function initHealthTimeline(forecast) {
+// live: optional { aqi, pm25, category, timestamp } from seed (matches home/realtime)
+function initHealthTimeline(forecast, live) {
   const container = document.getElementById("healthTimeline");
   const bestWindowEl = document.getElementById("bestWindow");
   if (!container || !forecast) return;
@@ -371,10 +372,24 @@ function initHealthTimeline(forecast) {
   const currentHour = now.getHours();
 
   // Filter to today's remaining hours
-  const todayItems = forecast.filter((f) => {
+  let todayItems = forecast.filter((f) => {
     const d = new Date(f.timestamp);
     return d.getDate() === now.getDate() && d.getHours() >= currentHour;
   });
+
+  if (live && live.aqi != null) {
+    const overlay = {
+      aqi: live.aqi,
+      pm25: live.pm25,
+      category: live.category,
+      timestamp: live.timestamp || now.toISOString(),
+    };
+    if (todayItems.length === 0) {
+      todayItems = [overlay];
+    } else {
+      todayItems = [{ ...todayItems[0], ...overlay }, ...todayItems.slice(1)];
+    }
+  }
 
   if (todayItems.length === 0) {
     container.innerHTML =

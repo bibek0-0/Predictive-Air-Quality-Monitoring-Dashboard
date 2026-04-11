@@ -74,6 +74,43 @@ def aqi_category(aqi):
     if aqi <= 300: return "Very Unhealthy",                 "#8f3f97"
     return "Hazardous",                                     "#7e0023"
 
+def live_from_seed(station):
+    """
+    Last row of the station seed CSV: raw PM2.5 → EPA AQI.
+    Same source as map-nodes and alert realtime AQI (not model-blended forecast[0]).
+    """
+    seed_path = os.path.join(MODEL_DIR, f"{station}_seed.csv")
+    if not os.path.exists(seed_path):
+        return None
+    try:
+        seed_df = pd.read_csv(seed_path)
+        if "PM2.5" not in seed_df.columns:
+            return None
+        last_pm25 = float(seed_df["PM2.5"].iloc[-1])
+        if "PM10" in seed_df.columns and pd.notna(seed_df["PM10"].iloc[-1]):
+            last_pm10 = float(seed_df["PM10"].iloc[-1])
+        else:
+            last_pm10 = round(last_pm25 * 1.5, 2)
+        live_aqi = pm25_to_aqi(last_pm25)
+        live_cat, live_col = aqi_category(live_aqi)
+        live_ts = None
+        if "time" in seed_df.columns:
+            live_ts = str(seed_df["time"].iloc[-1])
+        else:
+            tcol = seed_df.columns[0]
+            if tcol not in ("PM2.5", "PM10"):
+                live_ts = str(seed_df.iloc[-1, 0])
+        return {
+            "aqi":        live_aqi,
+            "pm25":       round(last_pm25, 2),
+            "pm10":       round(last_pm10, 2),
+            "category":   live_cat,
+            "color":      live_col,
+            "timestamp":  live_ts or datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        }
+    except Exception:
+        return None
+
 # GOOGLE HISTORY API 
 
 def seed_from_google_history(lat, lon, station, hours=72):
@@ -355,9 +392,11 @@ def get_forecast(station):
             json.dump(fc, f, indent=2)
     with open(path) as f:
         data = json.load(f)
+    live = live_from_seed(station)
     return jsonify({
         "station": station,
         "forecast": data,
+        "live": live,
         "generated_at": datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d %H:%M:%S")
     })
 
@@ -365,8 +404,17 @@ def get_forecast(station):
 def forecast_summary():
     result = []
     for station in STATIONS:
+        live = live_from_seed(station)
         path = os.path.join(FORECAST_DIR, f"{station}_forecast.json")
-        if os.path.exists(path):
+        if live:
+            result.append({
+                "station":  station,
+                "pm25":     live["pm25"],
+                "aqi":      live["aqi"],
+                "category": live["category"],
+                "color":    live["color"],
+            })
+        elif os.path.exists(path):
             with open(path) as f:
                 fc = json.load(f)
             first = fc[0]
@@ -384,11 +432,23 @@ def map_nodes():
     # Serves the exact same data as WAQI but sourced securely from Google API backend.
     result = []
     
-    # 1. FORECAST STATIONS (Fast load from JSON cache)
+    # 1. FORECAST STATIONS — prefer live seed PM2.5, fall back to forecast[0]
     for station, coords in STATIONS.items():
-        path = os.path.join(FORECAST_DIR, f"{station}_forecast.json")
-        if os.path.exists(path):
-            with open(path) as f:
+        fc_path = os.path.join(FORECAST_DIR, f"{station}_forecast.json")
+        live = live_from_seed(station)
+
+        if live is not None:
+            result.append({
+                "name": station,
+                "lat": coords["lat"],
+                "lng": coords["lon"],
+                "aqi": live["aqi"],
+                "category": live["category"],
+                "color": live["color"],
+                "timestamp": live["timestamp"],
+            })
+        elif os.path.exists(fc_path):
+            with open(fc_path) as f:
                 fc = json.load(f)
             first = fc[0]
             result.append({
