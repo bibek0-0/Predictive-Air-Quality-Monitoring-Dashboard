@@ -303,18 +303,18 @@ async function loadAirQualityData() {
 
     if (
       typeof API_CONFIG !== "undefined" &&
-      API_CONFIG.waqi &&
-      API_CONFIG.waqi.enabled
+      API_CONFIG.google &&
+      API_CONFIG.google.enabled
     ) {
-      const waqiData = await fetchWAQINepalData();
-      if (waqiData && waqiData.length > 0) {
-        data = waqiData;
-        console.log(`✓ WAQI API: ${data.length} stations found across Nepal`);
+      const googleData = await fetchAirQualityData();
+      if (googleData && googleData.length > 0) {
+        data = googleData;
+        console.log(`✓ Google API: ${data.length} stations found`);
       } else {
-        throw new Error("No data received from WAQI API");
+        throw new Error("No data received from Google API");
       }
     } else {
-      throw new Error("WAQI API is not enabled");
+      throw new Error("Google API is not enabled");
     }
 
     if (data.length === 0) {
@@ -457,6 +457,7 @@ function updateMapMarkers(data) {
 
       return `
             <div class="aqi-popup" style="color: ${textColor};">
+                    <div style="font-weight: 800; font-size: 1.1rem; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid currentColor; padding-bottom: 4px; padding-top: 2px;">${loc.name}</div>
                     <span class="aqi-emoji">${loc.emoji}</span>
                     <span class="aqi-value">${aqiDisplay}</span>
                     <div class="aqi-category">${loc.category}</div>

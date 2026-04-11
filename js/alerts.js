@@ -1454,7 +1454,7 @@ async function loadDynamicAlerts() {
   const alertsContainer = document.getElementById("alertsRecentList");
   if (!alertsContainer) return;
 
-  if (typeof fetchWAQIKathmanduValleyData === "undefined") {
+  if (typeof fetchAirQualityData === "undefined") {
     alertsContainer.innerHTML =
       '<div style="text-align: center; color: #ef4444; padding: 2rem;">Failed to load alerts. API not available.</div>';
     return;
@@ -1462,7 +1462,7 @@ async function loadDynamicAlerts() {
 
   try {
     // Fetch real data
-    const stations = await fetchWAQIKathmanduValleyData();
+    const stations = await fetchAirQualityData();
 
     if (!stations || stations.length === 0) {
       alertsContainer.innerHTML =

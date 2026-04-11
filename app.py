@@ -27,6 +27,14 @@ STATIONS = {
     "Bhaktapur":  {"lat": 27.67357783708027,  "lon": 85.42737758679067},
     "Shankapark": {"lat": 27.679954767188494, "lon": 85.33040590299137},
 }
+MAP_ONLY_STATIONS = {
+    "Thamel":        {"lat": 27.715000, "lon": 85.312000},
+    "Boudha":        {"lat": 27.721400, "lon": 85.361700},
+    "Kirtipur":      {"lat": 27.675000, "lon": 85.281400},
+    "Gongabu":       {"lat": 27.734600, "lon": 85.312000},
+    "Pashupatinath": {"lat": 27.710700, "lon": 85.348600},
+}
+MAP_ONLY_CACHE = {}
 MODEL_DIR               = "models"
 FORECAST_DIR            = "forecasts"
 FORECAST_HOURS          = 48
@@ -360,6 +368,87 @@ def forecast_summary():
                 "category": first["category"],
                 "color":    first["color"],
             })
+    return jsonify(result)
+
+@app.route("/api/map-nodes")
+def map_nodes():
+    # Serves the exact same data as WAQI but sourced securely from Google API backend.
+    result = []
+    
+    # 1. FORECAST STATIONS (Fast load from JSON cache)
+    for station, coords in STATIONS.items():
+        path = os.path.join(FORECAST_DIR, f"{station}_forecast.json")
+        if os.path.exists(path):
+            with open(path) as f:
+                fc = json.load(f)
+            first = fc[0]
+            result.append({
+                "name": station,
+                "lat": coords["lat"],
+                "lng": coords["lon"],
+                "aqi": first["aqi"],
+                "category": first["category"],
+                "color": first["color"],
+                "timestamp": first["timestamp"]
+            })
+            
+    # 2. MAP ONLY STATIONS (Live fetch from Google, short cache)
+    now = datetime.now()
+    for station, coords in MAP_ONLY_STATIONS.items():
+        cached = MAP_ONLY_CACHE.get(station)
+        # Refresh if not cached or > 50 mins old
+        if not cached or (now - cached["last_fetched"]).total_seconds() > 50 * 60:
+            if GOOGLE_API_KEY:
+                url = "https://airquality.googleapis.com/v1/currentConditions:lookup"
+                payload = {
+                    "location": {"latitude": coords["lat"], "longitude": coords["lon"]},
+                    "extraComputations": ["POLLUTANT_CONCENTRATION"],
+                    "languageCode": "en"
+                }
+                try:
+                    res = requests.post(url, json=payload, params={"key": GOOGLE_API_KEY}, timeout=10)
+                    if res.status_code == 200:
+                        data = res.json()
+                        pm25 = None
+                        for p in data.get("pollutants", []):
+                            if p.get("code") == "pm25":
+                                pm25 = float(p.get("concentration", {}).get("value"))
+                        
+                        if pm25 is not None:
+                            aqi_val = pm25_to_aqi(pm25)
+                            cat, col = aqi_category(aqi_val)
+                            
+                            MAP_ONLY_CACHE[station] = {
+                                "name": station,
+                                "lat": coords["lat"],
+                                "lng": coords["lon"],
+                                "aqi": aqi_val,
+                                "category": cat,
+                                "color": col,
+                                "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+                                "last_fetched": now
+                            }
+                except Exception as e:
+                    print(f"Failed to fetch {station} map data: {e}")
+                    
+        cached_item = MAP_ONLY_CACHE.get(station)
+        if cached_item:
+            # Create a copy to avoid mutating cache and remove datetime object before jsonify
+            item_to_return = dict(cached_item)
+            item_to_return.pop("last_fetched", None)
+            result.append(item_to_return)
+        else:
+            # Add fallback so the station shows up even if API fails or key is missing
+            result.append({
+                "name": station,
+                "lat": coords["lat"],
+                "lng": coords["lon"],
+                "aqi": 0,
+                "category": "No Data",
+                "color": "#9ca3af",
+                "timestamp": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            })
+
     return jsonify(result)
 
 @app.route("/api/status")
