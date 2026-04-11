@@ -1460,38 +1460,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 });
 
-// Auto-trigger Khalti payment when ?action=upgrade is in the URL (from email Upgrade Now button)
-document.addEventListener("DOMContentLoaded", function () {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("action") === "upgrade") {
-    // Clean URL param
-    try {
-      const cleanUrl = window.location.href.split("?")[0];
-      window.history.replaceState({}, document.title, cleanUrl);
-    } catch (e) {}
-
-    // If already Pro, skip
-    if (localStorage.getItem("airktmProActive") === "true") return;
-
-    // Wait a moment for page to render, then trigger the upgrade button
-    setTimeout(function () {
-      const upgradeBtn = document.getElementById("khaltiUpgradeBtn");
-      if (upgradeBtn && !upgradeBtn.disabled) {
-        // Show the popup first if it's hidden
-        const popup = document.getElementById("premiumPopup");
-        if (popup) {
-          popup.style.display = "flex";
-          popup.classList.add("active");
-        }
-        // Auto-click after popup is visible
-        setTimeout(function () {
-          upgradeBtn.click();
-        }, 800);
-      }
-    }, 500);
-  }
-});
-
 // Dynamic Recent Alerts
 document.addEventListener("DOMContentLoaded", function () {
   loadDynamicAlerts();

@@ -929,12 +929,14 @@ body::-webkit-scrollbar {
     z-index: 10000;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .phcc-popup-overlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .phcc-popup-container {
@@ -1137,16 +1139,18 @@ body::-webkit-scrollbar {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10000;
+    z-index: 10050;
     padding: 1rem;
     opacity: 0;
     visibility: hidden;
+    pointer-events: none;
     transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .premium-popup-overlay.active {
     opacity: 1;
     visibility: visible;
+    pointer-events: auto;
 }
 
 .premium-popup-card {
@@ -1761,14 +1765,16 @@ body::-webkit-scrollbar {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10001;
+    z-index: 10060;
     padding: 1.5rem;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .khalti-status-overlay.show {
     opacity: 1;
+    pointer-events: auto;
 }
 
 .khalti-status-card {
