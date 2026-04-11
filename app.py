@@ -290,6 +290,17 @@ def refresh_all_forecasts():
             updated = update_seed_from_google(coords["lat"], coords["lon"], station)
             if not updated:
                 print(f"  XGBoost {station}: Google skipped, using existing seed")
+            # Extract real-time AQI from the freshly updated seed
+            realtime_aqi, realtime_cat, realtime_col = None, None, None
+            try:
+                seed_path = os.path.join(MODEL_DIR, f"{station}_seed.csv")
+                seed_df = pd.read_csv(seed_path)
+                last_pm25 = float(seed_df["PM2.5"].iloc[-1])
+                realtime_aqi = pm25_to_aqi(last_pm25)
+                realtime_cat, realtime_col = aqi_category(realtime_aqi)
+            except Exception as e:
+                print(f"  Could not read realtime seed for {station}: {e}")
+                
             fc = run_forecast_for_station(station)
             if fc:
                 out = os.path.join(FORECAST_DIR, f"{station}_forecast.json")
@@ -297,14 +308,12 @@ def refresh_all_forecasts():
                     json.dump(fc, f, indent=2)
                 print(f"  Forecast {station}: 48h saved")
 
-                # Pro Alert Integration
-                current_aqi = fc[0]["aqi"]
-                current_cat = fc[0]["category"]
-                current_col = fc[0]["color"]
-                try:
-                    check_and_send_alerts(station, current_aqi, current_cat, current_col, fc)
-                except Exception as alert_err:
-                    print(f" Alert check error for {station}: {alert_err}")
+                # Pro Alert Integration - use True Realtime AQI + Forecast data
+                if realtime_aqi is not None:
+                    try:
+                        check_and_send_alerts(station, realtime_aqi, realtime_cat, realtime_col, fc)
+                    except Exception as alert_err:
+                        print(f" Alert check error for {station}: {alert_err}")
 
         except Exception as e:
             print(f"  {station}: {e}")
