@@ -215,6 +215,32 @@ router.get('/pro-status', auth, async (req, res) => {
     }
 });
 
+// @route   GET /api/auth/email-alert-count
+// @desc    Total AQI alert emails sent to this user (Mongo subscribers), Pro only
+// @access  Private
+router.get('/email-alert-count', auth, async (req, res) => {
+    try {
+        let user = await User.findById(req.user.id).select('email isPro');
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        user = await checkProExpiry(user);
+        if (!user.isPro) {
+            return res.status(403).json({ msg: 'Pro subscription required' });
+        }
+        const email = (user.email || '').toLowerCase().trim();
+        if (!email) {
+            return res.json({ total: 0 });
+        }
+        const subs = await Subscriber.find({ email }).select('email_alerts_sent').lean();
+        const total = subs.reduce((sum, s) => sum + (Number(s.email_alerts_sent) || 0), 0);
+        res.json({ total });
+    } catch (err) {
+        console.error('Email alert count error:', err.message);
+        res.status(500).json({ msg: 'Server error' });
+    }
+});
+
 // @route   POST /api/auth/pro-activate
 // @desc    Activate Pro subscription for current user after successful payment
 // @access  Private (requires JWT)

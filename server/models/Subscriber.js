@@ -15,7 +15,8 @@ const subscriberSchema = new mongoose.Schema(
         subscribed_at: { type: String, default: null },
         last_alerted_aqi: { type: Number, default: null },
         last_alerted_category: { type: String, default: null },
-        last_alert_sent_at: { type: String, default: null }
+        last_alert_sent_at: { type: String, default: null },
+        email_alerts_sent: { type: Number, default: 0 }
     },
     {
         timestamps: false,

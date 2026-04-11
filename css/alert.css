@@ -1458,3 +1458,75 @@ Alerts Page - Two Column Layout
     }
 }
 
+/* Pro: email alert count toast (alerts page) */
+.pro-alert-stats-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.75rem;
+    transform: translateX(-50%) translateY(130%);
+    /* Above premium (10050) and Khalti status (10060) so Pro users always see it */
+    z-index: 12000;
+    max-width: min(440px, calc(100vw - 2rem));
+    opacity: 0;
+    transition:
+        opacity 0.35s ease,
+        transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+}
+
+.pro-alert-stats-toast--visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.pro-alert-stats-toast-inner {
+    background: #ffffff;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    border-radius: 14px;
+    padding: 0.9rem 1.15rem;
+    box-shadow:
+        0 12px 40px rgba(15, 23, 42, 0.12),
+        0 4px 12px rgba(245, 158, 11, 0.08);
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+}
+
+[data-theme="dark"] .pro-alert-stats-toast-inner {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-color: rgba(251, 191, 36, 0.35);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.pro-alert-stats-badge {
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    color: #1a1a1a;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    padding: 0.2rem 0.45rem;
+    border-radius: 6px;
+    line-height: 1.2;
+}
+
+.pro-alert-stats-text {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.45;
+    color: #0f172a;
+}
+
+[data-theme="dark"] .pro-alert-stats-text {
+    color: #e2e8f0;
+}
+
+.pro-alert-stats-text strong {
+    color: #b45309;
+    font-weight: 800;
+}
+
+[data-theme="dark"] .pro-alert-stats-text strong {
+    color: #fbbf24;
+}
+

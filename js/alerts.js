@@ -1657,3 +1657,103 @@ function initBannerCarousel(stations) {
   // Auto slide every 5 seconds
   setInterval(updateBanner, 5000);
 }
+
+// Pro users: show total AQI alert emails received (Mongo subscriber)
+function showProEmailAlertStatsToast(total) {
+  var prev = document.getElementById("proAlertStatsToast");
+  if (prev) prev.remove();
+
+  var el = document.createElement("div");
+  el.id = "proAlertStatsToast";
+  el.className = "pro-alert-stats-toast";
+  el.setAttribute("role", "status");
+
+  var msg =
+    total === 0
+      ? "You have not received any automated AQI alert emails from our monitoring system yet"
+      : "You have received <strong>" +
+        total +
+        "</strong> air quality alert email" +
+        (total === 1 ? "" : "s") +
+        " to your inbox so far.";
+
+  el.innerHTML =
+    '<div class="pro-alert-stats-toast-inner"><span class="pro-alert-stats-badge">PRO</span><p class="pro-alert-stats-text">' +
+    msg +
+    "</p></div>";
+  document.body.appendChild(el);
+
+  requestAnimationFrame(function () {
+    el.classList.add("pro-alert-stats-toast--visible");
+  });
+
+  setTimeout(function () {
+    el.classList.remove("pro-alert-stats-toast--visible");
+    setTimeout(function () {
+      if (el.parentNode) el.parentNode.removeChild(el);
+    }, 400);
+  }, 3000);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  var token = localStorage.getItem("airktm_token");
+  if (!token) return;
+
+  function flaskApiBase() {
+    return (
+      window.location.protocol +
+      "//" +
+      window.location.hostname +
+      ":5050"
+    );
+  }
+
+  function sumAlertCountsFromSubscriptions(payload) {
+    var subs = (payload && payload.subscriptions) || [];
+    return subs.reduce(function (acc, row) {
+      return acc + (Number(row.email_alerts_sent) || 0);
+    }, 0);
+  }
+
+  // Defer so auth UI / premium modal layout settle; toast z-index is above modals
+  setTimeout(function () {
+    fetch(window.location.origin + "/api/auth/user", {
+      headers: { Authorization: "Bearer " + token },
+    })
+      .then(function (res) {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then(function (user) {
+        if (!user || !user.isPro) return null;
+        var email = (user.email || "").trim();
+        if (!email) return null;
+
+        return fetch(
+          flaskApiBase() +
+            "/api/subscribe/status?email=" +
+            encodeURIComponent(email),
+        ).then(function (fr) {
+          if (fr.ok) {
+            return fr.json().then(function (subData) {
+              return { total: sumAlertCountsFromSubscriptions(subData) };
+            });
+          }
+          return fetch(
+            window.location.origin + "/api/auth/email-alert-count",
+            { headers: { Authorization: "Bearer " + token } },
+          ).then(function (nr) {
+            if (!nr.ok) return null;
+            return nr.json();
+          });
+        });
+      })
+      .then(function (data) {
+        if (!data || typeof data.total !== "number") return;
+        showProEmailAlertStatsToast(data.total);
+      })
+      .catch(function () {
+        /* non-critical */
+      });
+  }, 800);
+});

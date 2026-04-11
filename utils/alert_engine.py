@@ -89,6 +89,7 @@ def add_subscriber(email, station):
         "last_alerted_aqi": None,
         "last_alerted_category": None,
         "last_alert_sent_at": None,
+        "email_alerts_sent": 0,
     }
     try:
         coll.insert_one(doc)
@@ -176,6 +177,8 @@ def check_and_send_alerts(station, current_aqi, current_category, current_color,
     changed_ids = set()
 
     for sub in station_subs:
+        sub["_alert_count_inc"] = 0
+
         if _is_in_cooldown(sub):
             print(f"   {sub['email']}: in cooldown, skipping")
             continue
@@ -208,6 +211,7 @@ def check_and_send_alerts(station, current_aqi, current_category, current_color,
                 sub["last_alerted_aqi"] = current_aqi
                 sub["last_alerted_category"] = current_category
                 sub["last_alert_sent_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                sub["_alert_count_inc"] = sub.get("_alert_count_inc", 0) + 1
                 changed_ids.add(sub["_id"])
 
         if forecast_data:
@@ -227,19 +231,21 @@ def check_and_send_alerts(station, current_aqi, current_category, current_color,
 
                     if success:
                         sub["last_alert_sent_at"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                        sub["_alert_count_inc"] = sub.get("_alert_count_inc", 0) + 1
                         changed_ids.add(sub["_id"])
                     break
 
     if changed_ids:
         for sub in station_subs:
             if sub["_id"] in changed_ids:
-                coll.update_one(
-                    {"_id": sub["_id"]},
-                    {
-                        "$set": {
-                            "last_alerted_aqi": sub.get("last_alerted_aqi"),
-                            "last_alerted_category": sub.get("last_alerted_category"),
-                            "last_alert_sent_at": sub.get("last_alert_sent_at"),
-                        }
-                    },
-                )
+                update_ops = {
+                    "$set": {
+                        "last_alerted_aqi": sub.get("last_alerted_aqi"),
+                        "last_alerted_category": sub.get("last_alerted_category"),
+                        "last_alert_sent_at": sub.get("last_alert_sent_at"),
+                    }
+                }
+                inc_n = int(sub.get("_alert_count_inc") or 0)
+                if inc_n > 0:
+                    update_ops["$inc"] = {"email_alerts_sent": inc_n}
+                coll.update_one({"_id": sub["_id"]}, update_ops)
