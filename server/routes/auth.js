@@ -377,13 +377,35 @@ router.get('/admin/subscribers', auth, adminAuth, async (req, res) => {
 
 // @route   POST /api/auth/subscribe-alert
 // @desc    Check if user exists for alert subscription and generate magic link if not
-// @access  Public
+// @access  Public (logged-in referrer for personalized invite email)
 router.post('/subscribe-alert', async (req, res) => {
     const { email } = req.body;
 
     try {
         if (!email) {
             return res.status(400).json({ msg: 'Please provide an email' });
+        }
+
+        const inviteeLower = String(email).trim().toLowerCase();
+        let referrer = null;
+        const authHeader = req.header('Authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            try {
+                const token = authHeader.split(' ')[1];
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const refUser = await User.findById(decoded.user.id).select('name email');
+                if (refUser && refUser.email) {
+                    const refLower = refUser.email.toLowerCase();
+                    if (refLower !== inviteeLower) {
+                        const displayName = (refUser.name && refUser.name.trim())
+                            ? refUser.name.trim()
+                            : refUser.email.split('@')[0];
+                        referrer = { name: displayName, email: refUser.email };
+                    }
+                }
+            } catch (e) {
+                /* invalid/expired token treat as anonymous invite */
+            }
         }
 
         const user = await User.findOne({ email });
@@ -411,7 +433,8 @@ router.post('/subscribe-alert', async (req, res) => {
 
         res.json({
             success: true,
-            magicLink
+            magicLink,
+            referrer
         });
 
     } catch (err) {

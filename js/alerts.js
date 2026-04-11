@@ -297,12 +297,18 @@ document.addEventListener("DOMContentLoaded", function () {
       subscribeBtn.textContent = "Subscribing...";
     }
 
+    const authHeaders = { "Content-Type": "application/json" };
+    try {
+      const t = localStorage.getItem("airktm_token");
+      if (t) authHeaders.Authorization = "Bearer " + t;
+    } catch (e) {
+      /* ignore */
+    }
+
     // Check if user is already registered and get magic link
     fetch(window.location.origin + "/api/auth/subscribe-alert", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: authHeaders,
       body: JSON.stringify({ email: email }),
     })
       .then((response) => response.json())
@@ -323,7 +329,36 @@ document.addEventListener("DOMContentLoaded", function () {
         const magicLinkUrl =
           data.magicLink ||
           `${window.location.origin}/index.html?action=upgrade`;
-        sendWelcomeEmail(email, magicLinkUrl);
+
+        let referrer = data.referrer || null;
+        // If a token was sent but API omitted referrer (e.g. edge DB/JWT), use logged-in profile for invite copy only when emails differ
+        if (
+          !referrer &&
+          authHeaders.Authorization &&
+          String(email).trim().toLowerCase()
+        ) {
+          try {
+            const inviteeLower = String(email).trim().toLowerCase();
+            const raw = localStorage.getItem("airktm_user");
+            if (raw) {
+              const u = JSON.parse(raw);
+              if (u && u.email) {
+                const refLower = String(u.email).trim().toLowerCase();
+                if (refLower && refLower !== inviteeLower) {
+                  const displayName =
+                    u.name && String(u.name).trim()
+                      ? String(u.name).trim()
+                      : refLower.split("@")[0];
+                  referrer = { name: displayName, email: u.email };
+                }
+              }
+            }
+          } catch (e) {
+            /* ignore */
+          }
+        }
+
+        sendWelcomeEmail(email, magicLinkUrl, referrer);
 
         successMessage.style.display = "flex";
         document.getElementById("alertsEmailInput").value = "";
@@ -347,7 +382,16 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-    function sendWelcomeEmail(userEmail, magicLinkUrl) {
+    function escapeHtml(str) {
+      if (str == null) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function sendWelcomeEmail(userEmail, magicLinkUrl, referrer) {
       // Validate and clean email address
       const cleanEmail = userEmail.trim().toLowerCase();
 
@@ -370,6 +414,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // Extract name from email
       const userName = cleanEmail.split("@")[0];
+
+      const refNameHtml =
+        referrer && referrer.name ? escapeHtml(referrer.name) : "";
+      const headlineHtml = referrer
+        ? `${refNameHtml} referred you to AirKTM`
+        : "Thanks for subscribing AirKTM";
+      const sublineHtml = referrer
+        ? "You're receiving this because someone shared AirKTM with you. Welcome aboard!"
+        : "We're excited to have you on board!";
+      const rawRefName = referrer && referrer.name ? String(referrer.name) : "";
+      const safeRefPlain = rawRefName.replace(/[\r\n]+/g, " ").slice(0, 120);
+      const emailSubject = referrer
+        ? `${safeRefPlain} invited you to AirKTM`
+        : "Welcome to AirKTM - Thank You for Subscribing!";
+      const plainMessage = referrer
+        ? `${safeRefPlain} referred you to AirKTM — open this email to get started with Pro.`
+        : "Thanks for subscribing AirKTM!";
+
       // Create premium styled HTML email content Optimized for both Windows and Mobile
       const htmlMessage = `
 <!DOCTYPE html>
@@ -398,8 +460,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     <!-- Thanks message - well formatted text -->
                     <tr>
                         <td align="center" style="padding: 30px 20px 35px 20px; background-color: #ffffff;">
-                            <h1 style="margin: 0 0 10px 0; font-size: 28px; font-weight: 800; color: #1e40af; letter-spacing: -0.5px; line-height: 1.2;">Thanks for subscribing AirKTM</h1>
-                            <p style="margin: 0; font-size: 16px; color: #64748b; font-weight: 500; line-height: 1.5;">We're excited to have you on board!</p>
+                            <h1 style="margin: 0 0 10px 0; font-size: 28px; font-weight: 800; color: #1e40af; letter-spacing: -0.5px; line-height: 1.2;">${headlineHtml}</h1>
+                            <p style="margin: 0; font-size: 16px; color: #64748b; font-weight: 500; line-height: 1.5;">${sublineHtml}</p>
                         </td>
                     </tr>
                     
@@ -554,8 +616,14 @@ document.addEventListener("DOMContentLoaded", function () {
     </table>
             `;
 
-      // Plain text fallback
-      const plainMessage = "Thanks for subscribing AirKTM!";
+      // Plain lines for EmailJS (use {{invite_headline}} / {{invite_subline}} / {{subject}} in the
+      // dashboard if your template currently hardcodes "Thanks for subscribing…" or the subject).
+      const inviteHeadlinePlain = referrer
+        ? `${safeRefPlain} referred you to AirKTM`
+        : "Thanks for subscribing AirKTM";
+      const inviteSublinePlain = referrer
+        ? "You're receiving this because someone shared AirKTM with you. Welcome aboard!"
+        : "We're excited to have you on board!";
 
       // EmailJS template parameters
       const templateParams = {
@@ -564,8 +632,10 @@ document.addEventListener("DOMContentLoaded", function () {
         to_name: userName, // For display in content
         name: userName, // For message content
         email: cleanEmail, // For "Reply To" field
-        subject: "Welcome to AirKTM - Thank You for Subscribing!", // For "Subject" field
-        message: htmlMessage, // HTML email content with premium styling
+        subject: emailSubject, // For "Subject" field — map in template as {{subject}}
+        invite_headline: inviteHeadlinePlain,
+        invite_subline: inviteSublinePlain,
+        message: htmlMessage, // Full HTML — template should be one {{{message}}} or no duplicate title
         message_html: htmlMessage, // Alternative HTML field
         message_text: plainMessage, // Plain text fallback
         time: timeString, // For time display in content
