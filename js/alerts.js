@@ -837,7 +837,30 @@ document.addEventListener("DOMContentLoaded", function () {
       // Store Pro status
       localStorage.setItem("airktmProActive", "true");
       localStorage.setItem("airktmProTxn", txnId);
+      if (pidx) localStorage.setItem("airktmKhaltiPidx", pidx);
       localStorage.setItem("airktmProDate", new Date().toISOString());
+
+      var authTok = localStorage.getItem("airktm_token");
+      if (authTok && pidx) {
+        var redirectProBody = { pidx: pidx, transactionId: txnId };
+        var pendLoc = localStorage.getItem("airktmPendingAlertLocation");
+        if (pendLoc) redirectProBody.alertLocation = pendLoc;
+        fetch(window.location.origin + "/api/auth/pro-activate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + authTok,
+          },
+          body: JSON.stringify(redirectProBody),
+        })
+          .then(function (r) {
+            return r.json();
+          })
+          .then(function () {
+            localStorage.removeItem("airktmKhaltiPidx");
+          })
+          .catch(function () {});
+      }
     } else if (status === "User canceled") {
       icon.innerHTML =
         '<svg width="72" height="72" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#f59e0b"/><path d="M12 8v4M12 16h.01" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>';
@@ -1151,9 +1174,6 @@ document.addEventListener("DOMContentLoaded", function () {
       : "Ratnapark";
     localStorage.setItem("airktmPendingAlertLocation", selectedAlertLocation);
 
-    // Generate unique order ID
-    const orderId = "AIRKTM-PRO-" + Date.now();
-
     // Build proper return URL pointing to the lightweight callback page
     var currentPath = window.location.href.split("?")[0];
     var basePath = currentPath.substring(0, currentPath.lastIndexOf("/") + 1);
@@ -1161,59 +1181,40 @@ document.addEventListener("DOMContentLoaded", function () {
     var siteUrl =
       window.location.origin !== "null" ? window.location.origin : basePath;
 
-    // Get current user details for Khalti payload
-    let userName = "AirKTM User";
-    let userEmail = "user@airktm.com";
-    try {
-      const userStr = localStorage.getItem("airktm_user");
-      if (userStr) {
-        const userObj = JSON.parse(userStr);
-        if (userObj.name) userName = userObj.name;
-        if (userObj.email) userEmail = userObj.email;
+    const proToken = localStorage.getItem("airktm_token");
+    if (!proToken) {
+      if (feedback && feedbackText) {
+        feedbackText.textContent = "Please log in to upgrade to Pro.";
+        feedback.style.display = "block";
+        feedback.className = "khalti-payment-feedback khalti-feedback-error";
       }
-    } catch (e) {}
+      upgradeBtn.classList.remove("khalti-processing");
+      upgradeBtn.disabled = false;
+      if (btnText) btnText.style.display = "inline";
+      if (btnLoading) btnLoading.style.display = "none";
+      return;
+    }
 
-    // Khalti Sandbox Configuration
-    const khaltiConfig = {
-      return_url: callbackUrl,
-      website_url: siteUrl,
-      amount: 10000, // NRS 100 in paisa
-      purchase_order_id: orderId,
-      purchase_order_name: "AirKTM Pro Subscription",
-      customer_info: {
-        name: userName,
-        email: userEmail,
-        phone: "9800000000",
-      },
-      product_details: [
-        {
-          identity: "airktm-pro-monthly",
-          name: "AirKTM Pro Monthly Subscription",
-          total_price: 10000,
-          quantity: 1,
-          unit_price: 10000,
-        },
-      ],
-    };
-
-    // Initiate payment via Khalti Sandbox API (via CORS proxy for file:// compatibility)
-    const khaltiApiUrl = "https://dev.khalti.com/api/v2/epayment/initiate/";
-    const proxyUrl =
-      "https://corsproxy.io/?" + encodeURIComponent(khaltiApiUrl);
-
-    fetch(proxyUrl, {
+    fetch(window.location.origin + "/api/payment/khalti/initiate", {
       method: "POST",
       headers: {
-        Authorization: "key 05bf95cc57244045b8df5fad06748dab",
         "Content-Type": "application/json",
+        Authorization: "Bearer " + proToken,
       },
-      body: JSON.stringify(khaltiConfig),
+      body: JSON.stringify({
+        kind: "pro",
+        return_url: callbackUrl,
+        website_url: siteUrl,
+      }),
     })
       .then(function (response) {
         if (!response.ok) {
           return response.json().then(function (err) {
             throw new Error(
-              err.detail || err.message || "Payment initiation failed",
+              err.msg ||
+                err.detail ||
+                err.message ||
+                "Payment initiation failed",
             );
           });
         }
@@ -1278,6 +1279,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   // Persist Pro status to database (including alert location)
                   var proToken = localStorage.getItem("airktm_token");
                   var proTxnId = localStorage.getItem("airktmProTxn") || "";
+                  var proPidx = localStorage.getItem("airktmKhaltiPidx") || "";
                   var pendingAlertLocation =
                     localStorage.getItem("airktmPendingAlertLocation") ||
                     "Ratnapark";
@@ -1286,7 +1288,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     "airktmAlertLocation",
                     pendingAlertLocation,
                   );
-                  if (proToken) {
+                  if (proToken && proPidx) {
                     fetch(window.location.origin + "/api/auth/pro-activate", {
                       method: "POST",
                       headers: {
@@ -1294,6 +1296,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         Authorization: "Bearer " + proToken,
                       },
                       body: JSON.stringify({
+                        pidx: proPidx,
                         transactionId: proTxnId,
                         alertLocation: pendingAlertLocation,
                       }),
@@ -1302,6 +1305,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         return res.json();
                       })
                       .then(function (data) {
+                        localStorage.removeItem("airktmKhaltiPidx");
                         console.log("Pro status saved to DB:", data);
                       })
                       .catch(function (err) {

@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Subscriber = require("../models/Subscriber");
 const auth = require("../middleware/auth");
+const { verifyKhaltiEpayment } = require("../utils/khalti");
 
 // Admin-only middleware
 const adminAuth = async (req, res, next) => {
@@ -280,11 +281,27 @@ router.get("/email-alert-count", auth, async (req, res) => {
 });
 
 // @route   POST /api/auth/pro-activate
-// @desc    Activate Pro subscription for current user after successful payment
+// @desc    Activate Pro after Khalti payment — verifies pidx with Khalti lookup API
 // @access  Private (requires JWT)
 router.post("/pro-activate", auth, async (req, res) => {
   try {
-    const { transactionId, alertLocation } = req.body;
+    const { pidx, transactionId, alertLocation } = req.body;
+
+    if (!pidx || typeof pidx !== "string" || !pidx.trim()) {
+      return res.status(400).json({
+        msg: "Payment reference (pidx) is required. Pro cannot be activated without Khalti verification.",
+      });
+    }
+
+    const verification = await verifyKhaltiEpayment(pidx.trim());
+    if (!verification.ok) {
+      return res.status(402).json({
+        msg: verification.error || "Payment verification failed",
+      });
+    }
+
+    const verifiedTxnId =
+      verification.transactionId || transactionId || null;
 
     let user = await User.findById(req.user.id);
     if (!user) {
@@ -300,7 +317,7 @@ router.post("/pro-activate", auth, async (req, res) => {
       user.alertLocations = []; // Reset on fresh activation
     }
 
-    user.proTransactionId = transactionId || null;
+    user.proTransactionId = verifiedTxnId;
     if (
       alertLocation &&
       (!user.alertLocations || !user.alertLocations.includes(alertLocation))
@@ -370,9 +387,8 @@ router.put("/alert-location", auth, async (req, res) => {
   }
 });
 
-// =============================================
+
 // ADMIN API ROUTES
-// =============================================
 
 // @route   GET /api/auth/admin/users
 // @desc    Get all users for admin panel

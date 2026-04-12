@@ -38,6 +38,7 @@ app.use(express.static(path.join(__dirname, "..")));
 // API Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/auth/google", require("./routes/google-auth"));
+app.use("/api/payment/khalti", require("./routes/khalti"));
 
 // Fallback: serve index.html for root
 app.get("/", (req, res) => {

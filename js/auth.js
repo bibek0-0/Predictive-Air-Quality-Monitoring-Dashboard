@@ -561,9 +561,6 @@
         btn.textContent = "Processing...";
         btn.disabled = true;
 
-        // Initiate Khalti Payment
-        var orderId = "AIRKTM-LOC-" + Date.now();
-
         // Build callback URL
         var currentPath = window.location.href.split("?")[0];
         var basePath = currentPath.substring(
@@ -580,49 +577,34 @@
         var siteUrl =
           window.location.origin !== "null" ? window.location.origin : basePath;
 
-        // User details
-        var userName = user.name || "AirKTM User";
-        var userEmail = user.email || "user@airktm.com";
+        var locToken = getToken();
+        if (!locToken) {
+          btn.textContent = station;
+          btn.disabled = false;
+          return;
+        }
 
-        var khaltiConfig = {
-          return_url: callbackUrl,
-          website_url: siteUrl,
-          amount: 10000, // NRS 100 in paisa
-          purchase_order_id: orderId,
-          purchase_order_name: "AirKTM Location Change - " + station,
-          customer_info: {
-            name: userName,
-            email: userEmail,
-            phone: "9800000000",
-          },
-          product_details: [
-            {
-              identity: "airktm-loc-change",
-              name: "AirKTM Alert Location Change to " + station,
-              total_price: 10000,
-              quantity: 1,
-              unit_price: 10000,
-            },
-          ],
-        };
-
-        var khaltiApiUrl = "https://dev.khalti.com/api/v2/epayment/initiate/";
-        var proxyUrl =
-          "https://corsproxy.io/?" + encodeURIComponent(khaltiApiUrl);
-
-        fetch(proxyUrl, {
+        fetch(window.location.origin + "/api/payment/khalti/initiate", {
           method: "POST",
           headers: {
-            Authorization: "key 05bf95cc57244045b8df5fad06748dab",
             "Content-Type": "application/json",
+            Authorization: "Bearer " + locToken,
           },
-          body: JSON.stringify(khaltiConfig),
+          body: JSON.stringify({
+            kind: "location",
+            return_url: callbackUrl,
+            website_url: siteUrl,
+            station: station,
+          }),
         })
           .then(function (response) {
             if (!response.ok) {
               return response.json().then(function (err) {
                 throw new Error(
-                  err.detail || err.message || "Payment initiation failed",
+                  err.msg ||
+                    err.detail ||
+                    err.message ||
+                    "Payment initiation failed",
                 );
               });
             }
@@ -712,7 +694,7 @@
                       }
 
                       // Update Flask subscriber
-                      if (userEmail) {
+                      if (user && user.email) {
                         var flaskBase =
                           window.location.protocol +
                           "//" +
@@ -722,7 +704,7 @@
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
-                            email: userEmail,
+                            email: user.email,
                             station: pendingLoc,
                           }),
                         }).catch(function (err) {

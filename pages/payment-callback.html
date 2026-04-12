@@ -133,20 +133,24 @@
                 // Save Pro status to localStorage (shared with parent window)
                 localStorage.setItem('airktmProActive', 'true');
                 localStorage.setItem('airktmProTxn', txnId);
+                if (pidx) localStorage.setItem('airktmKhaltiPidx', pidx);
                 localStorage.setItem('airktmProDate', new Date().toISOString());
                 localStorage.removeItem('khaltiPaymentPending');
                 localStorage.setItem('khaltiPaymentResult', 'success');
 
-                // Persist Pro status to database
+                // Persist Pro status to database (server verifies pidx with Khalti lookup)
                 var authToken = localStorage.getItem('airktm_token');
-                if (authToken) {
+                if (authToken && pidx) {
+                    var proBody = { pidx: pidx, transactionId: txnId };
+                    var pendingLoc = localStorage.getItem('airktmPendingAlertLocation');
+                    if (pendingLoc) proBody.alertLocation = pendingLoc;
                     fetch(window.location.origin + '/api/auth/pro-activate', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + authToken
                         },
-                        body: JSON.stringify({ transactionId: txnId })
+                        body: JSON.stringify(proBody)
                     })
                     .then(function(res) { return res.json(); })
                     .then(function(data) {
