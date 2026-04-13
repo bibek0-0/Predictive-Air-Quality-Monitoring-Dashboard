@@ -25,6 +25,21 @@
   function removeToken() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    localStorage.removeItem("airktmProActive");
+    localStorage.removeItem("airktmProTxn");
+    localStorage.removeItem("airktmProDate");
+    localStorage.removeItem("airktmKhaltiPidx");
+    localStorage.removeItem("airktmAlertLocation");
+    localStorage.removeItem("airktmPendingAlertLocation");
+  }
+
+  /** Keep airktmProActive in sync with server user  */
+  function syncProLocalStorageFromUser(user) {
+    if (user && user.isPro) {
+      localStorage.setItem("airktmProActive", "true");
+    } else {
+      localStorage.removeItem("airktmProActive");
+    }
   }
 
   function setUser(user) {
@@ -177,10 +192,7 @@
       });
       setToken(data.token);
       setUser(data.user);
-      // Sync pro status from DB
-      if (data.user.isPro) {
-        localStorage.setItem("airktmProActive", "true");
-      }
+      syncProLocalStorageFromUser(data.user);
       showMessage("authFormSignup", "Account created successfully!", "success");
       setTimeout(() => {
         getEl("signupPassword").value = ""; // clear password
@@ -214,10 +226,7 @@
       const data = await apiPost("/api/auth/login", { email, password });
       setToken(data.token);
       setUser(data.user);
-      // Sync pro status from DB
-      if (data.user.isPro) {
-        localStorage.setItem("airktmProActive", "true");
-      }
+      syncProLocalStorageFromUser(data.user);
 
       // Check if admin — redirect to admin panel
       if (data.user.isAdmin) {
@@ -256,10 +265,8 @@
   function handleLogout() {
     removeToken();
     currentUser = null;
-    // Clear Pro status on logout so next user doesn't inherit it
-    localStorage.removeItem("airktmProActive");
-    localStorage.removeItem("airktmProTxn");
-    localStorage.removeItem("airktmProDate");
+    sessionStorage.removeItem("khaltiIntent");
+    sessionStorage.removeItem("premiumPopupClosed");
     updateNavbar();
     // Close dropdown
     document.querySelector(".user-menu-container")?.classList.remove("open");
@@ -379,9 +386,7 @@
       );
       // Fetch user info and trigger success event so that Khalti logic can continue
       fetchCurrentUser().then(() => {
-        // If user is Pro, immediately hide the premium popup (it may have already shown)
         if (currentUser && currentUser.isPro) {
-          localStorage.setItem("airktmProActive", "true");
           const premiumPopup = document.getElementById("premiumPopup");
           if (premiumPopup) {
             premiumPopup.classList.remove("active");
@@ -402,10 +407,12 @@
     try {
       const user = await apiGet("/api/auth/user");
       setUser(user);
+      syncProLocalStorageFromUser(user);
       updateNavbar();
     } catch (err) {
       // Token might be expired
       removeToken();
+      currentUser = null;
       updateNavbar();
     }
   }
