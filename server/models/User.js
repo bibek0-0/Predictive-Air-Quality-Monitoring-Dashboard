@@ -38,13 +38,6 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: null
     },
-    alertLocations: {
-        type: [{
-            type: String,
-            enum: ['Ratnapark', 'Bhaisipati', 'Pulchowk', 'Shankapark', 'Bhaktapur']
-        }],
-        default: []
-    },
     isAdmin: {
         type: Boolean,
         default: false

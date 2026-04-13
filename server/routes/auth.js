@@ -3,6 +3,7 @@ const router = express.Router();
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const Subscriber = require("../models/Subscriber");
+const UserStationAlert = require("../models/UserStationAlert");
 const auth = require("../middleware/auth");
 const { verifyKhaltiEpayment } = require("../utils/khalti");
 
@@ -201,11 +202,17 @@ const checkProExpiry = async (user) => {
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
     if (Date.now() - new Date(user.proActivatedAt).getTime() > thirtyDaysMs) {
       user.isPro = false;
-      user.alertLocations = [];
       await user.save();
+      await UserStationAlert.deleteMany({ userId: user._id });
     }
   }
   return user;
+};
+
+// Helper: get alert location names for a user from the junction collection
+const getAlertLocations = async (userId) => {
+  const rows = await UserStationAlert.find({ userId }).lean();
+  return rows.map((r) => r.station);
 };
 
 // @route   GET /api/auth/user
@@ -218,7 +225,9 @@ router.get("/user", auth, async (req, res) => {
       return res.status(404).json({ msg: "User not found" });
     }
     user = await checkProExpiry(user);
-    res.json(user);
+    const userObj = user.toObject();
+    userObj.alertLocations = await getAlertLocations(user._id);
+    res.json(userObj);
   } catch (err) {
     console.error("Get user error:", err.message);
     res.status(500).json({ msg: "Server error" });
@@ -231,7 +240,7 @@ router.get("/user", auth, async (req, res) => {
 router.get("/pro-status", auth, async (req, res) => {
   try {
     let user = await User.findById(req.user.id).select(
-      "isPro proActivatedAt proTransactionId alertLocations",
+      "isPro proActivatedAt proTransactionId",
     );
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
@@ -241,7 +250,7 @@ router.get("/pro-status", auth, async (req, res) => {
       isPro: user.isPro || false,
       proActivatedAt: user.proActivatedAt,
       proTransactionId: user.proTransactionId,
-      alertLocations: user.alertLocations || [],
+      alertLocations: await getAlertLocations(user._id),
     });
   } catch (err) {
     console.error("Pro status check error:", err.message);
@@ -314,24 +323,26 @@ router.post("/pro-activate", auth, async (req, res) => {
     if (!user.isPro) {
       user.isPro = true;
       user.proActivatedAt = new Date();
-      user.alertLocations = []; // Reset on fresh activation
+      await UserStationAlert.deleteMany({ userId: user._id });
     }
 
     user.proTransactionId = verifiedTxnId;
-    if (
-      alertLocation &&
-      (!user.alertLocations || !user.alertLocations.includes(alertLocation))
-    ) {
-      user.alertLocations.push(alertLocation);
-    }
     await user.save();
+
+    if (alertLocation) {
+      try {
+        await UserStationAlert.create({ userId: user._id, station: alertLocation });
+      } catch (e) {
+        if (e.code !== 11000) throw e; // ignore duplicate
+      }
+    }
 
     res.json({
       msg: "Pro subscription activated successfully",
       isPro: true,
       proActivatedAt: user.proActivatedAt,
       proTransactionId: user.proTransactionId,
-      alertLocations: user.alertLocations,
+      alertLocations: await getAlertLocations(user._id),
     });
   } catch (err) {
     console.error("Pro activate error:", err.message);
@@ -370,16 +381,15 @@ router.put("/alert-location", auth, async (req, res) => {
         .json({ msg: "Pro subscription required or expired" });
     }
 
-    if (!user.alertLocations) user.alertLocations = [];
-
-    if (!user.alertLocations.includes(alertLocation)) {
-      user.alertLocations.push(alertLocation);
-      await user.save();
+    try {
+      await UserStationAlert.create({ userId: user._id, station: alertLocation });
+    } catch (e) {
+      if (e.code !== 11000) throw e; // ignore duplicate
     }
 
     res.json({
       msg: "Alert location added successfully",
-      alertLocations: user.alertLocations,
+      alertLocations: await getAlertLocations(user._id),
     });
   } catch (err) {
     console.error("Alert location update error:", err.message);
@@ -397,8 +407,23 @@ router.get("/admin/users", auth, adminAuth, async (req, res) => {
   try {
     const users = await User.find({ isAdmin: { $ne: true } })
       .select("-password -googleId -__v")
-      .sort({ createdAt: -1 });
-    res.json(users);
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const allAlerts = await UserStationAlert.find({}).lean();
+    const alertMap = {};
+    allAlerts.forEach((a) => {
+      const key = a.userId.toString();
+      if (!alertMap[key]) alertMap[key] = [];
+      alertMap[key].push(a.station);
+    });
+
+    const result = users.map((u) => ({
+      ...u,
+      alertLocations: alertMap[u._id.toString()] || [],
+    }));
+
+    res.json(result);
   } catch (err) {
     console.error("Admin users error:", err.message);
     res.status(500).json({ msg: "Server error" });
@@ -416,28 +441,35 @@ router.get("/admin/stats", auth, adminAuth, async (req, res) => {
       isAdmin: { $ne: true },
     });
 
-    // Calculate revenue: count total alertLocations across all pro users
     const proUsersData = await User.find({
       isPro: true,
       isAdmin: { $ne: true },
-    }).select("alertLocations proActivatedAt createdAt");
+    }).select("proActivatedAt createdAt").lean();
+
+    const proUserIds = proUsersData.map((u) => u._id);
+    const allAlerts = await UserStationAlert.find({ userId: { $in: proUserIds } }).lean();
+
+    const alertCountByUser = {};
+    allAlerts.forEach((a) => {
+      const key = a.userId.toString();
+      alertCountByUser[key] = (alertCountByUser[key] || 0) + 1;
+    });
 
     let totalLocations = 0;
     const monthlyRevenue = {};
 
     proUsersData.forEach((u) => {
-      const locs = (u.alertLocations || []).length;
+      const locs = alertCountByUser[u._id.toString()] || 0;
       totalLocations += locs;
 
-      // Group revenue by month
       const date = u.proActivatedAt || u.createdAt;
       if (date) {
-        const key = new Date(date).toISOString().slice(0, 7); // YYYY-MM
+        const key = new Date(date).toISOString().slice(0, 7);
         monthlyRevenue[key] = (monthlyRevenue[key] || 0) + locs * 100;
       }
     });
 
-    const totalRevenue = totalLocations * 100; // NRS 100 per location
+    const totalRevenue = totalLocations * 100;
 
     const subscriberCount = await Subscriber.countDocuments();
 
