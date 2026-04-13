@@ -364,10 +364,13 @@ body {
 /* ---- Revenue Chart ---- */
 .admin-chart-container {
     padding: 24px;
+    height: 320px;
 }
 
 .admin-chart-container canvas {
-    max-height: 320px;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: none;
 }
 
 /* Grid layout */
@@ -375,6 +378,18 @@ body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 24px;
+    align-items: start;
+}
+
+.admin-grid-2col > .admin-panel {
+    min-height: 420px;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-grid-2col > .admin-panel .admin-table-wrap {
+    flex: 1;
+    min-height: 320px;
 }
 
 /* ---- Loading State ---- */
