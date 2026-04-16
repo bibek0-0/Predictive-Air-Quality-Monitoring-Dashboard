@@ -110,7 +110,12 @@ router.post("/initiate", auth, async (req, res) => {
       product_details,
     };
 
+    console.log("[Khalti] Initiate payload:", JSON.stringify(payload, null, 2));
+    
     const result = await khaltiInitiate(payload);
+    
+    console.log("[Khalti] Initiate result:", JSON.stringify(result, null, 2));
+    
     if (!result.ok) {
       return res.status(502).json({ msg: result.error });
     }

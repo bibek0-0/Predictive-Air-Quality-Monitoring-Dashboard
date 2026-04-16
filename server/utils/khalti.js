@@ -136,9 +136,18 @@ async function khaltiInitiate(payload) {
     return { ok: false, error: detail || "Khalti initiate failed" };
   }
 
-  const url = data.payment_url || data.go_link;
+  let url = data.payment_url || data.go_link;
   if (!url) {
     return { ok: false, error: "No payment URL from Khalti" };
+  }
+  const isSandbox =
+    (process.env.KHALTI_INITIATE_URL || KHALTI_DEFAULT_INITIATE)
+      .toLowerCase()
+      .includes("dev.khalti.com");
+  if (isSandbox) {
+    url = url
+      .replace("https://pay.khalti.com/", "https://test-pay.khalti.com/")
+      .replace("https://khalti.com/go/", "https://test-pay.khalti.com/");
   }
 
   return {
