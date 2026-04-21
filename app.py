@@ -178,7 +178,7 @@ def seed_from_google_history(lat, lon, station, hours=72):
         df = pd.DataFrame(all_rows).set_index("time")
         df.index = pd.to_datetime(df.index, utc=True).tz_convert("Asia/Kathmandu").tz_localize(None)
         df = df.sort_index()
-        df = df.resample("1H").mean()
+        df = df.resample("1h").mean()
         df["PM2.5"] = df["PM2.5"].interpolate(method="time", limit=6)
         df["PM10"]  = df["PM10"].interpolate(method="time", limit=6)
         df["PM10"] = df["PM10"].fillna(df["PM2.5"] * 1.5)
