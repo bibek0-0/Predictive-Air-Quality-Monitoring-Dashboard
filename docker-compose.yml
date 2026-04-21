@@ -17,6 +17,8 @@ services:
       # Use MONGO from .env for Atlas, fallback = Compose Mongo service
       MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/airktm}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
     volumes:
       - flask_data:/app/data
       - flask_forecasts:/app/forecasts
@@ -37,8 +39,6 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASS: ${SMTP_PASS:-}
     depends_on:
       - mongo
       - flask
