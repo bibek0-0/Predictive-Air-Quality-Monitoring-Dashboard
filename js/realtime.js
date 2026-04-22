@@ -81,7 +81,8 @@ function initializeMap() {
     realtimeMap = L.map('realtimeMap', {
         zoomControl: true,
         scrollWheelZoom: true,
-        doubleClickZoom: true
+        doubleClickZoom: true,
+        attributionControl: false
     }).setView([27.7172, 85.3240], 12);
     
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -474,11 +475,11 @@ function renderRankings(stations) {
     const sorted = validStations.sort((a, b) => b.aqi - a.aqi);
     
     if (sorted.length === 0) {
-        listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #666;">No live data available right now.</div>';
+        listContainer.textContent = 'No live data available right now.';
         return;
     }
 
-    listContainer.innerHTML = '';
+    listContainer.textContent = '';
     
     const getTextColor = (hex) => {
         if (hex === '#ffff00' || hex === '#00e400') return '#000000';

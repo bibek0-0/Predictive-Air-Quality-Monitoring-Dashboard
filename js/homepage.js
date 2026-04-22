@@ -733,7 +733,7 @@ function showLastUpdateTime() {
 
     const refreshBtn = document.createElement("button");
     refreshBtn.id = "refresh-btn";
-    refreshBtn.innerHTML = "🔄";
+    refreshBtn.textContent = "🔄";
     refreshBtn.title = "Refresh data now";
     refreshBtn.style.cssText = `
             background: var(--primary-color, #10b981);

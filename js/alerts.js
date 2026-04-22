@@ -163,7 +163,7 @@ document.addEventListener("DOMContentLoaded", function () {
         upgradeBtn.disabled = false;
         const btnText = upgradeBtn.querySelector(".upgrade-btn-text");
         if (btnText) {
-          btnText.innerHTML = "Upgrade to AirKTM Pro";
+          btnText.textContent = "Upgrade to AirKTM Pro";
         }
       }
 
